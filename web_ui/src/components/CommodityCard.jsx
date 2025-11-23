@@ -2,6 +2,16 @@ import React, { useState } from 'react';
 import CommodityChart from './CommodityChart';
 import { ExternalLink, ArrowRightLeft } from 'lucide-react';
 
+// Safe URL parsing helper
+const safeGetHostname = (url) => {
+    if (!url) return '';
+    try {
+        return new URL(url).hostname;
+    } catch {
+        return url.substring(0, 30) + (url.length > 30 ? '...' : '');
+    }
+};
+
 const CommodityCard = ({
     comm,
     realItem,
@@ -25,14 +35,28 @@ const CommodityCard = ({
     // The requirement specifically mentions "Oz and Gram conversion".
     const canConvert = ['g', 'oz', '盎司', 'gram'].includes(unit) || (unit === 'kg' && comm.id === 'silver');
 
+    // Fixed toggle logic - supports full cycle conversion
     const toggleUnit = () => {
         if (displayUnit === 'g' || displayUnit === 'gram') {
             setDisplayUnit('oz');
         } else if (displayUnit === 'oz' || displayUnit === '盎司') {
-            setDisplayUnit('g');
+            // If original was kg, allow going back to kg; otherwise go to g
+            if (unit === 'kg') {
+                setDisplayUnit('kg');
+            } else {
+                setDisplayUnit('g');
+            }
         } else if (displayUnit === 'kg') {
-            setDisplayUnit('oz'); // Special case for Silver if it comes in kg
+            setDisplayUnit('oz');
         }
+    };
+
+    // Get target unit text for switch button
+    const getTargetUnit = () => {
+        if (displayUnit === 'oz' || displayUnit === '盎司') {
+            return unit === 'kg' ? 'kg' : 'g';
+        }
+        return 'oz';
     };
 
     // Helper to convert value based on current displayUnit vs original unit
@@ -60,11 +84,8 @@ const CommodityCard = ({
         return numVal;
     };
 
+    // Converted price for header display (card-level conversion)
     const displayedPrice = convertValue(currentPrice);
-    const displayedHistory = historyData.map(item => ({
-        ...item,
-        price: convertValue(item.price)
-    }));
 
     return (
         <div style={{
@@ -96,9 +117,10 @@ const CommodityCard = ({
                                 marginTop: '4px',
                                 textDecoration: 'none'
                             }}
+                            title={realItem.url}
                         >
                             <ExternalLink size={12} />
-                            {new URL(realItem.url).hostname}
+                            {safeGetHostname(realItem.url)}
                         </a>
                     )}
                 </div>
@@ -113,7 +135,7 @@ const CommodityCard = ({
                         </span>
                     </div>
 
-                    {/* Unit Switch */}
+                    {/* Unit Switch for header price display */}
                     {canConvert && (
                         <button
                             onClick={toggleUnit}
@@ -130,9 +152,10 @@ const CommodityCard = ({
                                 color: '#4b5563',
                                 cursor: 'pointer'
                             }}
+                            title="切换价格显示单位"
                         >
                             <ArrowRightLeft size={10} />
-                            Switch to {displayUnit === 'oz' ? 'g' : 'oz'}
+                            切换到 {getTargetUnit()}
                         </button>
                     )}
                 </div>
@@ -140,10 +163,12 @@ const CommodityCard = ({
 
             <div style={{ height: '350px' }}>
                 <CommodityChart
-                    data={displayedHistory}
+                    data={historyData}
                     color={comm.color}
                     name={comm.name}
                     currencySymbol={currencySymbol}
+                    unit={unit}
+                    showUnitSwitch={canConvert}
                 />
             </div>
         </div>

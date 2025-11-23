@@ -1,11 +1,21 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { ArrowUp, ArrowDown, RefreshCw, Settings, Plus, Trash2, X, Save, Eye, Check, Calendar } from 'lucide-react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { ArrowUp, ArrowDown, RefreshCw, Settings, Plus, Trash2, X, Save, Eye, Check, Calendar, ExternalLink, Globe, Filter } from 'lucide-react';
 import CommodityCard from '../components/CommodityCard';
 import ExchangeStatus from '../components/ExchangeStatus';
 import NewsFeed from '../components/NewsFeed';
 import AIAnalysis from '../components/AIAnalysis';
 import api from '../services/api';
 import * as echarts from 'echarts';
+
+// Safe URL parsing helper to avoid errors
+const safeGetHostname = (url) => {
+    if (!url) return '';
+    try {
+        return new URL(url).hostname;
+    } catch {
+        return url.substring(0, 30) + (url.length > 30 ? '...' : '');
+    }
+};
 
 const Dashboard = () => {
     const [data, setData] = useState([]);
@@ -166,8 +176,27 @@ const Dashboard = () => {
     // Filter data based on search term or visibility
     let displayItems = [];
 
-    // Extract available URLs for filter
-    const availableUrls = [...new Set(data.map(item => item.url).filter(Boolean))];
+    // Extract available URLs with statistics
+    const urlStats = useMemo(() => {
+        const stats = {};
+        data.forEach(item => {
+            if (item.url) {
+                if (!stats[item.url]) {
+                    stats[item.url] = {
+                        url: item.url,
+                        hostname: safeGetHostname(item.url),
+                        count: 0,
+                        items: []
+                    };
+                }
+                stats[item.url].count++;
+                stats[item.url].items.push(item.name || item.chinese_name);
+            }
+        });
+        return Object.values(stats).sort((a, b) => b.count - a.count);
+    }, [data]);
+
+    const availableUrls = urlStats.map(s => s.url);
 
     if (searchTerm || selectedUrl) {
         // If searching or filtering by URL, show matching items
@@ -222,20 +251,31 @@ const Dashboard = () => {
                         )}
                     </div>
 
-                    {/* URL Filter */}
-                    {availableUrls.length > 0 && (
+                    {/* URL Filter - Enhanced with count display */}
+                    {urlStats.length > 0 && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fff', border: '1px solid #e5e7eb', padding: '6px 12px', borderRadius: '8px' }}>
-                            <span style={{ fontSize: '12px', color: '#6b7280', whiteSpace: 'nowrap' }}>URL:</span>
+                            <Globe size={16} color="#6b7280" />
                             <select
                                 value={selectedUrl}
                                 onChange={(e) => setSelectedUrl(e.target.value)}
-                                style={{ border: 'none', outline: 'none', fontSize: '14px', color: '#374151', background: 'transparent', padding: 0, maxWidth: '150px' }}
+                                style={{ border: 'none', outline: 'none', fontSize: '14px', color: '#374151', background: 'transparent', padding: 0, minWidth: '120px', maxWidth: '200px' }}
                             >
-                                <option value="">全部 (All)</option>
-                                {availableUrls.map((url, idx) => (
-                                    <option key={idx} value={url}>{new URL(url).hostname}</option>
+                                <option value="">全部来源 ({data.length})</option>
+                                {urlStats.map((stat, idx) => (
+                                    <option key={idx} value={stat.url}>
+                                        {stat.hostname} ({stat.count})
+                                    </option>
                                 ))}
                             </select>
+                            {selectedUrl && (
+                                <button
+                                    onClick={() => setSelectedUrl('')}
+                                    style={{ border: 'none', background: 'none', padding: '2px', cursor: 'pointer', display: 'flex' }}
+                                    title="清除筛选"
+                                >
+                                    <X size={14} color="#9ca3af" />
+                                </button>
+                            )}
                         </div>
                     )}
 
@@ -388,19 +428,46 @@ const Dashboard = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '20px' }}>
                 <div className="main-content">
-                    {/* Summary Cards */}
+                    {/* Summary Cards - Enhanced with URL display */}
                     <div className="grid-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
                         {data.slice(0, 4).map((item, index) => {
                             const price = item.price || item.current_price || item.last_price || 0;
                             const change = item.change || item.change_percent || 0;
                             const isUp = change >= 0;
+                            const hostname = safeGetHostname(item.url);
 
                             return (
                                 <div key={index} style={{ background: '#fff', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                                        <span style={{ color: '#6b7280', fontSize: '14px', fontWeight: '500' }}>
-                                            {item.name || item.currency_pair || item.chinese_name || 'Unknown'}
-                                        </span>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                            <span style={{ color: '#6b7280', fontSize: '14px', fontWeight: '500' }}>
+                                                {item.name || item.currency_pair || item.chinese_name || 'Unknown'}
+                                            </span>
+                                            {/* URL Source Display */}
+                                            {item.url && (
+                                                <a
+                                                    href={item.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    style={{
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '3px',
+                                                        fontSize: '11px',
+                                                        color: '#9ca3af',
+                                                        textDecoration: 'none',
+                                                        maxWidth: '120px',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        whiteSpace: 'nowrap'
+                                                    }}
+                                                    title={item.url}
+                                                >
+                                                    <ExternalLink size={10} />
+                                                    {hostname}
+                                                </a>
+                                            )}
+                                        </div>
                                         <span style={{
                                             display: 'flex',
                                             alignItems: 'center',
@@ -409,7 +476,8 @@ const Dashboard = () => {
                                             color: isUp ? '#10b981' : '#ef4444',
                                             background: isUp ? '#d1fae5' : '#fee2e2',
                                             padding: '2px 8px',
-                                            borderRadius: '999px'
+                                            borderRadius: '999px',
+                                            height: 'fit-content'
                                         }}>
                                             {isUp ? <ArrowUp size={12} style={{ marginRight: '2px' }} /> : <ArrowDown size={12} style={{ marginRight: '2px' }} />}
                                             {Math.abs(change)}%
