@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { ArrowUp, ArrowDown, RefreshCw, Settings, Plus, Trash2, X, Save, Eye, Check, Calendar, ExternalLink, Globe, Filter } from 'lucide-react';
+import { ArrowUp, ArrowDown, RefreshCw, Settings, Plus, Trash2, X, Save, Eye, Check, Calendar, ExternalLink, Globe } from 'lucide-react';
 import CommodityCard from '../components/CommodityCard';
 import ExchangeStatus from '../components/ExchangeStatus';
 import NewsFeed from '../components/NewsFeed';
@@ -196,8 +196,6 @@ const Dashboard = () => {
         return Object.values(stats).sort((a, b) => b.count - a.count);
     }, [data]);
 
-    const availableUrls = urlStats.map(s => s.url);
-
     if (searchTerm || selectedUrl) {
         // If searching or filtering by URL, show matching items
         displayItems = data.filter(item => {
@@ -211,14 +209,18 @@ const Dashboard = () => {
             const matchesUrl = !selectedUrl || item.url === selectedUrl;
 
             return matchesSearch && matchesUrl;
-        }).map(item => ({
-            id: item.name || item.chinese_name,
-            name: item.chinese_name || item.name,
-            basePrice: item.current_price || item.price,
-            color: '#' + Math.floor(Math.random() * 16777215).toString(16), // Random color for search results
-            isDynamic: true,
-            dataItem: item
-        }));
+        }).map((item, idx) => {
+            // Predefined colors for better consistency
+            const colors = ['#ffc658', '#a4a9ad', '#8884d8', '#82ca9d', '#ff7c43', '#665191', '#2f4b7c', '#a05195'];
+            return {
+                id: item.name || item.chinese_name || `item-${idx}`,
+                name: item.chinese_name || item.name,
+                basePrice: item.current_price || item.price,
+                color: colors[idx % colors.length],
+                isDynamic: true,
+                dataItem: item
+            };
+        });
     } else {
         // Default view: show selected commodities
         displayItems = commodities.filter(c => visibleCommodities[c.id] || (c.id === 'silver' && visibleCommodities.silver === undefined)); // Default silver to visible if not set

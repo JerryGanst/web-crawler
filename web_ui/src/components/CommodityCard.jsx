@@ -29,11 +29,9 @@ const CommodityCard = ({
     // Conversion constants
     const GRAMS_PER_OUNCE = 31.1034768;
 
-    // Check if this commodity supports oz/g conversion (Gold/Silver usually)
-    // We assume if the unit is 'g' or 'oz', it supports conversion.
-    // Also 'kg' for Silver might want to convert to oz? 
-    // The requirement specifically mentions "Oz and Gram conversion".
-    const canConvert = ['g', 'oz', '盎司', 'gram'].includes(unit) || (unit === 'kg' && comm.id === 'silver');
+    // Check if this commodity supports oz/g conversion
+    // Supports: g, oz, 盎司, gram, kg (for precious metals like silver)
+    const canConvert = ['g', 'oz', '盎司', 'gram', 'kg'].includes(unit);
 
     // Fixed toggle logic - supports full cycle conversion
     const toggleUnit = () => {
@@ -61,7 +59,7 @@ const CommodityCard = ({
 
     // Helper to convert value based on current displayUnit vs original unit
     const convertValue = (val) => {
-        if (!val) return 0;
+        if (!val || !canConvert) return val || 0;
         const numVal = parseFloat(val);
 
         if (unit === displayUnit) return numVal;
@@ -76,9 +74,14 @@ const CommodityCard = ({
             return numVal * GRAMS_PER_OUNCE;
         }
 
-        // Convert FROM 'kg' TO 'oz' (1 kg = 1000 g = 32.1507 oz)
+        // Convert FROM 'kg' TO 'oz' (1 kg = 1000 g ≈ 32.15 oz)
         if (unit === 'kg' && (displayUnit === 'oz' || displayUnit === '盎司')) {
             return (numVal * 1000) / GRAMS_PER_OUNCE;
+        }
+
+        // Convert FROM 'oz' TO 'kg' (reverse)
+        if ((unit === 'oz' || unit === '盎司') && displayUnit === 'kg') {
+            return (numVal * GRAMS_PER_OUNCE) / 1000;
         }
 
         return numVal;

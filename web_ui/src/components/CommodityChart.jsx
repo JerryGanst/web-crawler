@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { ArrowRightLeft } from 'lucide-react';
 
@@ -17,62 +17,77 @@ const CommodityChart = ({
     // State for chart-level unit conversion (independent of card)
     const [chartUnit, setChartUnit] = useState(unit);
 
+    // Sync chartUnit when unit prop changes
+    useEffect(() => {
+        setChartUnit(unit);
+    }, [unit]);
+
     // Check if this commodity supports oz/g conversion
     const canConvert = useMemo(() => {
         return ['g', 'oz', '盎司', 'gram', 'kg'].includes(unit);
     }, [unit]);
 
-    // Toggle between units
-    const toggleChartUnit = () => {
-        if (chartUnit === 'g' || chartUnit === 'gram') {
-            setChartUnit('oz');
-        } else if (chartUnit === 'oz' || chartUnit === '盎司') {
-            setChartUnit('g');
-        } else if (chartUnit === 'kg') {
-            // kg can toggle between kg and oz
-            setChartUnit('oz');
-        }
-    };
+    // Toggle between units - fixed cycle logic
+    const toggleChartUnit = useCallback(() => {
+        setChartUnit(current => {
+            if (current === 'g' || current === 'gram') {
+                return 'oz';
+            } else if (current === 'oz' || current === '盎司') {
+                // If original was kg, allow going back to kg; otherwise go to g
+                return unit === 'kg' ? 'kg' : 'g';
+            } else if (current === 'kg') {
+                return 'oz';
+            }
+            return current;
+        });
+    }, [unit]);
 
     // Convert value based on original unit and display unit
-    const convertValue = (val) => {
+    const convertValue = useCallback((val, targetUnit) => {
         if (!val || !canConvert) return val;
         const numVal = parseFloat(val);
 
-        if (unit === chartUnit) return numVal;
+        if (unit === targetUnit) return numVal;
 
         // FROM 'g' TO 'oz'
-        if ((unit === 'g' || unit === 'gram') && (chartUnit === 'oz' || chartUnit === '盎司')) {
+        if ((unit === 'g' || unit === 'gram') && (targetUnit === 'oz' || targetUnit === '盎司')) {
             return numVal / GRAMS_PER_OUNCE;
         }
 
         // FROM 'oz' TO 'g'
-        if ((unit === 'oz' || unit === '盎司') && (chartUnit === 'g' || chartUnit === 'gram')) {
+        if ((unit === 'oz' || unit === '盎司') && (targetUnit === 'g' || targetUnit === 'gram')) {
             return numVal * GRAMS_PER_OUNCE;
         }
 
         // FROM 'kg' TO 'oz'
-        if (unit === 'kg' && (chartUnit === 'oz' || chartUnit === '盎司')) {
+        if (unit === 'kg' && (targetUnit === 'oz' || targetUnit === '盎司')) {
             return (numVal * 1000) / GRAMS_PER_OUNCE;
         }
 
+        // FROM 'oz' TO 'kg' (reverse)
+        if ((unit === 'oz' || unit === '盎司') && targetUnit === 'kg') {
+            return (numVal * GRAMS_PER_OUNCE) / 1000;
+        }
+
         return numVal;
-    };
+    }, [unit, canConvert]);
 
     // Get target unit text for switch button
-    const getTargetUnit = () => {
-        if (chartUnit === 'oz' || chartUnit === '盎司') return 'g';
+    const getTargetUnit = useCallback(() => {
+        if (chartUnit === 'oz' || chartUnit === '盎司') {
+            return unit === 'kg' ? 'kg' : 'g';
+        }
         if (chartUnit === 'g' || chartUnit === 'gram' || chartUnit === 'kg') return 'oz';
         return '';
-    };
+    }, [chartUnit, unit]);
 
     // Convert data for display
     const displayData = useMemo(() => {
         return data.map(item => ({
             ...item,
-            price: convertValue(item.price)
+            price: convertValue(item.price, chartUnit)
         }));
-    }, [data, chartUnit, unit]);
+    }, [data, chartUnit, convertValue]);
 
     const dates = displayData.map(item => item.date);
     const prices = displayData.map(item => item.price);
