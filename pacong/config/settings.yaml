@@ -1,192 +1,178 @@
-# Pacong 爬虫系统配置文件
-
-# 浏览器配置
+api_keys:
+  alpha_vantage: ''
 browser:
-  selenium_timeout: 30
   applescript_timeout: 60
   cdp_debug_port: 9222
-  chrome_path: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-  user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  chrome_path: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
   headless: true
-
-# 爬虫配置
-scraping:
-  request_timeout: 30
-  retry_attempts: 3
-  retry_delay: 1.0
-  rate_limit_delay: 2.0
-  max_concurrent_requests: 5
-
-# 输出配置
-output:
-  reports_dir: "reports"
-  data_dir: "data"
-  charts_dir: "charts"
-  encoding: "utf-8-sig"
-  timestamp_format: "%Y%m%d_%H%M%S"
-
-# 日志配置
-logging:
-  level: "INFO"
-  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-  file_path: null  # 不记录到文件，只输出到控制台
-  max_file_size: 10485760  # 10MB
-  backup_count: 5
-
-# API密钥配置
-api_keys:
-  alpha_vantage: ""
-  
-# 数据源配置
+  selenium_timeout: 30
+  user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
+    like Gecko) Chrome/120.0.0.0 Safari/537.36
+commodity_categories:
+  agriculture:
+    items:
+    - 玉米
+    - 小麦
+    - 大豆
+    - 棉花
+    - 糖
+    - 咖啡
+    - 可可
+    name: 农产品
+  energy:
+    items:
+    - 原油
+    - 天然气
+    - 汽油
+    - 取暖油
+    - 煤炭
+    name: 能源
+  industrial_metals:
+    items:
+    - 铜
+    - 铝
+    - 锌
+    - 镍
+    - 铅
+    - 锡
+    name: 工业金属
+  precious_metals:
+    items:
+    - 黄金
+    - 白银
+    - 铂金
+    - 钯金
+    name: 贵金属
 data_sources:
   bloomberg:
     enabled: true
-    url: "https://www.bloomberg.com/markets/commodities"
     timeout: 30
-    
+    url: https://www.bloomberg.com/markets/commodities
   business_insider:
     enabled: true
-    url: "https://markets.businessinsider.com/commodities"
     timeout: 30
-    
+    url: https://markets.businessinsider.com/commodities
   sina_finance:
+    base_url: https://finance.sina.com.cn/money/forex/hq
     enabled: true
-    base_url: "https://finance.sina.com.cn/money/forex/hq"
     timeout: 30
-    
   worldbank:
+    data_url: https://thedocs.worldbank.org/en/doc/18675f1d1639c7a34d463f59263ba0a2-0050012025/related/CMO-Historical-Data-Monthly.xlsx
     enabled: true
-    data_url: "https://thedocs.worldbank.org/en/doc/18675f1d1639c7a34d463f59263ba0a2-0050012025/related/CMO-Historical-Data-Monthly.xlsx"
     timeout: 60
-
-# 商品分类配置
-commodity_categories:
-  energy:
-    name: "能源"
-    items: ["原油", "天然气", "汽油", "取暖油", "煤炭"]
-    
-  precious_metals:
-    name: "贵金属"
-    items: ["黄金", "白银", "铂金", "钯金"]
-    
-  industrial_metals:
-    name: "工业金属"
-    items: ["铜", "铝", "锌", "镍", "铅", "锡"]
-    
-  agriculture:
-    name: "农产品"
-    items: ["玉米", "小麦", "大豆", "棉花", "糖", "咖啡", "可可"]
-
-# 通用爬虫配置（配置驱动，无需编写代码）
 generic_scrapers:
-  # 测试示例：CoinGecko API（演示 JSON 解析）
   coingecko_demo:
-    enabled: true
-    name: "CoinGecko 加密货币演示"
-    type: "commodity"
-    urls: "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd"
-    method: "requests"
-    parser: "json"
-    
-    field_mapping:
-      name: "coin_id"
-      current_price: "usd"
-    
-    headers:
-      "Accept": "application/json"
-      "User-Agent": "Pacong Generic Scraper Demo"
-    
-    validation:
-      required_fields: ["name", "current_price"]
-    
     cleaning:
       transforms:
-        current_price: "float"
-
-  # 示例：Yahoo Finance 
-  yahoo_finance:
-    enabled: false  # 暂时关闭，可根据需要启用
-    name: "Yahoo Finance 商品数据"
-    type: "commodity"
-    urls: "https://finance.yahoo.com/commodities"
-    method: "requests"  # requests | selenium | applescript
-    parser: "html"      # html | json | regex
-    
-    # HTML 解析规则
-    extraction:
-      container: "tr[data-symbol]"  # 数据容器选择器
-      fields:
-        name:
-          selector: "td[aria-label='Symbol'] a"
-          transform: "uppercase"
-        price:
-          selector: "td[aria-label='Last Price']"
-          transform: "float"
-        change:
-          selector: "td[aria-label='Change']"
-          
-    # 验证规则
+        current_price: float
+    enabled: true
+    field_mapping:
+      current_price: usd
+      name: coin_id
+    headers:
+      Accept: application/json
+      User-Agent: Pacong Generic Scraper Demo
+    method: requests
+    name: CoinGecko 加密货币演示
+    parser: json
+    type: commodity
+    urls: https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd
     validation:
-      required_fields: ["name", "price"]
-      formats:
-        price: "number"
-        
-    # 清洗规则
-    cleaning:
-      fields:
-        price: "remove_currency"
-        name: "normalize_whitespace"
-  
-  # 示例：通过 API 接口
+      required_fields:
+      - name
+      - current_price
   example_api:
     enabled: false
-    name: "示例API数据源"
-    type: "commodity"
-    urls: "https://api.example.com/commodities"
-    method: "requests"
-    parser: "json"
-    
-    # JSON 解析配置
-    json_path: "data.commodities"  # 数据在JSON中的路径
-    field_mapping:  # 字段映射
-      name: "commodity_name"
-      price: "current_price"
-      change: "price_change"
-      
+    field_mapping:
+      change: price_change
+      name: commodity_name
+      price: current_price
     headers:
-      "User-Agent": "Pacong Scraper 2.0"
-      "Accept": "application/json"
-  
-  # 示例：复杂网页（需要 Selenium）
+      Accept: application/json
+      User-Agent: Pacong Scraper 2.0
+    json_path: data.commodities
+    method: requests
+    name: 示例API数据源
+    parser: json
+    type: commodity
+    urls: https://api.example.com/commodities
   example_dynamic:
     enabled: false
-    name: "动态网页示例"
-    type: "commodity"
-    urls: "https://example.com/dynamic-data"
-    method: "selenium"
-    parser: "html"
-    wait_time: 5  # 等待页面加载时间
-    
     extraction:
-      container: ".commodity-row"
+      container: .commodity-row
       fields:
-        name: 
-          selector: ".commodity-name"
+        name:
+          selector: .commodity-name
         price:
-          selector: ".commodity-price"
-          regex: "\\$([\\d,\\.]+)"  # 提取价格数字
-          transform: "float" 
-
-# 简化版通用爬虫配置（基础功能测试）
+          regex: \$([\d,\.]+)
+          selector: .commodity-price
+          transform: float
+    method: selenium
+    name: 动态网页示例
+    parser: html
+    type: commodity
+    urls: https://example.com/dynamic-data
+    wait_time: 5
+  yahoo_finance:
+    cleaning:
+      fields:
+        name: normalize_whitespace
+        price: remove_currency
+    enabled: false
+    extraction:
+      container: tr[data-symbol]
+      fields:
+        change:
+          selector: td[aria-label='Change']
+        name:
+          selector: td[aria-label='Symbol'] a
+          transform: uppercase
+        price:
+          selector: td[aria-label='Last Price']
+          transform: float
+    method: requests
+    name: Yahoo Finance 商品数据
+    parser: html
+    type: commodity
+    urls: https://finance.yahoo.com/commodities
+    validation:
+      formats:
+        price: number
+      required_fields:
+      - name
+      - price
+logging:
+  backup_count: 5
+  file_path: null
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  level: INFO
+  max_file_size: 10485760
+output:
+  charts_dir: charts
+  data_dir: data
+  encoding: utf-8-sig
+  reports_dir: reports
+  timestamp_format: '%Y%m%d_%H%M%S'
+scraping:
+  max_concurrent_requests: 5
+  rate_limit_delay: 2
+  request_timeout: 30
+  retry_attempts: 3
+  retry_delay: 1
 simple_scrapers:
   coingecko_test:
     enabled: true
-    name: "CoinGecko 测试"
-    type: "commodity"
-    urls: "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd"
-    method: "requests"
-    required_fields: ["name", "current_price"]
-    
     headers:
-      "Accept": "application/json"
-      "User-Agent": "Pacong Simple Scraper" 
+      Accept: application/json
+      User-Agent: Pacong Simple Scraper
+    method: requests
+    name: CoinGecko 测试
+    required_fields:
+    - name
+    - current_price
+    type: commodity
+    urls: https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd
+target_urls:
+- http://example.com
+- http://test-merge.com
+- baidu

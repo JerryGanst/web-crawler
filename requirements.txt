@@ -37,3 +37,8 @@ matplotlib>=3.7.0
 # 系统说明
 # macOS AppleScript - 系统内置，无需额外安装
 # Chrome浏览器 - 需要手动安装 Google Chrome 
+
+# Backend API
+fastapi>=0.100.0
+uvicorn>=0.22.0
+python-multipart>=0.0.6
