@@ -1,0 +1,123 @@
+# 自定义爬虫配置
+# 这些爬虫独立于 newsnow API，可以直接爬取目标网站
+
+custom_scrapers:
+  # ========== 财经数据源 ==========
+  
+  # 新浪财经 - 外汇数据
+  sina_forex:
+    enabled: true
+    display_name: "新浪财经外汇"
+    category: "finance"
+    urls: "https://hq.sinajs.cn/list=fx_susdcny"
+    method: "requests"
+    parser: "custom"  # 需要自定义解析
+    headers:
+      Referer: "https://finance.sina.com.cn"
+    description: "人民币汇率实时数据"
+  
+  # 同花顺 - 财经要闻 (需要分析API)
+  ths_news:
+    enabled: false  # 暂时禁用，需要分析接口
+    display_name: "同花顺要闻"
+    category: "finance"
+    urls: "https://news.10jqka.com.cn/realtimenews_list.html"
+    method: "selenium"  # 动态页面需要浏览器
+    parser: "html"
+    extraction:
+      container: ".list-item"
+      fields:
+        title:
+          selector: ".title a"
+        url:
+          selector: ".title a"
+          attribute: "href"
+    description: "同花顺财经要闻"
+  
+  # 金十数据 - 快讯 (已通过 newsnow 支持)
+  jin10_flash:
+    enabled: false
+    display_name: "金十快讯"
+    category: "finance"
+    urls: "https://flash-api.jin10.com/get_flash_list"
+    method: "requests"
+    parser: "json"
+    description: "金十数据快讯"
+  
+  # CoinGecko - 加密货币价格
+  coingecko_crypto:
+    enabled: true
+    display_name: "CoinGecko加密货币"
+    category: "finance"
+    urls: "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1"
+    method: "requests"
+    parser: "json"
+    field_mapping:
+      title: "name"
+      price: "current_price"
+      change: "price_change_percentage_24h"
+    description: "加密货币市值Top20"
+  
+  # 东方财富 - 供应链企业新闻
+  eastmoney_supply_chain:
+    enabled: true
+    display_name: "东方财富供应链动态"
+    category: "finance"
+    # 监控的股票代码列表
+    stock_codes:
+      - code: "002475"
+        name: "立讯精密"
+        market: "SZ"
+      - code: "002241"
+        name: "歌尔股份"
+        market: "SZ"
+      - code: "300433"
+        name: "蓝思科技"
+        market: "SZ"
+      - code: "601138"
+        name: "工业富联"
+        market: "SH"
+      - code: "000725"
+        name: "京东方A"
+        market: "SZ"
+      - code: "300207"
+        name: "欣旺达"
+        market: "SZ"
+      - code: "002938"
+        name: "鹏鼎控股"
+        market: "SZ"
+      - code: "002384"
+        name: "东山精密"
+        market: "SZ"
+    method: "requests"
+    parser: "custom"
+    description: "东方财富个股新闻 - 供应链企业动态"
+  
+  # Alpha Vantage - 股票数据 (需要API Key)
+  alpha_vantage:
+    enabled: false
+    display_name: "Alpha Vantage"
+    category: "finance"
+    urls: "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=5min&apikey=YOUR_API_KEY"
+    method: "requests"
+    parser: "json"
+    description: "股票实时数据 (需要API Key)"
+
+  # ========== 新闻数据源 ==========
+  
+  # Hacker News - 科技新闻
+  hackernews:
+    enabled: true
+    display_name: "Hacker News"
+    category: "tech"
+    urls: "https://hacker-news.firebaseio.com/v0/topstories.json"
+    method: "requests"
+    parser: "custom"  # 需要额外请求获取详情
+    description: "Hacker News 热门"
+
+# 爬虫全局配置
+scraper_settings:
+  max_retries: 3
+  timeout: 15
+  rate_limit_delay: 1
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"

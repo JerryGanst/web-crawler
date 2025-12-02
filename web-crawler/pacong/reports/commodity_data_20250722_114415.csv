@@ -1,0 +1,36 @@
+﻿name,chinese_name,symbol,category,currency,current_price,change_amount,change_percent,open_price,high_price,low_price,previous_close,volume,market_cap,source,timestamp
+Coffee,咖啡,,农产品,USD,3.13,,9.4,,,,,,,business_insider,2025-07-22T11:43:54.928686
+Cocoa,可可,,农产品,USD,5201.0,,4.1,,,,,,,business_insider,2025-07-22T11:43:54.928687
+Nickel,镍,,工业金属,USD,15274.0,,2.6,,,,,,,business_insider,2025-07-22T11:43:54.928679
+Zinc,锌,,工业金属,USD,2845.85,,2.37,,,,,,,business_insider,2025-07-22T11:43:54.928680
+Orange Juice,橙汁,,其他,USD,3.27,,2.19,,,,,,,business_insider,2025-07-22T11:43:54.928694
+Gold,黄金,,贵金属,USD,3390.88,,-0.15,,,,,,,business_insider,2025-07-22T11:43:54.928661
+Palladium,钯金,,贵金属,USD,1270.0,,0.2,,,,,,,business_insider,2025-07-22T11:43:54.928663
+Platinum,铂金,,贵金属,USD,1448.5,,-0.14,,,,,,,business_insider,2025-07-22T11:43:54.928664
+Silver,白银,,贵金属,USD,38.81,,-0.33,,,,,,,business_insider,2025-07-22T11:43:54.928665
+天然气,天然气(亨利中心),,能源,USD,3.31,,-0.12,,,,,,,business_insider,2025-07-22T11:43:54.928666
+取暖油,取暖油,,能源,USD,65.25,,-1.59,,,,,,,business_insider,2025-07-22T11:43:54.928668
+Coal,煤炭,,其他,USD,104.5,,-0.48,,,,,,,business_insider,2025-07-22T11:43:54.928669
+RBOB汽油,RBOB汽油,,能源,USD,2.11,,-0.74,,,,,,,business_insider,2025-07-22T11:43:54.928670
+布伦特原油,布伦特原油,,能源,USD,68.68,,-0.59,,,,,,,business_insider,2025-07-22T11:43:54.928673
+WTI原油,WTI原油,,能源,USD,67.22,,-0.12,,,,,,,business_insider,2025-07-22T11:43:54.928674
+Aluminium,铝,,其他,USD,2642.5,,1.4,,,,,,,business_insider,2025-07-22T11:43:54.928675
+Lead,铅,,工业金属,USD,1976.35,,-0.03,,,,,,,business_insider,2025-07-22T11:43:54.928676
+Copper,铜,,工业金属,USD,9773.35,,1.1,,,,,,,business_insider,2025-07-22T11:43:54.928678
+Tin,锡,,工业金属,USD,33775.0,,1.87,,,,,,,business_insider,2025-07-22T11:43:54.928681
+Cotton,棉花,,农产品,USD,0.67,,-0.97,,,,,,,business_insider,2025-07-22T11:43:54.928682
+Oats,燕麦,,其他,USD,3.6,,-0.35,,,,,,,business_insider,2025-07-22T11:43:54.928683
+Lumber,木材,,其他,USD,668.0,,0.0,,,,,,,business_insider,2025-07-22T11:43:54.928685
+活牛,活牛,,农产品,USD,2.25,,0.84,,,,,,,business_insider,2025-07-22T11:43:54.928688
+瘦肉猪,瘦肉猪,,农产品,USD,1.07,,0.75,,,,,,,business_insider,2025-07-22T11:43:54.928689
+Corn,玉米,,农产品,USD,4.05,,0.25,,,,,,,business_insider,2025-07-22T11:43:54.928691
+饲料牛,饲料牛,,农产品,USD,3.28,,1.31,,,,,,,business_insider,2025-07-22T11:43:54.928692
+Milk,牛奶,,其他,USD,17.39,,-0.11,,,,,,,business_insider,2025-07-22T11:43:54.928693
+Palm Oil,棕榈油,,能源,USD,4172.0,,-2.09,,,,,,,business_insider,2025-07-22T11:43:54.928695
+Rapeseed,油菜籽,,其他,USD,470.75,,-0.58,,,,,,,business_insider,2025-07-22T11:43:54.928697
+Rice,大米,,其他,USD,12.33,,0.12,,,,,,,business_insider,2025-07-22T11:43:54.928698
+Soybean Meal,豆粕,,农产品,USD,272.0,,0.44,,,,,,,business_insider,2025-07-22T11:43:54.928699
+Soybeans,大豆,,农产品,USD,10.15,,0.0,,,,,,,business_insider,2025-07-22T11:43:54.928700
+Soybean Oil,豆油,,能源,USD,0.56,,-0.61,,,,,,,business_insider,2025-07-22T11:43:54.928701
+Wheat,小麦,,农产品,USD,202.25,,-0.12,,,,,,,business_insider,2025-07-22T11:43:54.928702
+Sugar,糖,,农产品,USD,0.16,,-2.56,,,,,,,business_insider,2025-07-22T11:43:54.928703

@@ -1,0 +1,58 @@
+# 🔧 配置示例 - 添加新数据源
+
+# 复制以下示例到 settings.yaml 的 simple_scrapers 部分
+
+simple_scrapers:
+  
+  # 示例1: JSON API 接口
+  demo_api:
+    enabled: false  # 改为 true 启用
+    name: "示例API"
+    urls: "https://api.example.com/v1/data"
+    method: "requests"
+    headers:
+      "Authorization": "Bearer your-token"
+      "User-Agent": "Pacong Scraper"
+  
+  # 示例2: 多个URL数据源
+  multi_urls:
+    enabled: false
+    name: "多URL数据源"
+    urls:
+      - "https://site1.com/api/prices"
+      - "https://site2.com/api/markets" 
+      - "https://site3.com/data.json"
+    method: "requests"
+  
+  # 示例3: 需要浏览器的动态网页
+  dynamic_site:
+    enabled: false
+    name: "动态网页"
+    urls: "https://example.com/dynamic-table"
+    method: "selenium"  # 使用浏览器
+    wait_time: 5        # 等待页面加载
+  
+  # 示例4: 带认证的API
+  auth_api:
+    enabled: false
+    name: "认证API"
+    urls: "https://private-api.com/data"
+    method: "requests"
+    headers:
+      "X-API-Key": "your-api-key"
+      "Accept": "application/json"
+  
+  # 示例5: 简单表格网页
+  table_site:
+    enabled: false
+    name: "表格网页"
+    urls: "https://finance-site.com/commodity-prices"
+    method: "requests"
+    required_fields: ["name", "current_price"]
+
+# 💡 提示:
+# - enabled: true/false 控制是否启用
+# - method: "requests"(普通网页) | "selenium"(需要浏览器)
+# - headers: 自定义请求头
+# - wait_time: 仅selenium模式，等待时间(秒)
+# - required_fields: 必需的数据字段 

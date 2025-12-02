@@ -1,0 +1,95 @@
+# 通用爬虫配置示例
+# 复制此内容到 settings.yaml 的 generic_scrapers 部分来启用
+
+generic_scrapers:
+  # 测试示例：CoinGecko API（简单且稳定）
+  coingecko_test:
+    enabled: true
+    name: "CoinGecko 加密货币价格"
+    type: "commodity"
+    urls: "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,litecoin&vs_currencies=usd&include_24hr_change=true"
+    method: "requests"
+    parser: "json"
+    
+    # 自定义字段映射（将JSON转换为标准格式）
+    field_mapping:
+      # 特殊处理：需要自定义解析逻辑
+      name: "coin_id"  # 将由解析器动态生成
+      price: "usd"
+      change_percent: "usd_24h_change"
+    
+    headers:
+      "Accept": "application/json"
+      "User-Agent": "Pacong Generic Scraper"
+    
+    validation:
+      required_fields: ["name", "price"]
+      formats:
+        price: "number"
+    
+    cleaning:
+      transforms:
+        price: "float"
+
+  # 实用示例：Yahoo Finance 商品页面
+  yahoo_finance_commodities:
+    enabled: false  # 设为 true 可启用
+    name: "Yahoo Finance 商品数据"
+    type: "commodity"
+    urls: "https://finance.yahoo.com/commodities"
+    method: "requests"
+    parser: "html"
+    
+    extraction:
+      # 查找包含商品数据的表格行
+      container: "table tbody tr"
+      fields:
+        name:
+          selector: "td:first-child a"
+          transform: "uppercase"
+        price:
+          selector: "td:nth-child(2) span"
+          transform: "float"
+        change:
+          selector: "td:nth-child(3) span"
+        change_percent:
+          selector: "td:nth-child(4) span"
+          regex: "([+-]?[\\d\\.]+)%"
+    
+    validation:
+      required_fields: ["name", "price"]
+      formats:
+        price: "number"
+    
+    cleaning:
+      fields:
+        name: "normalize_whitespace"
+        price: "remove_currency"
+
+  # 示例：使用 Selenium 处理动态内容
+  dynamic_example:
+    enabled: false
+    name: "动态网页示例"
+    type: "commodity"
+    urls: "https://example-dynamic-site.com/data"
+    method: "selenium"
+    parser: "html"
+    wait_time: 5
+    
+    extraction:
+      container: ".commodity-item"
+      fields:
+        name: ".name"
+        price: 
+          selector: ".price"
+          regex: "\\$([\\d,\\.]+)"
+          transform: "float"
+        status: ".status"
+    
+    validation:
+      required_fields: ["name", "price"]
+    
+    cleaning:
+      fields:
+        price: "remove_currency"
+        name: "normalize_whitespace" 
