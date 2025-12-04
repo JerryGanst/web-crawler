@@ -77,18 +77,19 @@ const TrendRadar = () => {
         fetchCategories();
     }, []);
 
-    // 加载新闻数据（使用 api.js 的缓存机制）
+    // 加载新闻数据
     const loadNews = async (category, forceRefresh = false) => {
-        if (forceRefresh) {
-            // 强制刷新时清除缓存
-            api.clearCache(`news:${category}`);
-        }
-        
         setLoading(true);
         try {
-            // 使用带缓存的 API 方法
-            const response = await api.getNews(category, true);
+            // forceRefresh=true 时强制从后端爬取最新数据
+            const response = await api.getNews(category, true, forceRefresh);
             const data = response.data || response;
+            
+            // 如果缓存为空且不是强制刷新，自动触发一次爬取
+            if (!data.data?.length && !forceRefresh) {
+                console.log('缓存为空，自动爬取...');
+                return loadNews(category, true);
+            }
             
             setNewsData(data.data || []);
             setStats({ total: data.total, sources: data.sources || {} });
@@ -270,10 +271,12 @@ const TrendRadar = () => {
                                 {loading ? '加载中...' : `最新热点 (${stats.total})`}
                             </h2>
                             <button
-                                onClick={() => loadNews(selectedCategory)}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}
+                                onClick={() => loadNews(selectedCategory, true)}
+                                disabled={loading}
+                                style={{ background: 'none', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', padding: '8px' }}
+                                title="刷新数据"
                             >
-                                <RefreshCw size={18} color="#64748b" className={loading ? 'animate-spin' : ''} />
+                                <RefreshCw size={18} color={loading ? '#94a3b8' : '#64748b'} className={loading ? 'animate-spin' : ''} />
                             </button>
                         </div>
 
@@ -339,7 +342,7 @@ const TrendRadar = () => {
                             ))}
                             {newsData.length === 0 && !loading && (
                                 <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94a3b8' }}>
-                                    暂无缓存数据，点击"爬取并推送"获取最新数据
+                                    暂无数据，正在自动加载...
                                 </div>
                             )}
                         </div>
