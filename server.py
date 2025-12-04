@@ -5,44 +5,120 @@ TrendRadar Web API 服务
 import uvicorn
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import yaml
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 import time
 import threading
+import redis
 
-# ==================== 简单缓存 ====================
-class SimpleCache:
-    """简单的内存缓存，带过期时间"""
-    def __init__(self, ttl_seconds: int = 300):  # 默认5分钟
-        self.cache = {}
-        self.ttl = ttl_seconds
-        self.lock = threading.Lock()
+# ==================== Redis 缓存 ====================
+import os
+
+# Redis 配置（支持环境变量覆盖）
+REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.environ.get("REDIS_PORT", "49907"))  # Docker 动态映射端口
+REDIS_DB = int(os.environ.get("REDIS_DB", "0"))
+REDIS_PREFIX = "trendradar:"
+
+# 缓存 TTL 配置（秒）
+CACHE_TTL = 3600  # 1小时，用户手动刷新才更新
+
+class RedisCache:
+    """Redis 缓存管理器"""
     
-    def get(self, key: str):
-        with self.lock:
-            if key in self.cache:
-                data, expire_time = self.cache[key]
-                if time.time() < expire_time:
-                    return data
-                del self.cache[key]
+    def __init__(self):
+        self.client = None
+        self._connect()
+    
+    def _connect(self):
+        """连接 Redis"""
+        try:
+            self.client = redis.Redis(
+                host=REDIS_HOST,
+                port=REDIS_PORT,
+                db=REDIS_DB,
+                decode_responses=True,
+                socket_connect_timeout=5
+            )
+            self.client.ping()
+            print(f"✅ Redis 连接成功: {REDIS_HOST}:{REDIS_PORT}")
+        except Exception as e:
+            print(f"⚠️ Redis 连接失败: {e}，将使用内存缓存作为备用")
+            self.client = None
+    
+    def get(self, key: str) -> Optional[Dict]:
+        """获取缓存"""
+        if not self.client:
+            return None
+        try:
+            full_key = f"{REDIS_PREFIX}{key}"
+            data = self.client.get(full_key)
+            if data:
+                return json.loads(data)
+        except Exception as e:
+            print(f"Redis GET 错误: {e}")
         return None
     
-    def set(self, key: str, value):
-        with self.lock:
-            self.cache[key] = (value, time.time() + self.ttl)
+    def set(self, key: str, value: Dict, ttl: int = CACHE_TTL):
+        """设置缓存"""
+        if not self.client:
+            return False
+        try:
+            full_key = f"{REDIS_PREFIX}{key}"
+            self.client.setex(full_key, ttl, json.dumps(value, ensure_ascii=False))
+            return True
+        except Exception as e:
+            print(f"Redis SET 错误: {e}")
+            return False
     
-    def clear(self):
-        with self.lock:
-            self.cache.clear()
+    def delete(self, key: str):
+        """删除缓存"""
+        if not self.client:
+            return
+        try:
+            full_key = f"{REDIS_PREFIX}{key}"
+            self.client.delete(full_key)
+        except Exception as e:
+            print(f"Redis DELETE 错误: {e}")
+    
+    def exists(self, key: str) -> bool:
+        """检查 key 是否存在"""
+        if not self.client:
+            return False
+        try:
+            full_key = f"{REDIS_PREFIX}{key}"
+            return self.client.exists(full_key) > 0
+        except:
+            return False
+    
+    def get_ttl(self, key: str) -> int:
+        """获取剩余 TTL（秒）"""
+        if not self.client:
+            return -1
+        try:
+            full_key = f"{REDIS_PREFIX}{key}"
+            return self.client.ttl(full_key)
+        except:
+            return -1
+    
+    def clear_all(self):
+        """清除所有 TrendRadar 缓存"""
+        if not self.client:
+            return
+        try:
+            keys = self.client.keys(f"{REDIS_PREFIX}*")
+            if keys:
+                self.client.delete(*keys)
+                print(f"✅ 已清除 {len(keys)} 个缓存 key")
+        except Exception as e:
+            print(f"Redis CLEAR 错误: {e}")
 
-# 全局缓存实例
-news_cache = SimpleCache(ttl_seconds=180)  # 新闻缓存3分钟
-data_cache = SimpleCache(ttl_seconds=120)  # 数据缓存2分钟
+# 全局 Redis 缓存实例
+cache = RedisCache()
 
 # 初始化 FastAPI
 app = FastAPI(
@@ -152,186 +228,269 @@ async def get_platforms():
 
 
 @app.get("/api/data")
-async def get_data():
+async def get_data(refresh: bool = False):
     """
-    获取大宗商品市场数据（数据看板专用）
-    返回贵金属、能源、工业金属、农产品等大宗商品数据
+    获取大宗商品市场数据（Redis 缓存）
+    
+    Args:
+        refresh: 是否强制刷新（用户点击刷新按钮时传 true）
     """
-    # 检查缓存
-    cached = data_cache.get("commodity_data")
+    cache_key = "data:commodity"
+    
+    if refresh:
+        try:
+            print(f"🔄 用户请求刷新 commodity data...")
+            from scrapers.commodity import CommodityScraper
+            scraper = CommodityScraper()
+            data = scraper.scrape()
+            
+            category_order = {'贵金属': 0, '能源': 1, '工业金属': 2, '农产品': 3, '其他': 4}
+            data.sort(key=lambda x: category_order.get(x.get('category', '其他'), 4))
+            
+            result = {
+                "data": data,
+                "source": "TrendRadar Commodity",
+                "timestamp": datetime.now().isoformat(),
+                "cached": False,
+                "categories": list(set(item.get('category', '其他') for item in data))
+            }
+            cache.set(cache_key, result, ttl=CACHE_TTL)
+            print(f"✅ commodity data 刷新完成: {len(data)} 条")
+            return result
+        except Exception as e:
+            print(f"❌ commodity data 刷新失败: {e}")
+            cached = cache.get(cache_key)
+            if cached:
+                cached["cached"] = True
+                cached["error"] = str(e)
+                return cached
+            raise HTTPException(status_code=500, detail=f"爬取失败: {str(e)}")
+    
+    cached = cache.get(cache_key)
     if cached:
         cached["cached"] = True
+        cached["cache_ttl"] = cache.get_ttl(cache_key)
         return cached
     
-    try:
-        from scrapers.commodity import CommodityScraper
-        
-        scraper = CommodityScraper()
-        data = scraper.scrape()
-        
-        # 按分类排序：贵金属 > 能源 > 工业金属 > 农产品
-        category_order = {'贵金属': 0, '能源': 1, '工业金属': 2, '农产品': 3, '其他': 4}
-        data.sort(key=lambda x: category_order.get(x.get('category', '其他'), 4))
-        
-        result = {
-            "data": data,
-            "source": "TrendRadar Commodity",
-            "cached": False,
-            "categories": list(set(item.get('category', '其他') for item in data))
-        }
-        data_cache.set("commodity_data", result)
-        return result
-    except Exception as e:
-        print(f"获取大宗商品数据失败: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    return {
+        "data": [],
+        "source": "TrendRadar Commodity",
+        "timestamp": None,
+        "cached": False,
+        "categories": [],
+        "message": "暂无缓存数据，请点击刷新按钮获取最新数据"
+    }
+
+
+_COMMODITY_KEYWORDS = [
+    '黄金', '白银', '原油', '石油', '天然气', '铜', '铝', '锌',
+    '玉米', '小麦', '大豆', '期货', '大宗商品', '贵金属', '有色金属',
+    'gold', 'silver', 'oil', 'copper', 'commodit', 'futures',
+    '布伦特', 'WTI', 'COMEX', 'LME', '纽约', '伦敦金属'
+]
 
 
 @app.get("/api/commodity-news")
-async def get_commodity_news():
+async def get_commodity_news(refresh: bool = False):
     """
-    获取大宗商品相关新闻（市场快讯专用）
-    筛选财经新闻中与大宗商品相关的内容
+    获取大宗商品相关新闻（Redis 缓存）
+    
+    Args:
+        refresh: 是否强制刷新（用户点击刷新按钮时传 true）
     """
-    # 检查缓存
-    cached = news_cache.get("commodity_news")
+    cache_key = "news:commodity"
+    
+    if refresh:
+        try:
+            print(f"🔄 用户请求刷新 commodity news...")
+            from scrapers.unified import UnifiedDataSource
+            ds = UnifiedDataSource()
+            data = ds.crawl_category("finance", include_custom=False)
+            
+            commodity_news = []
+            for item in data:
+                title = (item.get('title', '') or '').lower()
+                if any(kw.lower() in title for kw in _COMMODITY_KEYWORDS):
+                    commodity_news.append(item)
+            
+            if len(commodity_news) < 5:
+                commodity_news = data[:10]
+            
+            result = {
+                "data": commodity_news[:15],
+                "total": len(commodity_news),
+                "timestamp": datetime.now().isoformat(),
+                "cached": False
+            }
+            cache.set(cache_key, result, ttl=CACHE_TTL)
+            print(f"✅ commodity news 刷新完成: {len(commodity_news)} 条")
+            return result
+        except Exception as e:
+            print(f"❌ commodity news 刷新失败: {e}")
+            cached = cache.get(cache_key)
+            if cached:
+                cached["cached"] = True
+                cached["error"] = str(e)
+                return cached
+            raise HTTPException(status_code=500, detail=f"爬取失败: {str(e)}")
+    
+    cached = cache.get(cache_key)
     if cached:
         cached["cached"] = True
+        cached["cache_ttl"] = cache.get_ttl(cache_key)
         return cached
     
-    try:
-        from scrapers.unified import UnifiedDataSource
-        ds = UnifiedDataSource()
-        
-        # 获取财经新闻
-        data = ds.crawl_category("finance", include_custom=False)
-        
-        # 大宗商品关键词
-        commodity_keywords = [
-            '黄金', '白银', '原油', '石油', '天然气', '铜', '铝', '锌',
-            '玉米', '小麦', '大豆', '期货', '大宗商品', '贵金属', '有色金属',
-            'gold', 'silver', 'oil', 'copper', 'commodit', 'futures',
-            '布伦特', 'WTI', 'COMEX', 'LME', '纽约', '伦敦金属'
-        ]
-        
-        # 筛选相关新闻
-        commodity_news = []
-        for item in data:
-            title = (item.get('title', '') or '').lower()
-            if any(kw.lower() in title for kw in commodity_keywords):
-                commodity_news.append(item)
-        
-        # 如果筛选结果太少，返回前10条财经新闻作为补充
-        if len(commodity_news) < 5:
-            commodity_news = data[:10]
-        
-        result = {
-            "data": commodity_news[:15],
-            "total": len(commodity_news),
-            "cached": False,
-            "timestamp": datetime.now().isoformat()
-        }
-        news_cache.set("commodity_news", result)
-        return result
-    except Exception as e:
-        print(f"获取大宗商品新闻失败: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    return {
+        "data": [],
+        "total": 0,
+        "timestamp": None,
+        "cached": False,
+        "message": "暂无缓存数据，请点击刷新按钮获取最新数据"
+    }
 
 
-# 供应链新闻缓存（需要放在通配符路由之前）
-_supply_chain_news_cache = {
-    "data": [],
-    "timestamp": None
-}
+_SUPPLY_CHAIN_KEYWORDS = [
+    # 核心公司
+    "立讯", "歌尔", "蓝思", "富联", "富士康", "京东方", "BOE",
+    "欣旺达", "德赛", "舜宇", "鹏鼎", "东山精密", "领益", "瑞声",
+    # 客户
+    "苹果", "Apple", "iPhone", "AirPods", "Vision Pro", "iPad", "Mac",
+    "华为", "Huawei", "鸿蒙", "Mate", "荣耀",
+    "小米", "OPPO", "vivo", "三星", "Samsung",
+    # 行业关键词
+    "消费电子", "果链", "代工", "供应链", "芯片", "半导体",
+    "智能手机", "穿戴", "耳机", "VR", "AR", "XR",
+    "新能源汽车", "电动汽车", "动力电池", "锂电",
+    "AI", "人工智能", "算力", "GPU", "英伟达"
+]
+
 
 @app.get("/api/news/supply-chain")
-async def get_supply_chain_news():
-    """获取供应链相关新闻（带缓存，5分钟刷新一次）"""
-    from datetime import datetime, timedelta
+async def get_supply_chain_news(refresh: bool = False):
+    """
+    获取供应链相关新闻（Redis 缓存）
     
-    # 检查缓存是否有效（5分钟内）
-    if _supply_chain_news_cache["timestamp"]:
-        cache_age = datetime.now() - _supply_chain_news_cache["timestamp"]
-        if cache_age < timedelta(minutes=5) and _supply_chain_news_cache["data"]:
-            return {
-                "status": "cache",
-                "data": _supply_chain_news_cache["data"],
-                "count": len(_supply_chain_news_cache["data"]),
-                "cached_at": _supply_chain_news_cache["timestamp"].isoformat()
+    Args:
+        refresh: 是否强制刷新（用户点击刷新按钮时传 true）
+    """
+    cache_key = "news:supply-chain"
+    
+    # 用户点击刷新按钮
+    if refresh:
+        try:
+            print(f"🔄 用户请求刷新 supply-chain...")
+            news = fetch_realtime_news(_SUPPLY_CHAIN_KEYWORDS)
+            result = {
+                "status": "success",
+                "data": news,
+                "count": len(news),
+                "timestamp": datetime.now().isoformat(),
+                "cached": False
             }
+            cache.set(cache_key, result, ttl=CACHE_TTL)
+            print(f"✅ supply-chain 刷新完成: {len(news)} 条")
+            return result
+        except Exception as e:
+            print(f"❌ supply-chain 刷新失败: {e}")
+            cached = cache.get(cache_key)
+            if cached:
+                cached["cached"] = True
+                cached["error"] = str(e)
+                return cached
+            raise HTTPException(status_code=500, detail=f"爬取失败: {str(e)}")
     
-    # 抓取新闻
-    keywords = [
-        # 核心公司
-        "立讯", "歌尔", "蓝思", "富联", "富士康", "京东方", "BOE",
-        "欣旺达", "德赛", "舜宇", "鹏鼎", "东山精密", "领益", "瑞声",
-        # 客户
-        "苹果", "Apple", "iPhone", "AirPods", "Vision Pro", "iPad", "Mac",
-        "华为", "Huawei", "鸿蒙", "Mate", "荣耀",
-        "小米", "OPPO", "vivo", "三星", "Samsung",
-        # 行业关键词
-        "消费电子", "果链", "代工", "供应链", "芯片", "半导体",
-        "智能手机", "穿戴", "耳机", "VR", "AR", "XR",
-        "新能源汽车", "电动汽车", "动力电池", "锂电",
-        "AI", "人工智能", "算力", "GPU", "英伟达"
-    ]
+    # 从 Redis 获取缓存
+    cached = cache.get(cache_key)
+    if cached:
+        cached["cached"] = True
+        cached["cache_ttl"] = cache.get_ttl(cache_key)
+        return cached
     
-    news = fetch_realtime_news(keywords)
+    # 无缓存，返回空数据
+    return {
+        "status": "empty",
+        "data": [],
+        "count": 0,
+        "timestamp": None,
+        "cached": False,
+        "message": "暂无缓存数据，请点击刷新按钮获取最新数据"
+    }
+
+
+def _crawl_news(category: str, include_custom: bool = True) -> Dict:
+    """爬取新闻数据（内部函数）"""
+    from scrapers.unified import UnifiedDataSource
+    ds = UnifiedDataSource()
+    data = ds.crawl_category(category, include_custom=include_custom)
     
-    # 更新缓存
-    _supply_chain_news_cache["data"] = news
-    _supply_chain_news_cache["timestamp"] = datetime.now()
+    sources = {}
+    for item in data:
+        src = item.get("platform_name", item.get("platform", "unknown"))
+        sources[src] = sources.get(src, 0) + 1
     
     return {
-        "status": "success",
-        "data": news,
-        "count": len(news),
-        "fetched_at": datetime.now().isoformat()
+        "category": category,
+        "total": len(data),
+        "sources": sources,
+        "data": data,
+        "timestamp": datetime.now().isoformat(),
+        "cached": False
     }
 
 
 @app.get("/api/news/{category}")
 async def get_news(category: str, include_custom: bool = True, refresh: bool = False):
     """
-    获取指定分类的新闻（带缓存）
+    获取指定分类的新闻（Redis 缓存）
     
     Args:
         category: 分类名称 (finance, news, social, tech, all)
         include_custom: 是否包含自定义爬虫数据
-        refresh: 是否强制刷新缓存
+        refresh: 是否强制刷新（用户点击刷新按钮时传 true）
+    
+    缓存策略：
+        - 默认返回 Redis 缓存（1小时 TTL）
+        - 只有 refresh=true 时才重新爬取
+        - 无缓存时返回空数据，提示用户点击刷新
     """
-    cache_key = f"news_{category}_{include_custom}"
+    cache_key = f"news:{category}:{include_custom}"
     
-    # 检查缓存
-    if not refresh:
-        cached = news_cache.get(cache_key)
-        if cached:
-            cached["cached"] = True
-            return cached
+    # 用户点击刷新按钮，强制重新爬取
+    if refresh:
+        try:
+            print(f"🔄 用户请求刷新 {category}...")
+            result = _crawl_news(category, include_custom)
+            cache.set(cache_key, result, ttl=CACHE_TTL)
+            print(f"✅ {category} 刷新完成: {result['total']} 条")
+            return result
+        except Exception as e:
+            print(f"❌ {category} 刷新失败: {e}")
+            # 刷新失败时尝试返回旧缓存
+            cached = cache.get(cache_key)
+            if cached:
+                cached["cached"] = True
+                cached["error"] = str(e)
+                return cached
+            raise HTTPException(status_code=500, detail=f"爬取失败: {str(e)}")
     
-    try:
-        from scrapers.unified import UnifiedDataSource
-        ds = UnifiedDataSource()
-        
-        data = ds.crawl_category(category, include_custom=include_custom)
-        
-        # 统计
-        sources = {}
-        for item in data:
-            src = item.get("platform_name", item.get("platform", "unknown"))
-            sources[src] = sources.get(src, 0) + 1
-        
-        result = {
-            "category": category,
-            "total": len(data),
-            "sources": sources,
-            "data": data,
-            "timestamp": datetime.now().isoformat(),
-            "cached": False
-        }
-        news_cache.set(cache_key, result)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    # 从 Redis 获取缓存
+    cached = cache.get(cache_key)
+    if cached:
+        cached["cached"] = True
+        ttl = cache.get_ttl(cache_key)
+        cached["cache_ttl"] = ttl
+        return cached
+    
+    # 无缓存，返回空数据提示用户刷新
+    return {
+        "category": category,
+        "total": 0,
+        "sources": {},
+        "data": [],
+        "timestamp": None,
+        "cached": False,
+        "message": "暂无缓存数据，请点击刷新按钮获取最新数据"
+    }
 
 
 @app.post("/api/crawl")
@@ -2007,70 +2166,64 @@ async def generate_analysis(request: AnalysisRequest):
         raise HTTPException(status_code=500, detail=f"生成报告失败: {str(e)}")
 
 
-# ==================== 静态文件服务 ====================
+# 旧的 web/ 静态页面已移除，请使用 React 前端 (web-crawler/web_ui)
 
-# 检查 web 目录是否存在
-WEB_DIR = BASE_DIR / "web"
-if WEB_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(WEB_DIR)), name="static")
 
-@app.get("/ui")
-async def serve_ui():
-    """返回 Web UI 页面"""
-    from fastapi.responses import FileResponse
-    ui_path = WEB_DIR / "index.html"
-    if ui_path.exists():
-        return FileResponse(str(ui_path))
-    return {"error": "Web UI not found"}
+# ==================== 缓存管理 API ====================
+
+@app.get("/api/cache/status")
+async def get_cache_status():
+    """获取 Redis 缓存状态"""
+    if not cache.client:
+        return {"status": "disconnected", "message": "Redis 未连接"}
+    
+    try:
+        keys = cache.client.keys(f"{REDIS_PREFIX}*")
+        cache_info = []
+        for key in keys:
+            short_key = key.replace(REDIS_PREFIX, "")
+            ttl = cache.client.ttl(key)
+            cache_info.append({
+                "key": short_key,
+                "ttl": ttl,
+                "ttl_human": f"{ttl // 60}分{ttl % 60}秒" if ttl > 0 else "已过期"
+            })
+        
+        return {
+            "status": "connected",
+            "redis": f"{REDIS_HOST}:{REDIS_PORT}",
+            "total_keys": len(keys),
+            "default_ttl": CACHE_TTL,
+            "keys": cache_info
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@app.post("/api/cache/clear")
+async def clear_cache():
+    """清除所有缓存"""
+    cache.clear_all()
+    return {"status": "success", "message": "缓存已清除"}
+
+
+@app.delete("/api/cache/{key}")
+async def delete_cache_key(key: str):
+    """删除指定缓存"""
+    cache.delete(key)
+    return {"status": "success", "message": f"已删除缓存: {key}"}
 
 
 # ==================== 启动服务 ====================
 
 @app.on_event("startup")
-async def startup_preload():
-    """服务启动时预加载常用分类数据"""
-    import asyncio
-    
-    async def preload_category(category):
-        try:
-            from scrapers.unified import UnifiedDataSource
-            ds = UnifiedDataSource()
-            data = ds.crawl_category(category, include_custom=True)
-            
-            sources = {}
-            for item in data:
-                src = item.get("platform_name", item.get("platform", "unknown"))
-                sources[src] = sources.get(src, 0) + 1
-            
-            result = {
-                "category": category,
-                "total": len(data),
-                "sources": sources,
-                "data": data,
-                "timestamp": datetime.now().isoformat(),
-                "cached": False
-            }
-            news_cache.set(f"news_{category}_True", result)
-            print(f"  ✅ {category}: {len(data)} 条")
-        except Exception as e:
-            print(f"  ❌ {category}: {e}")
-    
-    print("📦 预加载缓存数据...")
-    # 预加载常用分类
-    for cat in ["finance", "tech", "news", "social"]:
-        await preload_category(cat)
-    
-    # 预加载供应链新闻
-    keywords = [
-        "立讯", "歌尔", "蓝思", "富联", "富士康", "京东方",
-        "苹果", "Apple", "iPhone", "华为", "小米", "三星",
-        "AI", "人工智能", "芯片", "半导体", "消费电子"
-    ]
-    news = fetch_realtime_news(keywords)
-    _supply_chain_news_cache["data"] = news
-    _supply_chain_news_cache["timestamp"] = datetime.now()
-    print(f"  ✅ supply-chain: {len(news)} 条")
-    print("✅ 预加载完成！")
+async def startup():
+    """服务启动"""
+    print("🚀 TrendRadar API 启动中...")
+    print(f"📦 Redis: {REDIS_HOST}:{REDIS_PORT}")
+    print(f"⏰ 缓存 TTL: {CACHE_TTL}秒 ({CACHE_TTL // 60}分钟)")
+    print("💡 提示: 数据不会自动加载，用户需点击刷新按钮获取数据")
+    print("✅ 服务就绪！")
 
 
 if __name__ == "__main__":

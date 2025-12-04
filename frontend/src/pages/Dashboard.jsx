@@ -51,6 +51,10 @@ const Dashboard = () => {
     // Exchange rate (Mock)
     const EXCHANGE_RATE = 7.2;
 
+    // 防止 StrictMode 双重请求的标记
+    const hasFetchedData = useRef(false);
+    const intervalRef = useRef(null);
+
     // Connect charts for synchronized hover
     useEffect(() => {
         // Small delay to ensure charts are mounted
@@ -61,10 +65,16 @@ const Dashboard = () => {
     }, [visibleCommodities, timeRange]);
 
     useEffect(() => {
+        // 防止 StrictMode 导致的重复请求
+        if (hasFetchedData.current) return;
+        hasFetchedData.current = true;
+
         const fetchData = async () => {
             try {
+                // 使用带缓存的 API 方法
                 const response = await api.getData();
-                setData(response.data.data || []);
+                const responseData = response.data || response;
+                setData(responseData.data || []);
                 setLoading(false);
             } catch (err) {
                 console.error("Error fetching data:", err);
@@ -74,8 +84,15 @@ const Dashboard = () => {
         };
 
         fetchData();
-        const interval = setInterval(fetchData, 30000);
-        return () => clearInterval(interval);
+        
+        // 设置轮询（缓存会自动处理重复请求）
+        intervalRef.current = setInterval(fetchData, 30000);
+        
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
     }, []);
 
     // Fetch config when modal opens

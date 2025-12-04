@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { RefreshCw, Send, TrendingUp, DollarSign, Newspaper, Cpu, Users, ExternalLink, Filter, Link2 } from 'lucide-react';
 import * as echarts from 'echarts';
 import SupplyChainPanel from '../components/SupplyChainPanel';
+import api from '../services/api';
 
 // API 配置 - 连接到 TrendRadar 后端
 const TRENDRADAR_API = 'http://localhost:8000';
@@ -21,8 +22,8 @@ const TrendRadar = () => {
     const chartRef = useRef(null);
     const chartInstance = useRef(null);
     
-    // 前端缓存：避免重复请求
-    const newsCache = useRef({});
+    // 防止 StrictMode 双重请求
+    const hasFetchedCategories = useRef(false);
 
     // 分类图标映射
     const categoryIcons = {
@@ -54,12 +55,16 @@ const TrendRadar = () => {
     // 供应链分类（固定添加）
     const supplyChainCategory = { id: 'supply_chain', name: '上下游供应链' };
 
-    // 加载分类
+    // 加载分类（带防重复保护）
     useEffect(() => {
+        if (hasFetchedCategories.current) return;
+        hasFetchedCategories.current = true;
+
         const fetchCategories = async () => {
             try {
-                const res = await fetch(`${TRENDRADAR_API}/api/categories`);
-                const data = await res.json();
+                // 使用带缓存的 API 方法
+                const response = await api.getCategories();
+                const data = response.data || response;
                 const apiCategories = data.categories || defaultCategories.slice(0, 4);
                 // 确保供应链分类始终存在
                 const hasSupplyChain = apiCategories.some(c => c.id === 'supply_chain');
@@ -72,25 +77,18 @@ const TrendRadar = () => {
         fetchCategories();
     }, []);
 
-    // 加载新闻数据（优先使用缓存）
+    // 加载新闻数据（使用 api.js 的缓存机制）
     const loadNews = async (category, forceRefresh = false) => {
-        // 检查缓存
-        if (!forceRefresh && newsCache.current[category]) {
-            const cached = newsCache.current[category];
-            setNewsData(cached.data || []);
-            setStats({ total: cached.total, sources: cached.sources || {} });
-            updateChart(cached.sources || {});
-            setLoading(false);
-            return;
+        if (forceRefresh) {
+            // 强制刷新时清除缓存
+            api.clearCache(`news:${category}`);
         }
         
         setLoading(true);
         try {
-            const res = await fetch(`${TRENDRADAR_API}/api/news/${category}?include_custom=true`);
-            const data = await res.json();
-            
-            // 存入缓存
-            newsCache.current[category] = data;
+            // 使用带缓存的 API 方法
+            const response = await api.getNews(category, true);
+            const data = response.data || response;
             
             setNewsData(data.data || []);
             setStats({ total: data.total, sources: data.sources || {} });
@@ -178,8 +176,7 @@ const TrendRadar = () => {
             });
             const data = await res.json();
             alert(`✅ ${data.message}`);
-            // 清除该分类的缓存，强制刷新
-            delete newsCache.current[selectedCategory];
+            // 强制刷新
             loadNews(selectedCategory, true);
         } catch (e) {
             alert('爬取失败: ' + e.message);

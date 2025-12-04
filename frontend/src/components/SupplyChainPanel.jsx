@@ -18,6 +18,7 @@ import {
     RefreshCw,
     Send
 } from 'lucide-react';
+import api from '../services/api';
 
 // API 配置
 const TRENDRADAR_API = 'http://localhost:8000';
@@ -168,6 +169,10 @@ const SupplyChainPanel = () => {
     const [newsData, setNewsData] = useState([]);
     const [loadingNews, setLoadingNews] = useState(true);
     
+    // 防止 StrictMode 双重请求
+    const hasFetchedNews = React.useRef(false);
+    const hasFetchedSupplyNews = React.useRef(false);
+
     // 报告相关状态
     const [showReport, setShowReport] = useState(false);
     const [reportContent, setReportContent] = useState('');
@@ -184,11 +189,15 @@ const SupplyChainPanel = () => {
 
     // 获取财经新闻（用于公司卡片）
     useEffect(() => {
+        if (hasFetchedNews.current) return;
+        hasFetchedNews.current = true;
+
         const fetchNews = async () => {
             setLoadingNews(true);
             try {
-                const res = await fetch(`${TRENDRADAR_API}/api/news/finance?include_custom=true`);
-                const data = await res.json();
+                // 使用带缓存的 API 方法
+                const response = await api.getNews('finance', true);
+                const data = response.data || response;
                 setNewsData(data.data || []);
             } catch (e) {
                 console.error('获取新闻失败:', e);
@@ -201,11 +210,15 @@ const SupplyChainPanel = () => {
     
     // 获取供应链实时新闻
     useEffect(() => {
+        if (hasFetchedSupplyNews.current) return;
+        hasFetchedSupplyNews.current = true;
+
         const fetchSupplyChainNews = async () => {
             setLoadingSupplyNews(true);
             try {
-                const res = await fetch(`${TRENDRADAR_API}/api/news/supply-chain`);
-                const data = await res.json();
+                // 使用带缓存的 API 方法
+                const response = await api.getSupplyChainNews();
+                const data = response.data || response;
                 setSupplyChainNews(data.data || []);
                 setNewsStatus(data.status);
             } catch (e) {
@@ -689,15 +702,19 @@ const SupplyChainPanel = () => {
                         </div>
                     </div>
                     <button
-                        onClick={() => {
+                        onClick={async () => {
                             setLoadingSupplyNews(true);
-                            fetch(`${TRENDRADAR_API}/api/news/supply-chain`)
-                                .then(res => res.json())
-                                .then(data => {
-                                    setSupplyChainNews(data.data || []);
-                                    setNewsStatus(data.status);
-                                })
-                                .finally(() => setLoadingSupplyNews(false));
+                            try {
+                                // 使用 refresh=true 触发后端重新爬取
+                                const response = await api.getSupplyChainNews(true);
+                                const data = response.data || response;
+                                setSupplyChainNews(data.data || []);
+                                setNewsStatus(data.status || 'success');
+                            } catch (e) {
+                                console.error('刷新供应链新闻失败:', e);
+                            } finally {
+                                setLoadingSupplyNews(false);
+                            }
                         }}
                         disabled={loadingSupplyNews}
                         style={{
@@ -705,16 +722,17 @@ const SupplyChainPanel = () => {
                             alignItems: 'center',
                             gap: '6px',
                             fontSize: '13px',
-                            color: '#3b82f6',
-                            background: '#eff6ff',
+                            color: loadingSupplyNews ? '#94a3b8' : '#3b82f6',
+                            background: loadingSupplyNews ? '#f1f5f9' : '#eff6ff',
                             padding: '8px 14px',
                             borderRadius: '8px',
                             border: 'none',
-                            cursor: loadingSupplyNews ? 'wait' : 'pointer'
+                            cursor: loadingSupplyNews ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.2s'
                         }}
                     >
-                        <RefreshCw size={14} className={loadingSupplyNews ? 'animate-spin' : ''} />
-                        刷新
+                        <RefreshCw size={14} style={{ animation: loadingSupplyNews ? 'spin 1s linear infinite' : 'none' }} />
+                        {loadingSupplyNews ? '爬取中...' : '刷新数据'}
                     </button>
                 </div>
                 
