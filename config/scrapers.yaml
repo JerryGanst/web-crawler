@@ -115,6 +115,18 @@ custom_scrapers:
     parser: "custom"  # 需要额外请求获取详情
     description: "Hacker News 热门"
 
+  # ========== 大宗商品数据源 ==========
+  
+  # 上海有色金属网 - 有色金属行业资讯
+  smm_news:
+    enabled: true
+    display_name: "上海有色网"
+    category: "commodity"
+    urls: "https://news.smm.cn/"
+    method: "requests"
+    parser: "custom"
+    description: "上海有色金属网新闻资讯 - 铜铝锌铅镍锡稀土等"
+
 # 爬虫全局配置
 scraper_settings:
   max_retries: 3

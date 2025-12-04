@@ -413,10 +413,12 @@ REPORTS_DIR.mkdir(exist_ok=True)
 
 @app.post("/api/push-report")
 async def push_report(request: ReportPushRequest):
-    """推送分析报告到企业微信（生成下载链接）"""
+    """推送分析报告到企业微信（渲染为图片直接发送）"""
     import requests
     import urllib3
     import hashlib
+    import base64
+    import markdown
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     
     config = load_config()
@@ -456,69 +458,247 @@ async def push_report(request: ReportPushRequest):
         
         print(f"📄 报告已保存: {filepath}")
         
-        # 生成报告链接（指向后端报告渲染页面）
-        public_url = config.get("app", {}).get("public_url", "")
-        base_url = public_url if public_url else "http://localhost:8000"
-        download_url = f"{base_url}/api/reports/{filename}"
+        # 渲染报告为图片
+        image_data = await render_report_to_image(request.title, request.content, timestamp)
         
-        # 生成摘要（取前1500字符）
-        summary = request.content[:1500]
-        if len(request.content) > 1500:
-            # 找到最后一个完整段落
-            last_newline = summary.rfind('\n')
-            if last_newline > 1000:
-                summary = summary[:last_newline]
-            summary += "\n\n... *（报告较长，请点击链接查看完整内容）*"
-        
-        # 发送摘要 + 下载链接
-        message = f"""📊 **{request.title}**
+        if image_data:
+            # 计算图片MD5
+            image_md5 = hashlib.md5(image_data).hexdigest()
+            image_base64 = base64.b64encode(image_data).decode('utf-8')
+            
+            # 发送图片到企业微信
+            payload = {
+                "msgtype": "image",
+                "image": {
+                    "base64": image_base64,
+                    "md5": image_md5
+                }
+            }
+            
+            success_count = 0
+            errors = []
+            for webhook_url in webhook_urls:
+                try:
+                    resp = requests.post(webhook_url, json=payload, timeout=60, verify=False)
+                    if resp.status_code == 200 and resp.json().get("errcode") == 0:
+                        success_count += 1
+                        print(f"✅ 图片推送成功: {webhook_url[:50]}...")
+                    else:
+                        errors.append(f"{webhook_url[:30]}: {resp.json().get('errmsg', 'HTTP ' + str(resp.status_code))}")
+                except Exception as e:
+                    errors.append(f"{webhook_url[:30]}: {str(e)[:50]}")
+            
+            if success_count > 0:
+                print(f"✅ 推送完成: {success_count}/{len(webhook_urls)} 个群成功")
+                return {
+                    "status": "success",
+                    "message": f"报告图片已推送到 {success_count}/{len(webhook_urls)} 个群",
+                    "filename": filename,
+                    "errors": errors if errors else None
+                }
+            else:
+                return {"status": "error", "message": f"所有推送均失败: {'; '.join(errors)}"}
+        else:
+            # 图片渲染失败，降级为Markdown摘要
+            print("⚠️ 图片渲染失败，降级为Markdown摘要发送")
+            summary = request.content[:3500]
+            if len(request.content) > 3500:
+                last_newline = summary.rfind('\n')
+                if last_newline > 2000:
+                    summary = summary[:last_newline]
+                summary += "\n\n... *(报告较长，已截断)*"
+            
+            message = f"""📊 **{request.title}**
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 📅 生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M')}
-📄 报告长度：{len(request.content)} 字
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-{summary}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-📥 **[点击下载完整报告]({download_url})**
-🔗 来源：立讯技术产业链分析助手"""
-        
-        # 推送到所有配置的企业微信 webhook
-        payload = {
-            "msgtype": "markdown",
-            "markdown": {"content": message}
-        }
-        
-        success_count = 0
-        errors = []
-        for webhook_url in webhook_urls:
-            try:
-                resp = requests.post(webhook_url, json=payload, timeout=30, verify=False)
-                if resp.status_code == 200 and resp.json().get("errcode") == 0:
-                    success_count += 1
-                    print(f"✅ 推送成功: {webhook_url[:50]}...")
-                else:
-                    errors.append(f"{webhook_url[:30]}: {resp.json().get('errmsg', 'HTTP ' + str(resp.status_code))}")
-            except Exception as e:
-                errors.append(f"{webhook_url[:30]}: {str(e)[:50]}")
-        
-        if success_count > 0:
-            print(f"✅ 推送完成: {success_count}/{len(webhook_urls)} 个群成功")
+{summary}"""
+            
+            payload = {"msgtype": "markdown", "markdown": {"content": message}}
+            
+            success_count = 0
+            errors = []
+            for webhook_url in webhook_urls:
+                try:
+                    resp = requests.post(webhook_url, json=payload, timeout=30, verify=False)
+                    if resp.status_code == 200 and resp.json().get("errcode") == 0:
+                        success_count += 1
+                except Exception as e:
+                    errors.append(str(e)[:50])
+            
             return {
-                "status": "success",
-                "message": f"报告已推送到 {success_count}/{len(webhook_urls)} 个群",
-                "download_url": download_url,
-                "filename": filename,
+                "status": "partial",
+                "message": f"图片渲染失败，已发送文字摘要到 {success_count}/{len(webhook_urls)} 个群",
                 "errors": errors if errors else None
             }
-        else:
-            return {"status": "error", "message": f"所有推送均失败: {'; '.join(errors)}"}
         
     except Exception as e:
         error_msg = str(e)
         if "SSL" in error_msg or "ssl" in error_msg:
             return {"status": "error", "message": "SSL连接失败，可能是代理/VPN导致。请尝试关闭代理后重试。"}
         return {"status": "error", "message": error_msg}
+
+
+async def render_report_to_image(title: str, content: str, timestamp: str) -> bytes:
+    """使用 Playwright 将报告渲染为图片（压缩至2MB以内）"""
+    import markdown
+    from io import BytesIO
+    
+    try:
+        from playwright.async_api import async_playwright
+        from PIL import Image
+        
+        # 如果内容太长，截断（避免图片过大）
+        max_content_length = 8000
+        if len(content) > max_content_length:
+            content = content[:max_content_length] + "\n\n... *(报告较长，已截断显示)*"
+        
+        # 转换 Markdown 为 HTML
+        html_content = markdown.markdown(
+            content,
+            extensions=['tables', 'fenced_code', 'nl2br']
+        )
+        
+        # 生成完整的 HTML 页面
+        full_html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            padding: 40px;
+            min-width: 800px;
+            max-width: 1000px;
+        }}
+        .header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+        }}
+        .header h1 {{
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: white;
+        }}
+        .header .meta {{
+            font-size: 14px;
+            opacity: 0.9;
+            color: rgba(255,255,255,0.9);
+        }}
+        .content {{
+            background: rgba(255,255,255,0.05);
+            padding: 30px;
+            border-radius: 16px;
+            line-height: 1.8;
+        }}
+        h1, h2, h3, h4 {{
+            color: #a5b4fc;
+            margin: 20px 0 15px 0;
+        }}
+        h2 {{ font-size: 22px; border-bottom: 2px solid #4f46e5; padding-bottom: 10px; }}
+        h3 {{ font-size: 18px; }}
+        p {{ margin: 12px 0; }}
+        ul, ol {{ margin: 12px 0; padding-left: 24px; }}
+        li {{ margin: 6px 0; }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            overflow: hidden;
+        }}
+        th {{
+            background: rgba(79, 70, 229, 0.3);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }}
+        td {{
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }}
+        tr:last-child td {{ border-bottom: none; }}
+        code {{
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+        }}
+        pre {{
+            background: rgba(0,0,0,0.3);
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }}
+        blockquote {{
+            border-left: 4px solid #4f46e5;
+            padding-left: 16px;
+            margin: 16px 0;
+            color: #a0a0b0;
+        }}
+        .footer {{
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+        }}
+        strong {{ color: #fbbf24; }}
+        em {{ color: #a5b4fc; }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 {title}</h1>
+        <div class="meta">📅 生成时间：{timestamp} | 🤖 立讯技术产业链分析助手</div>
+    </div>
+    <div class="content">
+        {html_content}
+    </div>
+    <div class="footer">
+        本报告由 AI 自动生成，仅供参考，不构成投资建议。
+    </div>
+</body>
+</html>"""
+        
+        async with async_playwright() as p:
+            browser = await p.chromium.launch()
+            page = await browser.new_page(viewport={'width': 800, 'height': 600})
+            await page.set_content(full_html, wait_until='networkidle')
+            
+            # 获取内容高度并截图（限制最大高度）
+            height = await page.evaluate('document.body.scrollHeight')
+            max_height = 4000  # 限制最大高度
+            await page.set_viewport_size({'width': 800, 'height': min(height + 50, max_height)})
+            
+            screenshot = await page.screenshot(full_page=True, type='jpeg', quality=85)
+            await browser.close()
+            
+            # 如果图片仍然太大（>1.8MB），进一步压缩
+            if len(screenshot) > 1800000:
+                img = Image.open(BytesIO(screenshot))
+                # 缩小尺寸
+                new_width = int(img.width * 0.7)
+                new_height = int(img.height * 0.7)
+                img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                
+                output = BytesIO()
+                img.save(output, format='JPEG', quality=75, optimize=True)
+                screenshot = output.getvalue()
+            
+            print(f"📸 报告图片生成成功: {len(screenshot) / 1024:.1f} KB")
+            return screenshot
+            
+    except Exception as e:
+        print(f"❌ 图片渲染失败: {e}")
+        return None
 
 
 @app.get("/api/reports/{filename}")

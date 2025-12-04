@@ -161,9 +161,11 @@ const Dashboard = () => {
     const formatPrice = (price) => {
         if (!price) return '0.00';
         const val = parseFloat(price);
-        if (currency === 'USD') {
-            return (val / EXCHANGE_RATE).toFixed(2);
+        // 数据源是 USD，显示 CNY 时需要乘以汇率
+        if (currency === 'CNY') {
+            return (val * EXCHANGE_RATE).toFixed(2);
         }
+        // 显示 USD 时直接返回原值
         return val.toFixed(2);
     };
 

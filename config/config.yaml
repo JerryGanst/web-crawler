@@ -2,7 +2,7 @@ app:
   version_check_url: "https://raw.githubusercontent.com/sansan0/TrendRadar/refs/heads/master/version"
   show_version_update: true # 控制显示版本更新提示，如果 false，则不接受新版本提示
   # 公网访问地址（用于生成报告下载链接，留空则使用 localhost:8000）
-  public_url: "https://assume-stop-organized-basis.trycloudflare.com"
+  public_url: "https://philip-school-holland-laura.trycloudflare.com"
 
 # AI 分析配置（支持内外网双 API，内网优先）
 ai:
@@ -90,7 +90,6 @@ notification:
     dingtalk_url: "" # 钉钉机器人的 webhook URL
     wework_url:  # 企业微信机器人的 webhook URL（支持多个）
       - "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=7203217f-b7b8-49a0-aab2-3ab37f4a2f2e"
-      - "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=7a64075f-2f67-493b-ac0d-8f4549077fc3"
     wework_msg_type: "markdown" # 企业微信消息类型：markdown(群机器人) 或 text(个人微信应用)
     telegram_bot_token: "" # Telegram Bot Token
     telegram_chat_id: "" # Telegram Chat ID
