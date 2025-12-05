@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import CommodityChart from './CommodityChart';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, TrendingUp, TrendingDown } from 'lucide-react';
 
 // Safe URL parsing helper
 const safeGetHostname = (url) => {
@@ -15,16 +15,14 @@ const safeGetHostname = (url) => {
 // Conversion constants
 const GRAMS_PER_OUNCE = 31.1034768;
 
-// Extract pure weight unit from unit string - remove ALL currency markers
+// Extract pure weight unit from unit string
 const extractWeightUnit = (unitStr) => {
     if (!unitStr) return '';
-    // Remove all currency markers (USD, CNY, RMB, $, ¥, 美元, 人民币) and slashes
     let cleanUnit = unitStr
         .replace(/USD|CNY|RMB|美元|人民币/gi, '')
         .replace(/[$¥/]/g, '')
         .trim();
     
-    // Normalize ounce variations
     if (cleanUnit === '盎司' || cleanUnit === 'ounce') {
         cleanUnit = 'oz';
     }
@@ -38,90 +36,147 @@ const isOunceBasedUnit = (unitStr) => {
     return lower.includes('oz') || unitStr.includes('盎司') || lower.includes('ounce');
 };
 
+// 汇率常量
+const EXCHANGE_RATE = 7.2;
+
 const CommodityCard = ({
     comm,
-    realItem,           // Single item (legacy)
-    multiSourceItems,   // Array of items from different sources for same commodity
+    realItem,
+    multiSourceItems,
     currentPrice,
     unit,
-    historyData,        // Single source history (legacy)
-    multiSourceHistory, // Array of {source, color, data, url} for multi-source
+    historyData,
+    multiSourceHistory,
     currencySymbol,
     formatPrice,
-    isLastOdd
+    isLastOdd,
+    currency = 'USD'
 }) => {
-    // Extract pure weight unit
     const pureUnit = extractWeightUnit(unit);
-    
-    // Check if this is an ounce-based commodity (only oz/盎司 needs conversion)
     const isOunceUnit = isOunceBasedUnit(unit);
-    
-    // State for unit display: oz or g
     const [showInGrams, setShowInGrams] = useState(false);
-    
-    // Current display unit
     const displayUnit = isOunceUnit ? (showInGrams ? 'g' : 'oz') : pureUnit;
 
-    // Convert price value for display
-    // Price per oz → Price per g: DIVIDE by 31.1 (1 oz = 31.1g, so per gram is cheaper)
-    const convertPrice = (val) => {
+    // 货币转换函数
+    const applyCurrencyConversion = (val) => {
         if (!val) return 0;
         const numVal = parseFloat(val);
-        if (!isOunceUnit) return numVal;
-        
-        // Convert price/oz to price/g: divide by grams per ounce
-        if (showInGrams) {
-            return numVal / GRAMS_PER_OUNCE;
+        return currency === 'CNY' ? numVal * EXCHANGE_RATE : numVal;
+    };
+
+    const convertPrice = (val) => {
+        if (!val) return 0;
+        let numVal = parseFloat(val);
+        // 先进行货币转换
+        numVal = applyCurrencyConversion(numVal);
+        // 再进行单位转换（盎司转克）
+        if (isOunceUnit && showInGrams) {
+            numVal = numVal / GRAMS_PER_OUNCE;
         }
         return numVal;
     };
 
-    // Convert history data if showing in grams
+    // 转换历史数据价格（货币 + 单位）
     const convertedHistoryData = useMemo(() => {
-        if (!isOunceUnit || !showInGrams) return historyData;
-        return historyData?.map(item => ({
-            ...item,
-            price: item.price / GRAMS_PER_OUNCE  // Divide, not multiply!
-        }));
-    }, [historyData, showInGrams, isOunceUnit]);
+        if (!historyData) return historyData;
+        return historyData.map(item => {
+            let price = parseFloat(item.price) || 0;
+            // 货币转换
+            if (currency === 'CNY') {
+                price = price * EXCHANGE_RATE;
+            }
+            // 单位转换（盎司转克）
+            if (isOunceUnit && showInGrams) {
+                price = price / GRAMS_PER_OUNCE;
+            }
+            return { ...item, price };
+        });
+    }, [historyData, showInGrams, isOunceUnit, currency]);
 
-    // Convert multi-source history data if showing in grams
     const convertedMultiSourceHistory = useMemo(() => {
-        if (!multiSourceHistory || !isOunceUnit || !showInGrams) return multiSourceHistory;
+        if (!multiSourceHistory) return multiSourceHistory;
         return multiSourceHistory.map(source => ({
             ...source,
-            data: source.data.map(item => ({
-                ...item,
-                price: item.price / GRAMS_PER_OUNCE  // Divide, not multiply!
-            }))
+            data: source.data.map(item => {
+                let price = parseFloat(item.price) || 0;
+                // 货币转换
+                if (currency === 'CNY') {
+                    price = price * EXCHANGE_RATE;
+                }
+                // 单位转换
+                if (isOunceUnit && showInGrams) {
+                    price = price / GRAMS_PER_OUNCE;
+                }
+                return { ...item, price };
+            })
         }));
-    }, [multiSourceHistory, showInGrams, isOunceUnit]);
+    }, [multiSourceHistory, showInGrams, isOunceUnit, currency]);
 
     const displayedPrice = convertPrice(currentPrice);
-
-    // Determine sources to display
     const sources = multiSourceItems || (realItem ? [realItem] : []);
+    const change = comm.change || realItem?.change || realItem?.change_percent || 0;
+    const isUp = parseFloat(change) >= 0;
 
     return (
         <div style={{
             background: '#fff',
-            padding: '24px',
-            borderRadius: '16px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+            padding: '20px',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+            border: '1px solid #f3f4f6',
             gridColumn: isLastOdd ? 'span 2' : 'auto',
-            position: 'relative'
+            position: 'relative',
+            transition: 'box-shadow 0.2s ease'
         }}>
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                <div>
-                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: comm.color }}></span>
-                        {comm.name}
-                    </h3>
-                    {/* Multiple Sources Display */}
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'flex-start', 
+                marginBottom: '16px',
+                gap: '12px'
+            }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                        <span style={{ 
+                            width: '10px', 
+                            height: '10px', 
+                            borderRadius: '50%', 
+                            background: comm.color,
+                            flexShrink: 0
+                        }}></span>
+                        <h3 style={{ 
+                            margin: 0, 
+                            fontSize: '15px', 
+                            fontWeight: '600',
+                            color: '#111827',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                        }}>
+                            {comm.name}
+                        </h3>
+                        {/* 涨跌指示 */}
+                        <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '2px',
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            color: isUp ? '#10b981' : '#ef4444',
+                            background: isUp ? '#d1fae5' : '#fee2e2',
+                            padding: '2px 6px',
+                            borderRadius: '4px'
+                        }}>
+                            {isUp ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                            {isUp ? '+' : ''}{parseFloat(change).toFixed(2)}%
+                        </span>
+                    </div>
+                    
+                    {/* Sources */}
                     {sources.length > 0 && (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '6px' }}>
-                            {sources.map((item, idx) => (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            {sources.slice(0, 3).map((item, idx) => (
                                 <a
                                     key={idx}
                                     href={item.url}
@@ -135,51 +190,81 @@ const CommodityCard = ({
                                         color: '#6b7280',
                                         textDecoration: 'none',
                                         padding: '2px 6px',
-                                        background: '#f3f4f6',
-                                        borderRadius: '4px'
+                                        background: '#f9fafb',
+                                        borderRadius: '4px',
+                                        border: '1px solid #f3f4f6',
+                                        transition: 'all 0.15s ease'
                                     }}
                                     title={item.url}
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.background = '#f3f4f6';
+                                        e.currentTarget.style.color = '#374151';
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.background = '#f9fafb';
+                                        e.currentTarget.style.color = '#6b7280';
+                                    }}
                                 >
-                                    <ExternalLink size={10} />
+                                    <ExternalLink size={9} />
                                     {safeGetHostname(item.url)}
                                 </a>
                             ))}
+                            {sources.length > 3 && (
+                                <span style={{ 
+                                    fontSize: '11px', 
+                                    color: '#9ca3af',
+                                    padding: '2px 4px'
+                                }}>
+                                    +{sources.length - 3}
+                                </span>
+                            )}
                         </div>
                     )}
                 </div>
 
-                <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '20px', fontWeight: '700', color: '#111827' }}>
+                {/* Price & Unit Toggle */}
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ 
+                        fontSize: '20px', 
+                        fontWeight: '700', 
+                        color: '#111827',
+                        lineHeight: 1.2
+                    }}>
                         {currencySymbol}{formatPrice(displayedPrice)}
-                        <span style={{ fontSize: '14px', color: '#6b7280', marginLeft: '4px', fontWeight: '500' }}>
+                        <span style={{ 
+                            fontSize: '12px', 
+                            color: '#6b7280', 
+                            marginLeft: '4px', 
+                            fontWeight: '500' 
+                        }}>
                             /{displayUnit}
                         </span>
                     </div>
 
-                    {/* Unit Switch Toggle - only for oz units */}
+                    {/* Unit Switch - only for oz units */}
                     {isOunceUnit && (
                         <div style={{ 
                             display: 'inline-flex', 
                             alignItems: 'center', 
-                            gap: '6px',
+                            gap: '4px',
                             marginTop: '8px',
-                            padding: '4px',
+                            padding: '3px',
                             background: '#fef3c7',
-                            borderRadius: '8px',
+                            borderRadius: '6px',
                             border: '1px solid #fcd34d'
                         }}>
                             <button
                                 onClick={() => setShowInGrams(false)}
                                 style={{
-                                    padding: '4px 12px',
-                                    borderRadius: '6px',
+                                    padding: '3px 10px',
+                                    borderRadius: '4px',
                                     border: 'none',
                                     background: !showInGrams ? '#92400e' : 'transparent',
                                     color: !showInGrams ? '#fff' : '#92400e',
-                                    fontSize: '12px',
+                                    fontSize: '11px',
                                     fontWeight: '600',
                                     cursor: 'pointer',
-                                    transition: 'all 0.2s'
+                                    transition: 'all 0.15s ease'
                                 }}
                             >
                                 oz
@@ -187,15 +272,15 @@ const CommodityCard = ({
                             <button
                                 onClick={() => setShowInGrams(true)}
                                 style={{
-                                    padding: '4px 12px',
-                                    borderRadius: '6px',
+                                    padding: '3px 10px',
+                                    borderRadius: '4px',
                                     border: 'none',
                                     background: showInGrams ? '#92400e' : 'transparent',
                                     color: showInGrams ? '#fff' : '#92400e',
-                                    fontSize: '12px',
+                                    fontSize: '11px',
                                     fontWeight: '600',
                                     cursor: 'pointer',
-                                    transition: 'all 0.2s'
+                                    transition: 'all 0.15s ease'
                                 }}
                             >
                                 g
@@ -206,7 +291,7 @@ const CommodityCard = ({
             </div>
 
             {/* Chart */}
-            <div style={{ height: multiSourceHistory ? '320px' : '300px' }}>
+            <div style={{ height: multiSourceHistory ? '260px' : '240px' }}>
                 <CommodityChart
                     data={convertedHistoryData}
                     multiSourceData={convertedMultiSourceHistory}
@@ -215,6 +300,8 @@ const CommodityCard = ({
                     currencySymbol={currencySymbol}
                     unit={pureUnit}
                     displayUnit={displayUnit}
+                    currency={currency}
+                    height={multiSourceHistory ? '260px' : '240px'}
                 />
             </div>
         </div>

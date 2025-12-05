@@ -172,6 +172,25 @@ const api = {
         }
     },
 
+    // 获取价格历史数据（周数据）
+    getPriceHistory: (commodity = null, days = 7) => {
+        const params = new URLSearchParams();
+        if (commodity) params.append('commodity', commodity);
+        params.append('days', days.toString());
+        return axios.get(`${API_BASE}/api/price-history?${params.toString()}`);
+    },
+
+    // 获取 AI 市场分析
+    getMarketAnalysis: (refresh = false) => {
+        const url = refresh 
+            ? `${API_BASE}/api/market-analysis?refresh=true`
+            : `${API_BASE}/api/market-analysis`;
+        return axios.get(url, { timeout: 90000 }); // 90秒超时，AI生成可能较慢
+    },
+
+    // 获取数据来源（国家/网站级联）
+    getDataSources: () => axios.get(`${API_BASE}/api/data/sources`),
+
     // 获取 Redis 缓存状态
     getRedisCacheStatus: () => axios.get(`${API_BASE}/api/cache/status`),
 

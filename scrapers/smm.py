@@ -12,7 +12,16 @@ from datetime import datetime
 class SMMScraper:
     """上海有色金属网爬虫"""
     
-    def __init__(self):
+    def __init__(self, name: str = None, config: Dict = None):
+        """
+        初始化爬虫
+        
+        Args:
+            name: 爬虫名称（工厂模式传入）
+            config: 爬虫配置（工厂模式传入）
+        """
+        self.name = name or "smm_news"
+        self.config = config or {}
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',

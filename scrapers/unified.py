@@ -166,6 +166,24 @@ class UnifiedDataSource:
             else:
                 print("❌ 失败")
         
+        # 3. 爬取大宗商品数据源
+        if include_custom and category == "commodity":
+            print(f"\n  📊 自定义大宗商品数据源:")
+            
+            # 上海有色金属网
+            print(f"  🔄 上海有色网...", end=" ")
+            smm_data = self.crawl_custom("smm_news", {})
+            if smm_data:
+                for item in smm_data:
+                    item["source"] = "custom"
+                    item["platform"] = "smm"
+                    item["platform_name"] = "上海有色网"
+                    item["category"] = "commodity"
+                all_data.extend(smm_data)
+                print(f"✅ {len(smm_data)} 条")
+            else:
+                print("❌ 失败")
+        
         print(f"\n📊 共获取 {len(all_data)} 条数据")
         return all_data
     

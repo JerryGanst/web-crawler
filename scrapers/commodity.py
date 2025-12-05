@@ -44,13 +44,17 @@ class CommodityScraper:
         """爬取大宗商品数据"""
         commodities = []
         
-        # 从 Business Insider 获取数据
-        bi_data = self._scrape_business_insider()
-        commodities.extend(bi_data)
-        
-        # 从新浪获取补充数据
+        # 从新浪期货获取数据（更可靠）
         sina_data = self._scrape_sina_commodities()
         commodities.extend(sina_data)
+        
+        # 从上海有色网获取金属价格
+        smm_data = self._scrape_smm_prices()
+        commodities.extend(smm_data)
+        
+        # 从 Business Insider 获取补充数据
+        bi_data = self._scrape_business_insider()
+        commodities.extend(bi_data)
         
         return commodities
     
@@ -103,20 +107,22 @@ class CommodityScraper:
                 
                 if resp.status_code == 200:
                     text = resp.text
-                    # 解析新浪数据格式: var hq_str_hf_GC="1234.5,..."
+                    # 解析新浪数据格式: var hq_str_hf_GC="当前价,空,开盘价,最高价,昨收盘,最低价,时间,..."
                     match = re.search(r'"([^"]+)"', text)
                     if match:
                         parts = match.group(1).split(',')
-                        if len(parts) >= 1 and parts[0]:
+                        if len(parts) >= 5 and parts[0]:
                             price = float(parts[0])
-                            change_percent = float(parts[2]) if len(parts) > 2 and parts[2] else 0
+                            prev_close = float(parts[4]) if parts[4] else price
+                            # 计算涨跌幅
+                            change_percent = ((price - prev_close) / prev_close * 100) if prev_close > 0 else 0
                             
                             commodities.append({
                                 'name': full_name,
                                 'chinese_name': full_name,
                                 'price': price,
                                 'current_price': price,
-                                'change_percent': change_percent,
+                                'change_percent': round(change_percent, 2),
                                 'unit': COMMODITY_UNITS.get(cn_name, 'USD'),
                                 'source': '新浪期货',
                                 'category': self._categorize(cn_name),
@@ -144,17 +150,27 @@ class CommodityScraper:
             price = None
             change = None
             
+            # 先提取变化百分比，避免混淆
             for text in cell_texts[1:]:
+                if change is None and '%' in text:
+                    change = text
+            
+            # 然后提取价格（排除已识别的变化百分比）
+            for text in cell_texts[1:]:
+                if text == change:
+                    continue
                 if price is None and re.search(r'\d+\.?\d*', text):
-                    match = re.search(r'(\d+,?\d*\.?\d*)', text.replace(',', ''))
+                    # 排除纯百分比数字（小于10的浮点数可能是百分比）
+                    match = re.search(r'(\d+[\d,]*\.?\d*)', text.replace(',', ''))
                     if match:
                         try:
-                            price = float(match.group(1))
+                            val = float(match.group(1))
+                            # 价格通常大于10，过滤掉百分比
+                            if val > 10:
+                                price = val
+                                break
                         except ValueError:
                             continue
-                
-                if change is None and ('%' in text or '+' in text or '-' in text):
-                    change = text
             
             if not name or price is None:
                 return None
@@ -182,6 +198,71 @@ class CommodityScraper:
             }
         except Exception:
             return None
+    
+    def _scrape_smm_prices(self) -> List[Dict[str, Any]]:
+        """从上海有色网获取金属价格"""
+        prices = []
+        
+        # SMM 有色金属价格页面
+        metals = [
+            ('copper', '铜', 'SMM铜'),
+            ('aluminum', '铝', 'SMM铝'),
+            ('zinc', '锌', 'SMM锌'),
+            ('lead', '铅', 'SMM铅'),
+            ('nickel', '镍', 'SMM镍'),
+            ('tin', '锡', 'SMM锡'),
+        ]
+        
+        for metal_en, metal_cn, full_name in metals:
+            try:
+                url = f'https://hq.smm.cn/{metal_en}'
+                resp = requests.get(url, headers=self.headers, timeout=10)
+                
+                if resp.status_code == 200:
+                    soup = BeautifulSoup(resp.text, 'html.parser')
+                    
+                    # 查找价格表格
+                    tables = soup.find_all('table')
+                    for table in tables[:3]:
+                        rows = table.find_all('tr')
+                        for row in rows[1:5]:  # 跳过表头
+                            cells = row.find_all(['td', 'th'])
+                            if len(cells) >= 2:
+                                name_cell = cells[0].get_text(strip=True)
+                                price_cell = cells[1].get_text(strip=True) if len(cells) > 1 else ''
+                                
+                                # 检查是否需要登录
+                                if '未登录' in price_cell or not price_cell:
+                                    continue
+                                
+                                # 提取价格范围
+                                price_match = re.search(r'(\d+[\d,]*)', price_cell.replace(',', ''))
+                                if price_match:
+                                    try:
+                                        price = float(price_match.group(1))
+                                        if price > 100:  # 过滤无效价格
+                                            prices.append({
+                                                'name': name_cell or full_name,
+                                                'chinese_name': name_cell or full_name,
+                                                'price': price,
+                                                'current_price': price,
+                                                'change_percent': 0,
+                                                'unit': '元/吨',
+                                                'source': '上海有色网',
+                                                'category': '工业金属',
+                                                'url': url
+                                            })
+                                            break
+                                    except ValueError:
+                                        continue
+                        if any(p.get('chinese_name', '').startswith(metal_cn) for p in prices):
+                            break
+                            
+            except Exception as e:
+                print(f"SMM {metal_cn}获取失败: {e}")
+        
+        print(f"✅ 上海有色网: 获取 {len(prices)} 条价格数据")
+        return prices
     
     def _categorize(self, name: str) -> str:
         """商品分类"""

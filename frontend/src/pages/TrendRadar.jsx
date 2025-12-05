@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { RefreshCw, Send, TrendingUp, DollarSign, Newspaper, Cpu, Users, ExternalLink, Filter, Link2 } from 'lucide-react';
+import { RefreshCw, Send, TrendingUp, DollarSign, Newspaper, Cpu, Users, ExternalLink, Filter, Link2, Gem } from 'lucide-react';
 import * as echarts from 'echarts';
 import SupplyChainPanel from '../components/SupplyChainPanel';
 import api from '../services/api';
@@ -31,7 +31,8 @@ const TrendRadar = () => {
         news: <Newspaper size={18} />,
         social: <Users size={18} />,
         tech: <Cpu size={18} />,
-        supply_chain: <Link2 size={18} />
+        supply_chain: <Link2 size={18} />,
+        commodity: <Gem size={18} />
     };
 
     // 分类颜色
@@ -40,7 +41,8 @@ const TrendRadar = () => {
         news: '#10b981',
         social: '#f59e0b',
         tech: '#8b5cf6',
-        supply_chain: '#ec4899'
+        supply_chain: '#ec4899',
+        commodity: '#f97316'
     };
 
     // 默认分类（后备）
@@ -49,6 +51,7 @@ const TrendRadar = () => {
         { id: 'news', name: '新闻' },
         { id: 'social', name: '社交' },
         { id: 'tech', name: '科技' },
+        { id: 'commodity', name: '大宗商品' },
         { id: 'supply_chain', name: '上下游供应链' }
     ];
 

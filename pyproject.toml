@@ -12,6 +12,8 @@ dependencies = [
     "fastapi>=0.122.0",
     "uvicorn[standard]>=0.38.0",
     "beautifulsoup4>=4.14.2",
+    "redis>=5.0.0",
+    "markdown>=3.10",
 ]
 
 [project.scripts]
