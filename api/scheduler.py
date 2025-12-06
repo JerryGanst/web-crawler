@@ -15,6 +15,7 @@
 """
 
 import asyncio
+import os
 import threading
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
@@ -30,6 +31,7 @@ class BackgroundScheduler:
         self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="scheduler")
         self._running = False
         self._tasks: Dict[str, dict] = {}
+        self._test_env = "PYTEST_CURRENT_TEST" in os.environ
     
     def _crawl_category(self, category: str, include_custom: bool = True):
         """爬取指定分类"""
@@ -104,20 +106,15 @@ class BackgroundScheduler:
     
     def warmup_cache(self):
         """预热缓存（启动时调用）"""
+        if self._test_env:
+            print("🔥 跳过测试环境下的预热任务")
+            return
         print("🔥 开始预热缓存...")
         
-        # 供应链关键词
-        supply_chain_keywords = [
-            "立讯", "歌尔", "蓝思", "富联", "富士康", "京东方",
-            "苹果", "Apple", "iPhone", "华为", "小米",
-            "消费电子", "果链", "供应链", "芯片", "半导体"
-        ]
-        
-        # 关税关键词
-        tariff_keywords = [
-            "关税", "贸易战", "中美贸易", "出口管制", "制裁",
-            "加征关税", "关税豁免", "贸易摩擦", "实体清单"
-        ]
+        # 从 news.py 导入统一的关键词配置
+        from .routes.news import SUPPLY_CHAIN_KEYWORDS, TARIFF_KEYWORDS
+        supply_chain_keywords = SUPPLY_CHAIN_KEYWORDS
+        tariff_keywords = TARIFF_KEYWORDS
         
         # 预热任务列表
         warmup_tasks = [
@@ -143,18 +140,16 @@ class BackgroundScheduler:
             return
         
         self._running = True
+        if self._test_env:
+            # 测试环境不启动后台循环，避免干扰其它用例的 mock
+            return
         
         def scheduler_loop():
             """调度循环"""
-            # 供应链关键词
-            supply_chain_keywords = [
-                "立讯", "歌尔", "蓝思", "富联", "富士康", "京东方",
-                "苹果", "Apple", "iPhone", "华为", "小米",
-                "消费电子", "果链", "供应链", "芯片", "半导体"
-            ]
-            tariff_keywords = [
-                "关税", "贸易战", "中美贸易", "出口管制", "制裁"
-            ]
+            # 从 news.py 导入统一的关键词配置
+            from .routes.news import SUPPLY_CHAIN_KEYWORDS, TARIFF_KEYWORDS
+            supply_chain_keywords = SUPPLY_CHAIN_KEYWORDS
+            tariff_keywords = TARIFF_KEYWORDS
             
             # 任务配置：(间隔秒数, 上次执行时间, 任务函数)
             tasks = {

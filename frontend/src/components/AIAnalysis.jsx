@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Bot, Sparkles, RefreshCw, Clock, Loader2, AlertCircle } from 'lucide-react';
 import api from '../services/api';
 
@@ -9,6 +9,9 @@ const AIAnalysis = () => {
     const [lastUpdate, setLastUpdate] = useState(null);
     const [cached, setCached] = useState(false);
     const [apiSource, setApiSource] = useState('');
+    
+    // 防止重复请求
+    const initialLoadRef = useRef(false);
 
     const fetchAnalysis = useCallback(async (refresh = false) => {
         setLoading(true);
@@ -43,6 +46,9 @@ const AIAnalysis = () => {
     }, []);
 
     useEffect(() => {
+        // 防止 StrictMode 和重复渲染导致的多次调用
+        if (initialLoadRef.current) return;
+        initialLoadRef.current = true;
         fetchAnalysis();
     }, [fetchAnalysis]);
 

@@ -70,31 +70,16 @@ export default defineConfig(({ command }) => ({
       }
     },
     
-    // 分块大小警告阈值（1MB）
-    chunkSizeWarningLimit: 1000,
+    // 分块大小警告阈值（500KB）
+    chunkSizeWarningLimit: 500,
     
-    // 压缩选项
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        // 移除 console.log（生产环境）
-        drop_console: command === 'build',
-        drop_debugger: true,
-        // 移除无用代码
-        dead_code: true,
-        // 优化条件表达式
-        conditionals: true,
-        // 优化布尔值
-        booleans: true,
-      },
-      mangle: {
-        // 混淆顶级作用域变量名
-        toplevel: true,
-      },
-      output: {
-        // 移除注释
-        comments: false,
-      }
+    // 使用 esbuild 压缩（内置，无需额外依赖）
+    minify: 'esbuild',
+    
+    // esbuild 压缩选项
+    esbuild: {
+      drop: command === 'build' ? ['console', 'debugger'] : [],
+      legalComments: 'none',
     },
     
     // 生成 sourcemap（便于调试）

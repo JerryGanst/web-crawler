@@ -1,10 +1,13 @@
 """
 数据相关 API 路由
+
+优化策略：缓存优先 + 后台异步刷新
 """
 from fastapi import APIRouter, HTTPException
 from datetime import datetime
 from typing import Optional
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 
 from ..cache import cache, CACHE_TTL
 
@@ -12,6 +15,10 @@ router = APIRouter()
 
 # 基础目录
 BASE_DIR = Path(__file__).parent.parent.parent
+
+# 后台任务
+_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="data-bg")
+_pending_refreshes = set()
 
 
 def load_config():
@@ -60,56 +67,80 @@ async def get_platforms():
     }
 
 
+def _background_fetch_commodity_data(cache_key: str):
+    """后台爬取商品数据"""
+    try:
+        print(f"🔄 [后台] 开始爬取商品数据...")
+        from scrapers.commodity import CommodityScraper
+        scraper = CommodityScraper()
+        data = scraper.scrape()
+        
+        category_order = {'贵金属': 0, '能源': 1, '工业金属': 2, '农产品': 3, '其他': 4}
+        data.sort(key=lambda x: category_order.get(x.get('category', '其他'), 4))
+        
+        result = {
+            "data": data,
+            "source": "TrendRadar Commodity",
+            "timestamp": datetime.now().isoformat(),
+            "cached": False,
+            "background_refresh": True,
+            "categories": list(set(item.get('category', '其他') for item in data))
+        }
+        cache.set(cache_key, result, ttl=CACHE_TTL)
+        
+        # 保存价格历史
+        try:
+            from core.price_history import PriceHistoryManager
+            history_manager = PriceHistoryManager()
+            history_manager.save_prices(data)
+        except Exception as e:
+            print(f"⚠️ 保存价格历史失败: {e}")
+        
+        print(f"✅ [后台] 商品数据完成: {len(data)} 条")
+    except Exception as e:
+        print(f"❌ [后台] 商品数据失败: {e}")
+    finally:
+        _pending_refreshes.discard(cache_key)
+
+
 @router.get("/api/data")
 async def get_data(refresh: bool = False):
     """
-    获取大宗商品市场数据（Redis 缓存）
+    获取大宗商品市场数据
     
-    Args:
-        refresh: 是否强制刷新
+    优化策略：
+    - refresh=false: 直接返回缓存（<50ms）
+    - refresh=true: 立即返回缓存 + 后台异步刷新
     """
     cache_key = "data:commodity"
+    cached = cache.get(cache_key)
     
     if refresh:
-        try:
-            print(f"🔄 用户请求刷新 commodity data...")
-            from scrapers.commodity import CommodityScraper
-            scraper = CommodityScraper()
-            data = scraper.scrape()
-            
-            category_order = {'贵金属': 0, '能源': 1, '工业金属': 2, '农产品': 3, '其他': 4}
-            data.sort(key=lambda x: category_order.get(x.get('category', '其他'), 4))
-            
-            result = {
-                "data": data,
-                "source": "TrendRadar Commodity",
-                "timestamp": datetime.now().isoformat(),
-                "cached": False,
-                "categories": list(set(item.get('category', '其他') for item in data))
-            }
-            cache.set(cache_key, result, ttl=CACHE_TTL)
-            
-            # 保存价格历史
-            try:
-                from core.price_history import PriceHistoryManager
-                history_manager = PriceHistoryManager()
-                history_manager.save_prices(data)
-                print(f"✅ 价格历史已保存")
-            except Exception as e:
-                print(f"⚠️ 保存价格历史失败: {e}")
-            
-            print(f"✅ commodity data 刷新完成: {len(data)} 条")
-            return result
-        except Exception as e:
-            print(f"❌ commodity data 刷新失败: {e}")
-            cached = cache.get(cache_key)
-            if cached:
-                cached["cached"] = True
-                cached["error"] = str(e)
-                return cached
-            raise HTTPException(status_code=500, detail=f"爬取失败: {str(e)}")
+        # 触发后台刷新
+        triggered = False
+        if cache_key not in _pending_refreshes:
+            _pending_refreshes.add(cache_key)
+            _executor.submit(_background_fetch_commodity_data, cache_key)
+            triggered = True
+            print(f"🔄 商品数据后台刷新已触发")
+        
+        # 立即返回现有缓存
+        if cached:
+            cached["cached"] = True
+            cached["refreshing"] = triggered
+            cached["message"] = "数据正在后台刷新" if triggered else "刷新任务已在进行中"
+            return cached
+        
+        return {
+            "data": [],
+            "source": "TrendRadar Commodity",
+            "timestamp": None,
+            "cached": False,
+            "refreshing": triggered,
+            "categories": [],
+            "message": "数据正在后台加载"
+        }
     
-    cached = cache.get(cache_key)
     if cached:
         cached["cached"] = True
         cached["cache_ttl"] = cache.get_ttl(cache_key)
@@ -127,32 +158,52 @@ async def get_data(refresh: bool = False):
 
 @router.get("/api/price-history")
 async def get_price_history(commodity: Optional[str] = None, days: int = 7):
-    """获取价格历史数据"""
+    """
+    获取价格历史数据
+    
+    优化：使用缓存（价格历史不常变）
+    """
+    cache_key = f"price-history:{commodity or 'all'}:{days}"
+    
+    # 检查缓存
+    cached = cache.get(cache_key)
+    if cached:
+        cached["cached"] = True
+        return cached
+    
     try:
         from core.price_history import PriceHistoryManager
         history_manager = PriceHistoryManager()
         
         if commodity:
             history = history_manager.get_commodity_history(commodity, days)
-            return {
+            result = {
                 "status": "success",
                 "commodity": commodity,
                 "days": days,
-                "data": history
+                "data": history,
+                "cached": False
             }
         else:
             all_history = history_manager.get_all_history(days)
-            return {
+            result = {
                 "status": "success",
                 "days": days,
                 "data": all_history,
-                "commodities": list(all_history.keys())
+                "commodities": list(all_history.keys()),
+                "cached": False
             }
+        
+        # 缓存 5 分钟
+        cache.set(cache_key, result, ttl=300)
+        return result
+        
     except Exception as e:
         return {
             "status": "error",
             "message": str(e),
-            "data": {}
+            "data": {},
+            "cached": False
         }
 
 

@@ -5,7 +5,14 @@ import ExchangeStatus from '../components/ExchangeStatus';
 import NewsFeed from '../components/NewsFeed';
 import AIAnalysis from '../components/AIAnalysis';
 import api from '../services/api';
-import * as echarts from 'echarts';
+// ECharts 按需导入（仅导入 connect 功能用于图表联动）
+import * as echarts from 'echarts/core';
+import { LineChart } from 'echarts/charts';
+import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components';
+import { CanvasRenderer } from 'echarts/renderers';
+
+// 注册 ECharts 组件
+echarts.use([LineChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
 
 // Safe URL parsing helper to avoid errors
 const safeGetHostname = (url) => {
@@ -178,8 +185,12 @@ const Dashboard = () => {
         }
     }, [showSettings]);
 
-    // 获取数据来源信息
+    // 获取数据来源信息（只加载一次）
+    const sourcesLoadedRef = useRef(false);
     useEffect(() => {
+        if (sourcesLoadedRef.current) return;
+        sourcesLoadedRef.current = true;
+        
         const fetchSources = async () => {
             try {
                 const response = await api.getDataSources();
@@ -238,23 +249,29 @@ const Dashboard = () => {
         }
     };
 
-    // 加载历史数据（日/周/月）
-    const loadPriceHistory = async () => {
+    // 加载历史数据（日/周/月）- 防止重复请求
+    const priceHistoryLoadingRef = useRef(null);
+    const loadPriceHistory = useCallback(async () => {
+        const daysMap = { day: 1, week: 7, month: 30 };
+        const days = daysMap[timeRange] || 7;
+        const cacheKey = `history-${days}`;
+        
+        // 防止相同参数重复请求
+        if (priceHistoryLoadingRef.current === cacheKey) return;
+        priceHistoryLoadingRef.current = cacheKey;
+        
         try {
-            // 根据时间范围确定天数：日=1，周=7，月=30
-            const daysMap = { day: 1, week: 7, month: 30 };
-            const days = daysMap[timeRange] || 7;
             const response = await api.getPriceHistory(null, days);
             const historyData = response.data?.data || response.data?.commodities || {};
             setPriceHistory(historyData);
         } catch (err) {
             console.error('加载历史数据失败:', err);
         }
-    };
+    }, [timeRange]);
 
     useEffect(() => {
         loadPriceHistory();
-    }, [timeRange]);
+    }, [loadPriceHistory]);
 
     // 获取商品的历史数据
     const getHistoryData = useCallback((commodityName, basePrice, points) => {

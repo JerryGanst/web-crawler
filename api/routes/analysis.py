@@ -155,6 +155,48 @@ def fetch_realtime_news(keywords: list) -> list:
     except Exception as e:
         print(f"⚠️ 新浪财经抓取失败: {e}")
     
+    # 4. 东方财富个股公告（针对股票代码搜索）
+    stock_codes = [kw for kw in keywords if kw.isdigit() and len(kw) == 6]
+    for code in stock_codes[:8]:  # 最多查8个股票
+        try:
+            url = f"https://np-anotice-stock.eastmoney.com/api/security/ann?sr=-1&page_size=10&page_index=1&ann_type=A&stock_list={code}&f_node=0&s_node=0"
+            resp = req.get(url, headers=headers, timeout=5)
+            data = resp.json()
+            for item in data.get("data", {}).get("list", [])[:5]:
+                title = item.get("title", "")
+                art_code = item.get("art_code", "")
+                all_news.append({
+                    "title": title,
+                    "url": f"https://data.eastmoney.com/notices/detail/{code}/{art_code}.html",
+                    "source": f"东方财富公告",
+                    "stock_code": code,
+                    "matched_keyword": code
+                })
+        except Exception as e:
+            pass  # 静默失败
+    
+    # 5. 雪球个股讨论（针对股票代码搜索）
+    for code in stock_codes[:5]:
+        try:
+            # 深市 SZ，沪市 SH
+            prefix = "SZ" if code.startswith(("0", "3")) else "SH"
+            symbol = f"{prefix}{code}"
+            url = f"https://xueqiu.com/statuses/stock_timeline.json?symbol={symbol}&count=10&source=all"
+            resp = req.get(url, headers={**headers, "Cookie": "xq_a_token=test"}, timeout=5)
+            data = resp.json()
+            for item in data.get("list", [])[:5]:
+                title = item.get("title", "") or item.get("text", "")[:100]
+                if title:
+                    all_news.append({
+                        "title": title,
+                        "url": f"https://xueqiu.com{item.get('target', '')}",
+                        "source": f"雪球-{code}",
+                        "stock_code": code,
+                        "matched_keyword": code
+                    })
+        except Exception as e:
+            pass  # 静默失败
+    
     # 去重
     seen = set()
     unique_news = []

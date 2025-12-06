@@ -5,7 +5,14 @@ import ExchangeStatus from '../components/ExchangeStatus';
 import NewsFeed from '../components/NewsFeed';
 import AIAnalysis from '../components/AIAnalysis';
 import api from '../services/api';
-import * as echarts from 'echarts';
+// ECharts 按需导入
+import * as echarts from 'echarts/core';
+import { LineChart } from 'echarts/charts';
+import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components';
+import { CanvasRenderer } from 'echarts/renderers';
+
+// 注册 ECharts 组件
+echarts.use([LineChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
 
 // Safe URL parsing helper to avoid errors
 const safeGetHostname = (url) => {

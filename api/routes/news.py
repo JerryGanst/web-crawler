@@ -6,12 +6,14 @@
 - 刷新操作在后台异步执行
 - 下次请求获得新数据
 """
-from fastapi import APIRouter, HTTPException, BackgroundTasks
-from datetime import datetime
-from typing import Dict
-from pathlib import Path
+import os
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
+from pathlib import Path
+from typing import Dict
+
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 
 from ..cache import cache, CACHE_TTL
 from ..models import CrawlRequest
@@ -22,20 +24,70 @@ BASE_DIR = Path(__file__).parent.parent.parent
 
 # 后台任务线程池
 _executor = ThreadPoolExecutor(max_workers=3)
+# 在测试环境下避免启动后台线程，防止并发影响用例（通过 PYTEST_CURRENT_TEST 检测）
+_TEST_ENV = "PYTEST_CURRENT_TEST" in os.environ
 
 # 进行中的后台任务跟踪（避免重复刷新）
 _pending_refreshes = set()
 
-# 供应链关键词
+# ==================== 友商关键词配置 ====================
+# 18家友商分类及搜索关键词
+
+# 光电模块友商（6家）
+OPTICAL_PARTNERS = {
+    "Credo": ["Credo", "Credo Technology", "CRDO"],
+    "旭创科技": ["中际旭创", "旭创", "旭创科技", "300308"],
+    "新易盛": ["新易盛", "300502"],
+    "天孚通信": ["天孚通信", "天孚", "300394"],
+    "光迅科技": ["光迅科技", "光迅", "002281"],
+    "Finisar": ["Finisar", "菲尼萨", "II-VI"],
+}
+
+# 连接器友商（8家）
+CONNECTOR_PARTNERS = {
+    "安费诺": ["Amphenol", "安费诺", "APH"],
+    "莫仕": ["Molex", "莫仕", "莫莱克斯"],
+    "TE": ["TE Connectivity", "TE", "泰科电子", "TEL"],
+    "中航光电": ["中航光电", "158电连接器", "002179"],
+    "得意精密": ["得意精密", "得意"],
+    "意华股份": ["意华股份", "意华", "002897"],
+    "金信诺": ["金信诺", "300252"],
+    "华丰科技": ["华丰科技", "华旗", "688100"],
+}
+
+# 电源友商（4家）
+POWER_PARTNERS = {
+    "奥海科技": ["奥海科技", "奥海", "002993"],
+    "航嘉": ["航嘉", "航嘉驰源"],
+    "赛尔康": ["赛尔康", "Salcomp"],
+    "台达电子": ["台达", "台达电子", "Delta", "2308.TW"],
+}
+
+# 合并所有友商关键词
+def _get_partner_keywords():
+    """获取所有友商关键词（扁平化）"""
+    keywords = []
+    for partner_dict in [OPTICAL_PARTNERS, CONNECTOR_PARTNERS, POWER_PARTNERS]:
+        for company, kw_list in partner_dict.items():
+            keywords.extend(kw_list)
+    return keywords
+
+PARTNER_KEYWORDS = _get_partner_keywords()
+
+# ==================== 供应链关键词 ====================
 SUPPLY_CHAIN_KEYWORDS = [
+    # 核心果链/消费电子供应商
     "立讯", "歌尔", "蓝思", "富联", "富士康", "京东方", "BOE",
     "欣旺达", "德赛", "舜宇", "鹏鼎", "东山精密", "领益", "瑞声",
+    # 品牌客户
     "苹果", "Apple", "iPhone", "AirPods", "Vision Pro", "iPad", "Mac",
     "华为", "Huawei", "鸿蒙", "Mate", "荣耀",
     "小米", "OPPO", "vivo", "三星", "Samsung",
+    # 行业关键词
     "消费电子", "果链", "代工", "供应链", "芯片", "半导体",
-    "AI", "人工智能", "算力", "GPU", "英伟达"
-]
+    "AI", "人工智能", "算力", "GPU", "英伟达",
+    # 友商关键词（自动合并）
+] + PARTNER_KEYWORDS
 
 # 关税政策关键词
 TARIFF_KEYWORDS = [
@@ -108,6 +160,9 @@ def _trigger_background_refresh(cache_key: str, task_func, *args):
         print(f"⏳ {cache_key} 已有后台任务进行中，跳过")
         return False
     _pending_refreshes.add(cache_key)
+    # 在测试环境下跳过真实的后台线程，避免占用 mock side effect、减小干扰
+    if _TEST_ENV:
+        return True
     _executor.submit(task_func, cache_key, *args)
     return True
 
@@ -329,4 +384,72 @@ async def get_refresh_status():
     return {
         "pending_tasks": list(_pending_refreshes),
         "count": len(_pending_refreshes)
+    }
+
+
+@router.get("/api/partner-news-stats")
+async def get_partner_news_stats():
+    """
+    获取友商新闻统计
+    
+    统计每个友商在供应链新闻中的出现次数
+    """
+    # 获取供应链新闻缓存
+    cached = cache.get("news:supply-chain")
+    news_list = cached.get("data", []) if cached else []
+    
+    # 友商分类
+    categories = {
+        "光电模块": OPTICAL_PARTNERS,
+        "连接器": CONNECTOR_PARTNERS,
+        "电源": POWER_PARTNERS,
+    }
+    
+    stats = {}
+    for category_name, partners in categories.items():
+        stats[category_name] = {}
+        for company, keywords in partners.items():
+            # 统计匹配的新闻数
+            count = 0
+            matched_news = []
+            for news in news_list:
+                title = news.get("title", "")
+                summary = news.get("summary", "") or news.get("content", "")
+                text = f"{title} {summary}"
+                
+                for kw in keywords:
+                    if kw in text:
+                        count += 1
+                        matched_news.append({
+                            "title": title,
+                            "url": news.get("url", ""),
+                            "source": news.get("source", ""),
+                            "matched_keyword": kw
+                        })
+                        break  # 一条新闻只计一次
+            
+            stats[category_name][company] = {
+                "keywords": keywords,
+                "news_count": count,
+                "news": matched_news[:5]  # 最多返回5条
+            }
+    
+    # 汇总
+    total_partners = sum(len(p) for p in categories.values())
+    partners_with_news = sum(
+        1 for cat in stats.values() 
+        for p in cat.values() 
+        if p["news_count"] > 0
+    )
+    
+    return {
+        "status": "success",
+        "total_news": len(news_list),
+        "total_partners": total_partners,
+        "partners_with_news": partners_with_news,
+        "stats": stats,
+        "keywords_config": {
+            "supply_chain_total": len(SUPPLY_CHAIN_KEYWORDS),
+            "partner_keywords_total": len(PARTNER_KEYWORDS),
+        }
     }

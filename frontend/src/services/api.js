@@ -261,24 +261,47 @@ const api = {
         }
     },
 
-    // 获取价格历史数据
+    // 获取价格历史数据（带缓存）
     getPriceHistory: (commodity = null, days = 7) => {
-        const params = new URLSearchParams();
-        if (commodity) params.append('commodity', commodity);
-        params.append('days', days.toString());
-        return axios.get(`${API_BASE}/api/price-history?${params.toString()}`);
+        const cacheKey = `api:price-history:${commodity || 'all'}:${days}`;
+        return cachedRequest(
+            cacheKey,
+            (signal) => {
+                const params = new URLSearchParams();
+                if (commodity) params.append('commodity', commodity);
+                params.append('days', days.toString());
+                return axios.get(`${API_BASE}/api/price-history?${params.toString()}`, { signal });
+            },
+            { ttl: 300000 }  // 5分钟缓存（价格历史变化不频繁）
+        );
     },
 
-    // 获取 AI 市场分析
+    // 获取 AI 市场分析（带缓存）
     getMarketAnalysis: (refresh = false) => {
-        const url = refresh 
-            ? `${API_BASE}/api/market-analysis?refresh=true`
-            : `${API_BASE}/api/market-analysis`;
-        return axios.get(url, { timeout: 120000 });
+        const cacheKey = 'api:market-analysis';
+        if (refresh) {
+            clearCache(cacheKey);
+        }
+        return cachedRequest(
+            cacheKey,
+            (signal) => axios.get(`${API_BASE}/api/market-analysis`, { signal, timeout: 120000 }),
+            { ttl: 600000 }  // 10分钟缓存（AI分析更新较慢）
+        );
     },
 
-    // 获取数据来源
-    getDataSources: () => axios.get(`${API_BASE}/api/data/sources`),
+    // 获取数据来源（带缓存，数据源很少变化）
+    getDataSources: () => cachedRequest(
+        'api:data-sources',
+        (signal) => axios.get(`${API_BASE}/api/data/sources`, { signal }),
+        { ttl: 3600000 }  // 1小时缓存（数据源配置很少变化）
+    ),
+
+    // 获取友商新闻统计
+    getPartnerNewsStats: () => cachedRequest(
+        'api:partner-news-stats',
+        (signal) => axios.get(`${API_BASE}/api/partner-news-stats`, { signal }),
+        { ttl: 300000 }  // 5分钟缓存
+    ),
 
     // 获取 Redis 缓存状态
     getRedisCacheStatus: () => axios.get(`${API_BASE}/api/cache/status`),

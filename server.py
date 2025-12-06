@@ -11,6 +11,7 @@ from pathlib import Path
 from api.cache import cache, CACHE_TTL, REDIS_HOST, REDIS_PORT
 from api.routes import data, news, reports, analysis
 from api.routes import cache as cache_routes
+from api.scheduler import scheduler
 
 # ==================== 应用配置 ====================
 
@@ -76,8 +77,21 @@ async def startup():
     print("🚀 TrendRadar API 启动中...")
     print(f"📦 Redis: {REDIS_HOST}:{REDIS_PORT}")
     print(f"⏰ 缓存 TTL: {CACHE_TTL}秒 ({CACHE_TTL // 60}分钟)")
-    print("💡 提示: 数据不会自动加载，用户需点击刷新按钮获取数据")
+    
+    # 启动后台调度器：预热缓存 + 定时刷新
+    print("🔥 启动缓存预热和定时任务...")
+    scheduler.warmup_cache()
+    scheduler.start_scheduled_tasks()
+    
     print("✅ 服务就绪！")
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    """应用关闭事件"""
+    print("🛑 TrendRadar API 关闭中...")
+    scheduler.stop()
+    print("✅ 服务已关闭")
 
 
 # ==================== 启动服务 ====================
