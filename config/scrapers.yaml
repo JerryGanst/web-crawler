@@ -127,6 +127,63 @@ custom_scrapers:
     parser: "custom"
     description: "上海有色金属网新闻资讯 - 铜铝锌铅镍锡稀土等"
 
+  # ========== 关税政策数据源 ==========
+  
+  # 海关总署 - 关税政策
+  customs_policy:
+    enabled: true
+    display_name: "海关总署政策"
+    category: "tariff"
+    urls: "http://www.customs.gov.cn/customs/302249/302266/index.html"
+    method: "requests"
+    parser: "custom"
+    keywords:
+      - "关税"
+      - "进口"
+      - "出口"
+      - "税率"
+      - "贸易"
+      - "清关"
+    description: "中国海关总署政策公告"
+  
+  # 商务部 - 贸易政策
+  mofcom_trade:
+    enabled: true
+    display_name: "商务部贸易"
+    category: "tariff"
+    urls: "http://www.mofcom.gov.cn/article/ae/"
+    method: "requests"
+    parser: "custom"
+    keywords:
+      - "关税"
+      - "反倾销"
+      - "反补贴"
+      - "贸易摩擦"
+      - "进出口"
+    description: "商务部贸易政策"
+  
+  # 财经媒体关税新闻
+  tariff_news_keywords:
+    enabled: true
+    display_name: "关税政策新闻"
+    category: "tariff"
+    keywords:
+      - "关税"
+      - "贸易战"
+      - "中美贸易"
+      - "进口税"
+      - "出口管制"
+      - "实体清单"
+      - "制裁"
+      - "加征关税"
+      - "关税豁免"
+      - "贸易摩擦"
+      - "对华关税"
+      - "301条款"
+      - "tariff"
+      - "trade war"
+    description: "关税政策相关新闻聚合"
+
 # 爬虫全局配置
 scraper_settings:
   max_retries: 3

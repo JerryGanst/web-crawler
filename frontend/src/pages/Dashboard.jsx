@@ -70,7 +70,7 @@ const Dashboard = () => {
     const [lastUpdate, setLastUpdate] = useState(null);
     const [priceHistory, setPriceHistory] = useState({});
     const [currency, setCurrency] = useState('CNY');
-    const [timeRange, setTimeRange] = useState('day');
+    const [timeRange, setTimeRange] = useState('week'); // 默认周视图
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
     // Settings Modal State
@@ -238,11 +238,14 @@ const Dashboard = () => {
         }
     };
 
-    // 加载周数据历史
+    // 加载历史数据（日/周/月）
     const loadPriceHistory = async () => {
         try {
-            const response = await api.getPriceHistory(null, timeRange === 'week' ? 7 : 1);
-            const historyData = response.data?.commodities || {};
+            // 根据时间范围确定天数：日=1，周=7，月=30
+            const daysMap = { day: 1, week: 7, month: 30 };
+            const days = daysMap[timeRange] || 7;
+            const response = await api.getPriceHistory(null, days);
+            const historyData = response.data?.data || response.data?.commodities || {};
             setPriceHistory(historyData);
         } catch (err) {
             console.error('加载历史数据失败:', err);
@@ -276,23 +279,8 @@ const Dashboard = () => {
             }));
         }
         
-        // 生成模拟数据
-        let current = basePrice || 100;
-        const volatility = current * 0.02;
-        const isWeek = timeRange === 'week';
-        return Array.from({ length: points }, (_, i) => {
-            const change = (Math.random() - 0.5) * volatility;
-            current += change;
-            const dateObj = new Date(Date.now() - (points - i) * (isWeek ? 86400000 : 3600000));
-            return {
-                time: i,
-                price: Math.max(current, 0.01),
-                date: isWeek 
-                    ? dateObj.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
-                    : dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                isReal: false
-            };
-        });
+        // 无真实数据时返回空数组（不再生成假数据）
+        return [];
     }, [priceHistory, timeRange]);
 
     const formatPrice = (price) => {
@@ -997,7 +985,7 @@ const Dashboard = () => {
                                 transition: 'all 0.15s ease'
                             }}
                         >
-                            24H
+                            日
                         </button>
                         <button
                             onClick={() => setTimeRange('week')}
@@ -1013,7 +1001,23 @@ const Dashboard = () => {
                                 transition: 'all 0.15s ease'
                             }}
                         >
-                            7D
+                            周
+                        </button>
+                        <button
+                            onClick={() => setTimeRange('month')}
+                            style={{
+                                padding: '5px 14px',
+                                borderRadius: '6px',
+                                border: 'none',
+                                background: timeRange === 'month' ? '#3b82f6' : 'transparent',
+                                color: timeRange === 'month' ? '#fff' : '#6b7280',
+                                fontWeight: '500',
+                                fontSize: '13px',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease'
+                            }}
+                        >
+                            月
                         </button>
                     </div>
 

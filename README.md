@@ -47,17 +47,38 @@ TrendRadar/
 
 ## 🚀 快速启动
 
-```bash
-# 启动后端 API
-python server.py
+### 方式一：一键启动（推荐）
 
-# 启动前端
+```bash
+# 使用启动脚本同时启动前后端
+./start.sh
+```
+
+### 方式二：手动启动
+
+```bash
+# 1. 启动后端 API (端口 8000)
+uv run uvicorn server:app --host 0.0.0.0 --port 8000
+
+# 2. 新开终端，启动前端 (端口 5173)
 cd frontend
 npm run dev
+```
 
-# 运行 CLI 爬取
+### 方式三：仅运行 CLI
+
+```bash
+# 运行命令行爬取分析
 python main.py
 ```
+
+### 访问地址
+
+| 服务 | 地址 | 说明 |
+|------|------|------|
+| **前端界面** | http://localhost:5173 | React 可视化界面 |
+| **后端 API** | http://localhost:8000 | FastAPI 数据接口 |
+| **API 文档** | http://localhost:8000/docs | Swagger 文档 |
 
 ## 🔑 两套爬虫说明
 

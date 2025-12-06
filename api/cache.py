@@ -3,10 +3,15 @@ Redis 缓存管理
 """
 import os
 import json
+import sys
 import redis
 from typing import Any, Optional
 from datetime import datetime
 
+
+# 兼容性处理：允许通过 api.cache.redis 路径进行打补丁
+# 部分单元测试使用 patch("api.cache.redis.Redis")，需要确保此模块可被导入
+sys.modules.setdefault(__name__ + ".redis", redis)
 
 # Redis 配置（支持环境变量覆盖）
 REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")

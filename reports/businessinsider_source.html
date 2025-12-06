@@ -1,0 +1,3376 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <script data-load-strategy="domready" id="fenrir-console-script">
+   (()=>{var e={15517:()=>{if(window.Fenrir=window.Fenrir||{config:{}},!window.Fenrir.console){window.Fenrir.console={};const e=new URLSearchParams(document.location.search),n=window.Fenrir?.config?.featureFlags?.logs||e.has("logs");Object.entries(window.console).forEach(e=>{let[o,r]=e;"function"==typeof r&&(window.Fenrir.console[o]=n?r.bind(window.console):()=>{})})}window.Fenrir.getTime||(window.Fenrir.getTime=function(){const e=new Date;function n(e){let n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:"00";return`${n}${e}`.slice(-n.length)}return`${n(e.getHours())}:${n(e.getMinutes())}:${n(e.getSeconds())}.${n(e.getMilliseconds(),"000")}`})}},n={};function o(r){var i=n[r];if(void 0!==i)return i.exports;var t=n[r]={exports:{}};return e[r](t,t.exports,o),t.exports}o.m=e,o.c=n,o.o=(e,n)=>Object.prototype.hasOwnProperty.call(e,n),(()=>{o.S={};var e={},n={};o.I=(r,i)=>{i||(i=[]);var t=n[r];if(t||(t=n[r]={}),!(i.indexOf(t)>=0)){if(i.push(t),e[r])return e[r];o.o(o.S,r)||(o.S[r]={});o.S[r];var s=[];return s.length?e[r]=Promise.all(s).then(()=>e[r]=1):e[r]=1}}})();o(15517)})();
+  </script>
+  <script data-load-strategy="domready" id="fenrir-client-data" type="text/javascript">
+   const fenrirClientData = {"continentCode":"NA","config":{"identifier":"mi","componentsToLoad":{"markets-insider-auth-redirect":{"disableLazy":true,"target":[]},"markets-insider-stored-assets":{"defer":true,"target":[]},"markets-insider-subnav-ad":{"disableLazy":true,"target":[]}},"shouldDeferScripts":false,"isSiteForwarded":true,"apigateway":{"domain":"https://membership-api.businessinsider.com","apiKey":"OGU5ZWUyZWUtNjM2ZS00OTdiLWI0OTUtYTliOGIzMjQ1ODA2"},"tracking":{"providerName":["ga","t","comscore"],"base_url":"//markets.businessinsider.com","postTrackingObject":{"postID":null,"postURI":"commodities","publisher":"Markets Insider","editor":null,"vertical":"","verticals":[],"author":"","category":"","dateModified":false,"datePublished":false,"numSlides":0,"wordCount":0,"abTest":null,"splitTest":null,"secondaryVerticals":"","theme":""},"data":{"gtm":{"id":"GTM-MP6F46L","env_string":""},"domains":["businessinsider.com","insider.com"],"t":{"pixel":"https://i.businessinsider.com/t.gif"}}}},"privacyApi":"GPP"}; 
+  window.Fenrir = Object.assign({}, window.Fenrir || {"config": {}}, fenrirClientData);
+  window.Fenrir.cmd = window.Fenrir.cmd || [];
+  </script>
+  <script data-load-strategy="domready">
+   LUX=function(){var e="undefined"!=typeof LUX&&void 0!==LUX.gaMarks?LUX.gaMarks:[],n="undefined"!=typeof LUX&&void 0!==LUX.gaMeasures?LUX.gaMeasures:[],t="LUX_start",r=window.performance,a="undefined"!=typeof LUX&&LUX.ns?LUX.ns:Date.now?Date.now():+new Date;function u(){if(r){if(r.now)return r.now();if(r.webkitNow)return r.now();if(r.msNow)return r.now();if(r.mozNow)return r.now()}return(Date.now?Date.now():+new Date)-a}function o(n){return function(e,n){for(i=n.length-1;i>=0;i--){var t=n[i];if(e===t.name)return t}return}(n,function(){if(r){if(r.getEntriesByType)return r.getEntriesByType("mark");if(r.webkitGetEntriesByType)return r.webkitGetEntriesByType("mark")}return e}())}return r&&r.timing&&r.timing.navigationStart&&(a=r.timing.navigationStart),{mark:function(n){if(r){if(r.mark)return r.mark(n);if(r.webkitMark)return r.webkitMark(n)}e.push({name:n,entryType:"mark",startTime:u(),duration:0})},measure:function(e,i,a){if(void 0===i&&o(t)&&(i=t),r){if(r.measure)return i?a?r.measure(e,i,a):r.measure(e,i):r.measure(e);if(r.webkitMeasure)return r.webkitMeasure(e,i,a)}var f=0,s=u();if(i){var m=o(i);if(m)f=m.startTime;else{if(!(r&&r.timing&&r.timing[i]))return;f=r.timing[i]-r.timing.navigationStart}}if(a){var w=o(a);if(w)s=w.startTime;else{if(!(r&&r.timing&&r.timing[a]))return;s=r.timing[a]-r.timing.navigationStart}}n.push({name:e,entryType:"measure",startTime:f,duration:s-f})},gaMarks:e,gaMeasures:n}}(),LUX.ns=Date.now?Date.now():+new Date,LUX.ac=[],LUX.cmd=function(e){LUX.ac.push(e)},LUX.init=function(){LUX.cmd(["init"])},LUX.send=function(){LUX.cmd(["send"])},LUX.addData=function(e,n){LUX.cmd(["addData",e,n])};
+LUX.label="vertical"; // PageType: homepage, story, slideshow, video, hubpage, etc.
+LUX.minMeasureTime = 7000;
+LUX.maxMeasureTime = 30000;// Custom Dimensions
+LUX.addData('siteName', 'Markets Insider');
+
+// We can't call LUX.forceSample until the API is on the page
+window.Fenrir = window.Fenrir || { config: {} };
+window.Fenrir.sampleSpeedcurve = function sampleSpeedcurve() {
+  if (window.LUX?.forceSample && window.Fenrir?.config?.featureFlags?.forceSpeedcurveSample) {
+    window.LUX.forceSample();
+  }
+}
+
+document.addEventListener('onGeoDataCaptured', (event) => {
+  LUX.addData('continentCode', event.detail?.geoData?.continentCode || 'NA')
+});
+  </script>
+  <script async="" data-load-strategy="domready" onload="window.Fenrir.sampleSpeedcurve()" src="https://cdn.speedcurve.com/js/lux.js?id=38383524">
+  </script>
+  <script data-load-strategy="domready">
+   (function(){
+  var toFirstRequest = 'Inline Scripts Init - Start';
+  var toAdLibrary = 'Inline Scripts Ad Library Loaded - Start';
+
+  function createMark(markName) {
+    var perfMarks = window.performance;
+    var lux = window.LUX;
+
+    if (perfMarks && perfMarks.clearMarks && perfMarks.mark) {
+      perfMarks.clearMarks(markName);
+      perfMarks.mark(markName);
+    } else if (lux && lux.mark) {
+      lux.mark(markName);
+    }
+  }
+
+  createMark(toFirstRequest);
+  createMark(toAdLibrary);
+})()
+  </script>
+  <!-- Meta Tags -->
+  <title>
+   Commodity Prices | Commodity Market | Markets Insider
+  </title>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <meta content="#ffffff" name="theme-color"/>
+  <meta content="Commodity Prices | Commodity Market | Markets Insider" name="title"/>
+  <meta content="Commodity Prices | Commodity Market | Markets Insider" property="og:title"/>
+  <meta content="Commodity Prices | Commodity Market | Markets Insider" property="twitter:title"/>
+  <meta content="Get all information on the commodity market. Find the latest commodity prices including News, Charts, Realtime Quotes and even more about commodities." name="description"/>
+  <meta content="Get all information on the commodity market. Find the latest commodity prices including News, Charts, Realtime Quotes and even more about commodities." property="og:description"/>
+  <meta content="Get all information on the commodity market. Find the latest commodity prices including News, Charts, Realtime Quotes and even more about commodities." name="twitter:description"/>
+  <meta content="https://markets.businessinsider.com/Images/FacebookIcon.jpg" property="og:image"/>
+  <meta content="Markets Insider" name="Publisher"/>
+  <meta content="finanzen.net GmbH" name="Copyright"/>
+  <meta content="INDEX,FOLLOW" name="Robots"/>
+  <meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+  <meta content="Finanzen" name="page-topic"/>
+  <meta content="Kommerzielle Homepage" name="page-type"/>
+  <meta content="Alle" name="audience"/>
+  <meta content="O7IlH7Qai/tL0iF1rHcx2JJ8p+LJIZjfS+ylSLqaxm4=" name="verify-v1"/>
+  <meta content="mZUp2IbDqdTBhra_E0ZqOG4NW0GuABzSMO9mcAXDJ9E" name="google-site-verification"/>
+  <meta content="6efc6eae0393e106a6d1d377acc83e" name="pocket-site-verification"/>
+  <meta content="markets.businessinsider.com" property="og:site_name"/>
+  <meta content="1669622843355246" property="fb:page_id"/>
+  <meta content="20446254070" property="fb:pages"/>
+  <meta content="article" property="og:type"/>
+  <meta content="https://markets.businessinsider.com/commodities" property="og:url"/>
+  <link href="/opensearch.xml" rel="search" title="markets.businessinsider.com" type="application/opensearchdescription+xml"/>
+  <link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+  <link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+  <link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+  <link href="/manifest.json" rel="manifest"/>
+  <link color="#014889" href="/safari-pinned-tab.svg" rel="mask-icon"/>
+  <script>
+   window.reCaptchaSiteKey = "6Les488UAAAAACtlOak2d73IwfpAD41GuYLuT1SR";
+        window.reCaptchaApiUrl = "https://www.google.com/recaptcha/api.js";
+  </script>
+  <!-- PreLoads -->
+  <link as="font" crossorigin="" href="/Content/dist/fonts/Garnett-VF-Italic-Subset-Web.woff2" rel="preload" type="font/woff2"/>
+  <link as="font" crossorigin="" href="/Content/dist/fonts/Garnett-VF-Subset-Web.woff2" rel="preload" type="font/woff2"/>
+  <link as="font" crossorigin="" href="/Content/dist/fonts/PTSans-Regular-Subset.woff2" rel="preload" type="font/woff2"/>
+  <link as="font" crossorigin="" href="/Content/dist/fonts/TiemposText-Regular-Subset.woff2" rel="preload" type="font/woff2"/>
+  <link as="font" crossorigin="" href="/Content/dist/fonts/TiemposText-Bold-Subset.woff2" rel="preload" type="font/woff2"/>
+  <link as="font" crossorigin="" href="/Content/dist/fonts/TiemposText-BoldItalic-Subset.woff2" rel="preload" type="font/woff2"/>
+  <link as="font" crossorigin="" href="/Content/dist/fonts/TiemposText-Italic-Subset.woff2" rel="preload" type="font/woff2"/>
+  <link as="font" crossorigin="" href="/Content/dist/fonts/icon.woff2?v=674987178" rel="preload" type="font/woff2"/>
+  <link as="image" href="/Content/dist/images/business-insider-logo.svg" rel="preload"/>
+  <link as="image" href="/Content/dist/images/insider-intelligence-logo.svg" rel="preload"/>
+  <link as="image" href="/Content/dist/images/insider-logo.svg" rel="preload"/>
+  <link as="image" href="/Content/dist/images/markets-insider-logo.svg" rel="preload"/>
+  <link href="//pproxy.markets.businessinsider.com" rel="dns-prefetch"/>
+  <link href="//images.finanzen.net" rel="dns-prefetch"/>
+  <link href="//www.google-analytics.com" rel="dns-prefetch"/>
+  <link href="//www.googletagservices.com" rel="dns-prefetch"/>
+  <link href="//www.googletagmanager.com" rel="dns-prefetch"/>
+  <link href="//cdn.krxd.net" rel="dns-prefetch"/>
+  <link href="//beacon.krxd.net" rel="dns-prefetch"/>
+  <link href="//usermatch.krxd.net" rel="dns-prefetch"/>
+  <link href="//js-agent.newrelic.com" rel="dns-prefetch"/>
+  <link href="//cdn.taboola.com" rel="dns-prefetch"/>
+  <link href="//ping.chartbeat.net" rel="dns-prefetch"/>
+  <link href="//static.chartbeat.com" rel="dns-prefetch"/>
+  <link href="//cdn.privacy-mgmt.com" rel="preconnect"/>
+  <link href="//htlbid.com" rel="preconnect"/>
+  <link href="//cdn.permutive.com" rel="preconnect"/>
+  <link href="//live.sekindo.com" rel="preconnect"/>
+  <link href="//cdn.taboola.com" rel="preconnect"/>
+  <!-- Stylesheet -->
+  <link href="/Content/dist/styles.css?v=20251205.4" rel="stylesheet" title="" type="text/css"/>
+  <link href="https://htlbid.com/v3/marketsinsider.com/htlbid.css" rel="stylesheet" type="text/css"/>
+  <link href="/cache/css/chartiq/stx-chart.css?v=20251205.4" rel="stylesheet" title="" type="text/css"/>
+  <!-- this component generated on: 2025-05-30 -->
+  <link href="/styles/markets-insider-shared-components.9dda23ff1b469edd6949.css" media="all" rel="stylesheet"/>
+  <noscript>
+   <style>
+    #piano-inline-content-wrapper {
+			display: none !important;
+		}
+
+		.piano-freemium {
+			display: block !important;
+		}
+
+		#piano-inline-slideshow-wrapper {
+			display: none !important;
+		}
+   </style>
+  </noscript>
+  <!-- JavaScript -->
+  <script defer="defer" src="/Content/Scripts/jquery-1.11.3.min.js?v=20251205.4">
+  </script>
+  <script defer="defer" src="/Content/Scripts/jquery.lazy-master/jquery.lazy.min.js?v=20251205.4">
+  </script>
+  <script defer="defer" src="/Content/Scripts/jquery-ui.min.js?v=20251205.4">
+  </script>
+  <script defer="defer" src="/Content/Scripts/jquery.color.min.js?v=20251205.4">
+  </script>
+  <script defer="defer" src="/Content/Scripts/MDSnG/Config.min.js?v=20251205.4">
+  </script>
+  <script defer="defer" src="/Content/Scripts/MDSnG/min/clientApi.min.js?v=20251205.4">
+  </script>
+  <!-- this component generated on: 2025-05-30 -->
+  <script async="async" defer="defer" src="/Content/dist/scripts.js?v=20251205.4">
+  </script>
+  <script>
+   ((window) => {
+		window.FinandoJsEnvironment = {  VersionNumber : "7", CurrencySeparator : ",", RegexForDateValidation : /^\d{1,2}\/\d{1,2}\/\d{4}$/, RegexForEmailValidation : /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,20}$/ }
+		window.isDevelopmentMode = 'False' === 'True';
+		window.idleNotify = {
+			time: '10',
+			href: '/notify',
+			isEnabled: 'False'
+		};
+	})(window);
+  </script>
+  <script>
+   var permutiveConfigurations = {
+		permutivePageType: 'quote',
+		pageType: 'markets',
+		topSection: 'commodity',
+		disableHtlbid: false,
+		isHome: false
+	};
+
+	var taboolaConfiguration = {
+		taboolaPageType: 'other',
+		taboolaPlacementIds: [],
+		taboolaPlacements: [],
+		pageType: 'markets',
+		topSection: 'commodity',
+		isHome: false
+	};
+  </script>
+  <noscript>
+   <style>
+    [data-simplebar] {
+			overflow: auto;
+		}
+   </style>
+  </noscript>
+  <!-- Sections for news, tracking and canonicals -->
+  <link href="https://markets.businessinsider.com/commodities" rel="canonical"/>
+  <script data-load-strategy="domready">
+   window.initialDataLayer = {"pageType":"vertical","publisher":"Markets Insider","vertical":"commodities","postURI":"commodities","abTest":null};
+  window.newsMetaData = {};
+  </script>
+  <script data-load-strategy="domready" id="gtm-config-script">
+   (()=>{var t={667:t=>{t.exports=()=>{try{return crypto.randomUUID()}catch(t){return"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,t=>{const a=16*Math.random()|0;return("x"===t?a:3&a|8).toString(16)})}}},20560:(t,a,e)=>{"use strict";var r=e(667),s=e.n(r);(()=>{function t(){window.dataLayer=window.dataLayer||[];for(var t=arguments.length,a=new Array(t),e=0;e<t;e++)a[e]=arguments[e];window.dataLayer.push({...a})}const a={analytics_storage:"TCF"===window.Fenrir.privacyApi?"denied":"granted",ad_storage:"TCF"===window.Fenrir.privacyApi?"denied":"granted",ads_data_redaction:"TCF"===window.Fenrir.privacyApi};let e=window.localStorage.getItem("fenrir-ga-consent");try{if(e=JSON.parse(e),!["granted","denied"].includes(e.analytics_storage)||!["granted","denied"].includes(e.ad_storage)||![!0,!1].includes(e.ads_data_redaction))throw new Error("invalid fenrir-ga-consent value");a.analytics_storage=e.analytics_storage,a.ad_storage=e.ad_storage,a.ads_data_redaction=e.ads_data_redaction}catch(t){}window.localStorage.setItem("fenrir-ga-consent",JSON.stringify(a));const{analytics_storage:r,ad_storage:n,ads_data_redaction:i}=a;t("consent","default",{analytics_storage:r,ad_storage:n,wait_for_update:500}),t("set","ads_data_redaction",i);const o=window.initialDataLayer||{};o.authenticationStatus="unauthenticated";localStorage.getItem("email_hashes")&&(o.userPhase="user"),"bi"===window.Fenrir.config.identifier&&(o.userAgent=window.navigator.userAgent);const d=localStorage.getItem("profile");if(d){o.authenticationStatus="authenticated",o.userPhase="account";const{subscriptionId:t,insiderId:a,hasPrime:e,subscriptionStatus:r,accessType:s}=(t=>{const a=JSON.parse(t),{"https://insider/subscriptionId":e,"https://insider/memberId":r,"https://insider/hasPrime":s,subscriptionStatus:n,accessType:i}=a;return{subscriptionId:e,insiderId:r,hasPrime:s,subscriptionStatus:n,accessType:i}})(d);t&&(o.subscriptionId=t),r&&(o.subscription_status=r),1===e&&(o.userPhase="subscriber"),a&&(o.insiderId=a),s&&(o.access_type=s)}const c=localStorage.getItem("universal_id");if(c)o.universalId=c;else{const t=s()();localStorage.setItem("universal_id",t),o.universalId=t}const u={event:"privacy",privacy_is_opted_out_of_ads:!1};let p=null;const l=localStorage.getItem("_sp_user_consent_6165");try{p=l?JSON.parse(l):null}catch(t){}if("GPP"===window.Fenrir.privacyApi){const{granularStatus:t}=p?.usnat?.consentStatus||{};u.privacy_is_opted_out_of_ads=!1===t?.sellStatus}else if("TCF"===window.Fenrir.privacyApi){const{granularStatus:t}=p?.gdpr?.consentStatus||{};u.privacy_is_opted_out_of_ads="ALL"!==t?.purposeConsent?.toUpperCase()}window.dataLayer=window.dataLayer||[],window.dataLayer.push(u),window.dataLayer.push(o),window.dataLayer.push({"gtm.start":(new Date).getTime(),event:"gtm.js"})})()}},a={};function e(r){var s=a[r];if(void 0!==s)return s.exports;var n=a[r]={exports:{}};return t[r](n,n.exports,e),n.exports}e.m=t,e.c=a,e.n=t=>{var a=t&&t.__esModule?()=>t.default:()=>t;return e.d(a,{a}),a},e.d=(t,a)=>{for(var r in a)e.o(a,r)&&!e.o(t,r)&&Object.defineProperty(t,r,{enumerable:!0,get:a[r]})},e.o=(t,a)=>Object.prototype.hasOwnProperty.call(t,a),(()=>{e.S={};var t={},a={};e.I=(r,s)=>{s||(s=[]);var n=a[r];if(n||(n=a[r]={}),!(s.indexOf(n)>=0)){if(s.push(n),t[r])return t[r];e.o(e.S,r)||(e.S[r]={});e.S[r];var i=[];return i.length?t[r]=Promise.all(i).then(()=>t[r]=1):t[r]=1}}})();e(20560)})();
+  </script>
+  <script data-consent="ANALYTICS" data-load-strategy="gdpr" data-track-load="gtm" src="https://www.googletagmanager.com/gtm.js?id=GTM-MP6F46L">
+  </script>
+  <script data-load-strategy="domready" id="gpp-stub">
+   window.__gpp_addFrame=function(e){if(!window.frames[e])if(document.body){var t=document.createElement("iframe");t.style.cssText="display:none",t.name=e,document.body.appendChild(t)}else window.setTimeout(window.__gpp_addFrame,10,e)},window.__gpp_stub=function(){var e=arguments;if(__gpp.queue=__gpp.queue||[],__gpp.events=__gpp.events||[],!e.length||1==e.length&&"queue"==e[0])return __gpp.queue;if(1==e.length&&"events"==e[0])return __gpp.events;var t=e[0],p=e.length>1?e[1]:null,s=e.length>2?e[2]:null;if("ping"===t)p({gppVersion:"1.1",cmpStatus:"stub",cmpDisplayStatus:"hidden",signalStatus:"not ready",supportedAPIs:["2:tcfeuv2","5:tcfcav1","6:uspv1","7:usnatv1","8:uscav1","9:usvav1","10:uscov1","11:usutv1","12:usctv1"],cmpId:0,sectionList:[],applicableSections:[],gppString:"",parsedSections:{}},!0);else if("addEventListener"===t){"lastId"in __gpp||(__gpp.lastId=0),__gpp.lastId++;var n=__gpp.lastId;__gpp.events.push({id:n,callback:p,parameter:s}),p({eventName:"listenerRegistered",listenerId:n,data:!0,pingData:{gppVersion:"1.1",cmpStatus:"stub",cmpDisplayStatus:"hidden",signalStatus:"not ready",supportedAPIs:["2:tcfeuv2","5:tcfcav1","6:uspv1","7:usnatv1","8:uscav1","9:usvav1","10:uscov1","11:usutv1","12:usctv1"],cmpId:0,sectionList:[],applicableSections:[],gppString:"",parsedSections:{}}},!0)}else if("removeEventListener"===t){for(var a=!1,i=0;i<__gpp.events.length;i++)if(__gpp.events[i].id==s){__gpp.events.splice(i,1),a=!0;break}p({eventName:"listenerRemoved",listenerId:s,data:a,pingData:{gppVersion:"1.1",cmpStatus:"stub",cmpDisplayStatus:"hidden",signalStatus:"not ready",supportedAPIs:["2:tcfeuv2","5:tcfcav1","6:uspv1","7:usnatv1","8:uscav1","9:usvav1","10:uscov1","11:usutv1","12:usctv1"],cmpId:0,sectionList:[],applicableSections:[],gppString:"",parsedSections:{}}},!0)}else"hasSection"===t?p(!1,!0):"getSection"===t||"getField"===t?p(null,!0):__gpp.queue.push([].slice.apply(e))},window.__gpp_msghandler=function(e){var t="string"==typeof e.data;try{var p=t?JSON.parse(e.data):e.data}catch(e){p=null}if("object"==typeof p&&null!==p&&"__gppCall"in p){var s=p.__gppCall;window.__gpp(s.command,(function(p,n){var a={__gppReturn:{returnValue:p,success:n,callId:s.callId}};e.source.postMessage(t?JSON.stringify(a):a,"*")}),"parameter"in s?s.parameter:null,"version"in s?s.version:"1.1")}},"__gpp"in window&&"function"==typeof window.__gpp||(window.__gpp=window.__gpp_stub,window.addEventListener("message",window.__gpp_msghandler,!1),window.__gpp_addFrame("__gppLocator"));
+  </script>
+  <script data-load-strategy="domready" id="sourcepoint-config">
+   const configObject = {
+      accountId: 1108,
+      baseEndpoint: 'https://cdn.privacy-mgmt.com',
+      
+      usnat: {},
+      propertyHref: 'https://www.businessinsider.com',
+      joinHref: true,
+    };
+    window._sp_queue = [];
+    window._sp_ = {
+      config: configObject
+    };
+  </script>
+  <script data-load-strategy="domready" defer="" src="https://cdn.privacy-mgmt.com/unified/wrapperMessagingWithoutDetection.js">
+  </script>
+ </head>
+ <body>
+  <!-- DevisedLabs Very Large Image LCP Hack -->
+  <img alt="" height="99999" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIHdpZHRoPSI5OTk5OXB4IiBoZWlnaHQ9Ijk5OTk5cHgiIHZpZXdCb3g9IjAgMCA5OTk5OSA5OTk5OSIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48ZyBzdHJva2U9Im5vbmUiIGZpbGw9Im5vbmUiIGZpbGwtb3BhY2l0eT0iMCI+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9Ijk5OTk5IiBoZWlnaHQ9Ijk5OTk5Ij48L3JlY3Q+IDwvZz4gPC9zdmc+" style="pointer-events: none; position: absolute; top: 0; left: 0; width: 99vw; height: 99vh; max-width: 99vw; max-height: 99vh;" width="99999"/>
+  <noscript>
+   <iframe height="0" src="//www.googletagmanager.com/ns.html?id=GTM-MBTPXX" style="display: none; visibility: hidden" width="0">
+   </iframe>
+  </noscript>
+  <script>
+   !function (e, t, a, n, g) { e[n] = e[n] || [], e[n].push({ "gtm.start": (new Date).getTime(), event: "gtm.js" }); var m = t.getElementsByTagName(a)[0], r = t.createElement(a); r.async = !0, r.src = "//www.googletagmanager.com/gtm.js?id=GTM-MBTPXX", m.parentNode.insertBefore(r, m) }(window, document, "script", "dataLayer");
+  </script>
+  <div class="htlad-mobile_sticky_lower" data-htlad="true" data-prebid="0x0:Commodities/Homepage/mobile_leaderboard|768x0:" data-unit="Markets-Insider/Commodities/Homepage">
+  </div>
+  <!-- Markets Insider Page Header -->
+  <!-- this component generated on: 2025-05-30 -->
+  <shared-component class="scs">
+   <header class="masthead" data-component-type="masthead" data-load-strategy="exclude" style="--scroll: 0">
+    <section class="top-section full-width-section">
+     <div class="masthead-ad pre-render as-homepage" data-ad-refresher-expand="" data-ad-subnav="" data-component-type="masthead-ad" data-load-strategy="exclude">
+      <div class="masthead-ad-wrapper ad-label">
+       <div class="htlad-subnav" data-bi-ad="" data-htlad="true" data-prebid="0x0:Commodities/Homepage/mobile_leaderboard|768x0:Commodities/Homepage/billboard_flex|1024x0:Commodities/Homepage/billboard_flex" data-unit="Markets-Insider/Commodities/Homepage">
+       </div>
+       <div aria-label="Close this ad" class="close-icon-wrapper">
+        <div class="close-icon-circle">
+         <svg class="svg-icon close-icon" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 5.394 18.606 3 12 9.606 5.394 3 3 5.394 9.606 12 3 18.606 5.394 21 12 14.394 18.606 21 21 18.606 14.394 12 21 5.394Z" fill="currentColor">
+          </path>
+         </svg>
+        </div>
+       </div>
+      </div>
+     </div>
+    </section>
+    <section class="main-section grid-lines masthead-animation main-animated with-mi-search">
+     <a class="logo-link masthead-animation logo-animated" data-track-click='{"product_field":"logo","event":"navigation","element_name":"masthead","click_text":"Business Insider"}' href="https://www.businessinsider.com/">
+      <svg class="svg-icon logo-inline" height="120" viewbox="0 0 1365 120" width="1365" xmlns="http://www.w3.org/2000/svg">
+       <title>
+        Business Insider
+       </title>
+       <g class="logo-inline-path" fill="#0a0a0a" fill-rule="evenodd">
+        <path d="M0 2.46h49.1c27.31 0 41.59 14.12 41.59 31.46 0 11.97-6.75 20.1-16.11 24.4v.31c11.97 4.3 18.72 13.81 18.72 25.93 0 17.34-13.35 32.53-42.2 32.53H0V2.46Zm47.57 45.42c8.13 0 11.82-4.14 11.82-8.75s-3.68-8.9-11.82-8.9H33.15v17.65h14.42Zm.46 41.43c8.59 0 12.74-4.14 12.74-9.51s-4.3-9.51-12.58-9.51H33.15v19.03h14.88Zm52.32-18.87V2.46h33.45v67.67c0 12.74 6.29 19.49 17.03 19.49s17.49-6.75 17.49-19.64V2.46h33.61v67.98c0 28.85-19.33 49.57-51.1 49.57s-50.49-20.72-50.49-49.57ZM287.1 7.98v29.46c-7.21-5.06-19.49-8.59-29.46-8.59-9.05 0-13.66 2.92-13.66 6.75s5.06 5.83 14.12 9.05c15.35 5.37 36.21 12.58 36.21 36.98 0 21.79-16.42 37.9-45.27 37.9-14.88 0-28.54-4.3-36.98-9.97v-31c8.29 6.75 20.87 12.12 32.99 12.12 10.28 0 15.04-3.84 15.04-8.13 0-5.52-7.83-7.98-17.19-11.36-12.28-4.45-31.76-12.43-31.76-34.68 0-20.1 15.81-36.52 44.04-36.52 12.43 0 23.63 3.22 31.92 7.98Zm15.8-5.52h33.45v114.63H302.9V2.46Zm152.38 114.63h-31.92l-41.28-61.53h-.15v61.53h-31.76V2.46h31.92l41.28 60.46h.15V2.46h31.76v114.63ZM469.09 2.46h79.18v29.77h-45.73v13.81h41.12v27.01h-41.12v14.27h45.73v29.77h-79.18V2.46Zm163.12 5.52v29.46c-7.21-5.06-19.49-8.59-29.46-8.59-9.05 0-13.66 2.92-13.66 6.75s5.06 5.83 14.12 9.05c15.35 5.37 36.21 12.58 36.21 36.98 0 21.79-16.42 37.9-45.27 37.9-14.88 0-28.54-4.3-36.98-9.97v-31c8.29 6.75 20.87 12.12 32.99 12.12 10.28 0 15.04-3.84 15.04-8.13 0-5.52-7.83-7.98-17.19-11.36-12.28-4.45-31.76-12.43-31.76-34.68 0-20.1 15.81-36.52 44.04-36.52 12.43 0 23.63 3.22 31.92 7.98Zm88.54 0v29.46c-7.21-5.06-19.49-8.59-29.46-8.59-9.05 0-13.66 2.92-13.66 6.75s5.06 5.83 14.12 9.05c15.35 5.37 36.21 12.58 36.21 36.98 0 21.79-16.42 37.9-45.27 37.9-14.88 0-28.54-4.3-36.98-9.97v-31c8.29 6.75 20.87 12.12 32.99 12.12 10.28 0 15.04-3.84 15.04-8.13 0-5.52-7.83-7.98-17.19-11.36-12.28-4.45-31.76-12.43-31.76-34.68 0-20.1 15.81-36.52 44.04-36.52 12.43 0 23.63 3.22 31.92 7.98Zm45.97 109.33h33.45V2.69h-33.45v114.63ZM919.08 2.69h-31.76v60.46h-.15L845.89 2.69h-31.92v114.63h31.76V55.79h.15l41.28 61.53h31.92V2.69ZM972.92.23c-28.24 0-44.04 16.42-44.04 36.52 0 22.25 19.49 30.23 31.76 34.68 9.36 3.38 17.19 5.83 17.19 11.36 0 4.3-4.76 8.13-15.04 8.13-12.12 0-24.71-5.37-32.99-12.12v31c8.44 5.68 22.1 9.97 36.98 9.97 28.85 0 45.27-16.11 45.27-37.9 0-24.4-20.87-31.61-36.21-36.98-9.05-3.22-14.12-5.06-14.12-9.05s4.6-6.75 13.66-6.75c9.97 0 22.25 3.53 29.46 8.59V8.21C996.55 3.45 985.35.23 972.92.23Zm46.94 117.08h33.45V2.69h-33.45v114.63Zm80.71-30.23h6.45c17.34 0 28.54-9.82 28.54-27.01s-11.2-27.16-28.54-27.16h-6.45v54.17Zm68.75-27.01c0 34.53-26.09 57.24-63.53 57.24h-38.67V2.69h38.67c37.44 0 63.53 22.86 63.53 57.39Zm9.07 57.24h79.18V87.54h-45.73V73.27h41.12V46.26h-41.12V32.45h45.73V2.69h-79.18v114.63Zm131.83-60.46c8.44 0 15.04-3.99 15.04-11.97s-6.6-11.97-15.19-11.97h-7.06v23.94h7.21Zm54.78 60.46h-39.44l-21.79-35.45h-.77v35.45h-33.45V2.69h40.82c28.7 0 48.64 12.74 48.64 39.9 0 10.74-4.76 26.39-23.79 34.37l29.77 40.36Z">
+        </path>
+       </g>
+      </svg>
+     </a>
+     <div class="cta-wrapper">
+      <div class="markets-insider-search-box" data-component-type="markets-insider-search-box" data-load-strategy="lazy">
+       <form action="https://markets.businessinsider.com/searchresults?_search=/" method="GET">
+        <input autocapitalize="off" autocomplete="off" class="search-box-input label-xl-subtle" id="" name="_search" placeholder="Search markets" type="text" value=""/>
+        <input class="search-button" data-track-click='{"product_field":"search","event":"navigation","element_name":"masthead","click_path":"/searchresults","click_text":"bi_value_unassigned"}' type="submit" value="Press here to search"/>
+        <div class="search-icon-wrapper">
+         <svg class="svg-icon search-icon" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15.996 17.7a8.53 8.53 0 0 1-4.466 1.253c-4.711 0-8.53-3.795-8.53-8.477C3 5.795 6.819 2 11.53 2c4.71 0 8.53 3.795 8.53 8.476 0 2.156-.81 4.124-2.143 5.62l3.583 4.318L19.564 22l-3.568-4.3Zm1.555-7.224c0 3.305-2.696 5.984-6.021 5.984-3.325 0-6.021-2.679-6.021-5.984 0-3.304 2.696-5.983 6.02-5.983 3.326 0 6.022 2.679 6.022 5.983Z" fill="currentColor" fill-rule="evenodd">
+          </path>
+         </svg>
+        </div>
+        <div class="markets-insider-search-box-results">
+         <div class="search-box-results">
+         </div>
+        </div>
+       </form>
+      </div>
+      <a class="markets-insider-my-watchlist label-md-strong" data-component-type="markets-insider-my-watchlist" data-load-strategy="lazy" data-track-click='{"product_field":"watchlist","event":"navigation","element_name":"masthead"}' href="https://markets.businessinsider.com/mymarkets?originurl=/">
+       My Markets Watchlist
+      </a>
+      <button class="menu-button" data-interaction-trigger="hamburger-menu,overlay,account-icon,ai-search-box" data-menu-toggle="" data-track-click='{"product_field":"hamburger_menu","event":"navigation","element_name":"masthead","click_text":"bi_value_unassigned","click_path":"bi_value_unassigned"}' title="Open menu">
+       <svg class="svg-icon menu-icon" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2.5 5.5h19v1.414h-19V5.5Zm0 5.793h19v1.414h-19v-1.414Zm0 7.207v-1.414h19V18.5h-19Z" fill="currentColor" stroke="currentColor">
+        </path>
+       </svg>
+      </button>
+     </div>
+    </section>
+    <section class="bottom-section grid-lines with-markets-insider-banner">
+     <div class="markets-insider-banner" data-component-type="markets-insider-banner">
+      <div class="marquee" data-component-type="marquee" data-scroll-type="loop">
+       <div class="marquee-wrapper">
+        <div class="marquee-scroller">
+         <div class="banner-asset-wrapper">
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </section>
+    <section class="vertical-nav grid-lines is-mi with-post-overline" data-component-type="vertical-nav" data-load-strategy="lazy">
+     <div class="post-overline label-sm is-mi" data-component-type="post-overline" data-load-strategy="exclude">
+      <span class="breadcrumbs-wrapper caps strong">
+       <a class="breadcrumb" data-track-click='{"product_field":"markets","element_name":"breadcrumbs","event":"navigation"}' href="/">
+        Markets
+       </a>
+      </span>
+     </div>
+     <nav class="vertical-subnav" data-track-click-shared='{"product_field":"vertical","event":"navigation","element_name":"navbar"}'>
+      <div class="mi-nav-top-wrapper">
+       <h1 class="current-vertical display-xl">
+        Commodities
+       </h1>
+       <a class="markets-insider-my-watchlist label-md-strong" data-component-type="markets-insider-my-watchlist" data-load-strategy="lazy" data-track-click='{"product_field":"watchlist","event":"navigation","element_name":"masthead"}' href="https://markets.businessinsider.com/mymarkets?originurl=/">
+        My Markets Watchlist
+       </a>
+      </div>
+     </nav>
+    </section>
+   </header>
+   <nav class="hamburger-menu" data-component-type="hamburger-menu" data-load-strategy="interaction">
+    <section class="hamburger-menu-content">
+     <div class="hamburger-menu-top">
+      <a class="monogram-tap-target" data-track-click='{"click_text":"Business Insider","product_field":"other","element_name":"hamburger_menu","event":"navigation"}' href="https://www.businessinsider.com/" title="Business Insider">
+       <svg class="svg-icon logo-monogram" height="120" viewbox="0 0 147.4 120" width="147.4" xmlns="http://www.w3.org/2000/svg">
+        <g class="logo-monogram-path" fill="currentColor" fill-rule="evenodd">
+         <path d="M0 0h51.4C80 0 94.9 14.8 94.9 32.9s-7.1 21-16.9 25.5v.3c12.5 4.5 19.6 14.5 19.6 27.2 0 18.2-14 34.1-44.2 34.1H0V0Zm49.8 47.6c8.5 0 12.4-4.3 12.4-9.2s-3.9-9.3-12.4-9.3H34.7v18.5h15.1Zm.5 43.3c9 0 13.3-4.3 13.3-10s-4.5-10-13.2-10H34.7v19.9h15.6ZM112.4 0h35v120h-35V0Z">
+         </path>
+        </g>
+       </svg>
+      </a>
+      <button class="close-button" data-menu-toggle="" data-track-click='{"product_field":"close","event":"navigation","element_name":"hamburger_menu","click_text":"bi_value_unassigned","click_path":"bi_value_unassigned"}' title="Close menu">
+       <span class="close-button-background">
+        <svg class="svg-icon close-icon" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+         <path d="M21 5.394 18.606 3 12 9.606 5.394 3 3 5.394 9.606 12 3 18.606 5.394 21 12 14.394 18.606 21 21 18.606 14.394 12 21 5.394Z" fill="currentColor">
+         </path>
+        </svg>
+       </span>
+      </button>
+     </div>
+     <div class="ai-search-box" data-component-type="ai-search-box" data-load-strategy="interaction" data-tracking-area="hamburger">
+      <form action="/answers" class="input-holder" method="get">
+       <div class="input-holder-inner">
+        <input class="js-search-input" placeholder="Search Business Insider" type="text"/>
+        <button class="inline-button" title="Search BI">
+         <svg class="svg-icon ai-search-icon" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19.475 9.275a8.415 8.415 0 0 1-2.058 6.82L21 20.414 19.064 22l-3.568-4.3a8.53 8.53 0 0 1-4.466 1.253c-4.711 0-8.53-3.795-8.53-8.477C2.5 5.795 6.319 2 11.03 2c.396 0 .786.027 1.167.079l-.549 1.069-2.716 1.395c-.335.173-.6.41-.794.684a5.977 5.977 0 0 0-3.13 5.25c0 3.304 2.697 5.983 6.022 5.983a6.025 6.025 0 0 0 5.298-3.138c.251-.19.468-.441.629-.754l1.395-2.716 1.123-.577Z" fill="currentColor">
+          </path>
+          <path d="M14.822 1.346a.2.2 0 0 1 .356 0l1.66 3.23a.2.2 0 0 0 .086.087l3.23 1.66a.2.2 0 0 1 0 .355l-3.23 1.66a.2.2 0 0 0-.087.086l-1.66 3.23a.2.2 0 0 1-.355 0l-1.66-3.23a.2.2 0 0 0-.086-.087l-3.23-1.66a.2.2 0 0 1 0-.355l3.23-1.66a.2.2 0 0 0 .087-.086l1.66-3.23Z" fill="#002AFF">
+          </path>
+         </svg>
+        </button>
+       </div>
+       <button class="big-button">
+        Search
+       </button>
+      </form>
+     </div>
+     <section class="hamburger-menu-vertical-lists" data-track-click-shared='{"product_field":"vertical","event":"navigation","element_name":"hamburger_menu"}'>
+      <div class="accordion level-0" data-component-type="accordion" data-group="menu" data-level="0" data-load-strategy="exclude" data-track-click-shared='{"element_name":"hamburger_menu","event":"navigation","product_field":"vertical"}'>
+       <div class="accordion-row">
+        <span class="accordion-item headline-medium">
+         <button class="accordion-button headline-medium" title="Expand menu">
+          <svg class="svg-icon chevron-down-icon" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+           <path d="m19.44 5.5-7.486 7.72L4.56 5.594 2 8.234 11.954 18.5 22 8.14 19.44 5.5Z" fill="currentColor" fill-rule="evenodd">
+           </path>
+          </svg>
+         </button>
+         <a class="accordion-link headline-medium with-nested-accordion" data-track-click="" href="https://www.businessinsider.com/business">
+          Business
+         </a>
+        </span>
+        <div class="accordion level-1" data-component-type="accordion" data-group="menu" data-level="1" data-load-strategy="exclude">
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/strategy">
+            Strategy
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/economy">
+            Economy
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/finance">
+            Finance
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/retail">
+            Retail
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/advertising">
+            Advertising
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/careers">
+            Careers
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/media">
+            Media
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/real-estate">
+            Real Estate
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/smallbusiness">
+            Small Business
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/sc/introducing-the-better-work-project-hub">
+            The Better Work Project
+           </a>
+          </span>
+         </div>
+        </div>
+       </div>
+       <div class="accordion-row">
+        <span class="accordion-item headline-medium">
+         <button class="accordion-button headline-medium" title="Expand menu">
+          <svg class="svg-icon chevron-down-icon" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+           <path d="m19.44 5.5-7.486 7.72L4.56 5.594 2 8.234 11.954 18.5 22 8.14 19.44 5.5Z" fill="currentColor" fill-rule="evenodd">
+           </path>
+          </svg>
+         </button>
+         <a class="accordion-link headline-medium with-nested-accordion" data-track-click="" href="https://www.businessinsider.com/tech">
+          Tech
+         </a>
+        </span>
+        <div class="accordion level-1" data-component-type="accordion" data-group="menu" data-level="1" data-load-strategy="exclude">
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/science">
+            Science
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/artificial-intelligence">
+            AI
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/enterprise">
+            Enterprise
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/transportation">
+            Transportation
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/startups">
+            Startups
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/innovation">
+            Innovation
+           </a>
+          </span>
+         </div>
+        </div>
+       </div>
+       <div class="accordion-row">
+        <span class="accordion-item headline-medium">
+         <button class="accordion-button headline-medium" title="Expand menu">
+          <svg class="svg-icon chevron-down-icon" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+           <path d="m19.44 5.5-7.486 7.72L4.56 5.594 2 8.234 11.954 18.5 22 8.14 19.44 5.5Z" fill="currentColor" fill-rule="evenodd">
+           </path>
+          </svg>
+         </button>
+         <a class="accordion-link headline-medium with-nested-accordion" data-track-click="" href="https://markets.businessinsider.com">
+          Markets
+         </a>
+        </span>
+        <div class="accordion level-1" data-component-type="accordion" data-group="menu" data-level="1" data-load-strategy="exclude">
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://markets.businessinsider.com/stocks">
+            Stocks
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://markets.businessinsider.com/indices">
+            Indices
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://markets.businessinsider.com/commodities">
+            Commodities
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://markets.businessinsider.com/cryptocurrencies">
+            Crypto
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://markets.businessinsider.com/currencies">
+            Currencies
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://markets.businessinsider.com/etfs">
+            ETFs
+           </a>
+          </span>
+         </div>
+        </div>
+       </div>
+       <div class="accordion-row">
+        <span class="accordion-item headline-medium">
+         <button class="accordion-button headline-medium" title="Expand menu">
+          <svg class="svg-icon chevron-down-icon" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+           <path d="m19.44 5.5-7.486 7.72L4.56 5.594 2 8.234 11.954 18.5 22 8.14 19.44 5.5Z" fill="currentColor" fill-rule="evenodd">
+           </path>
+          </svg>
+         </button>
+         <a class="accordion-link headline-medium with-nested-accordion" data-track-click="" href="https://www.businessinsider.com/lifestyle">
+          Lifestyle
+         </a>
+        </span>
+        <div class="accordion level-1" data-component-type="accordion" data-group="menu" data-level="1" data-load-strategy="exclude">
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/entertainment">
+            Entertainment
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/culture">
+            Culture
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/travel">
+            Travel
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/food">
+            Food
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/health">
+            Health
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/parenting">
+            Parenting
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <button class="accordion-button headline-medium" title="Expand menu">
+            <svg class="svg-icon arrow-filled-right" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+             <path d="M7 22V2L22 12L7 22Z" fill="currentColor">
+             </path>
+            </svg>
+           </button>
+           <a class="accordion-link headline-medium with-nested-accordion" data-track-click="" href="https://www.businessinsider.com/guides">
+            Reviews
+           </a>
+          </span>
+          <div class="accordion level-2" data-component-type="accordion" data-group="menu" data-level="2" data-load-strategy="exclude">
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/guides/tech ">
+              Tech
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/guides/streaming ">
+              Streaming
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/guides/tickets ">
+              Tickets
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/guides/home">
+              Home
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/guides/kitchen">
+              Kitchen
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/guides/style">
+              Style
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/guides/beauty">
+              Beauty
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/guides/gifts">
+              Gifts
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/guides/deals">
+              Deals
+             </a>
+            </span>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="accordion-row">
+        <span class="accordion-item headline-medium">
+         <button class="accordion-button headline-medium" title="Expand menu">
+          <svg class="svg-icon chevron-down-icon" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+           <path d="m19.44 5.5-7.486 7.72L4.56 5.594 2 8.234 11.954 18.5 22 8.14 19.44 5.5Z" fill="currentColor" fill-rule="evenodd">
+           </path>
+          </svg>
+         </button>
+         <a class="accordion-link headline-medium with-nested-accordion" data-track-click="" href="https://www.businessinsider.com/politics">
+          Politics
+         </a>
+        </span>
+        <div class="accordion level-1" data-component-type="accordion" data-group="menu" data-level="1" data-load-strategy="exclude">
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/defense">
+            Military &amp; Defense
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/law">
+            Law
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/education">
+            Education
+           </a>
+          </span>
+         </div>
+        </div>
+       </div>
+       <div class="accordion-row">
+        <span class="accordion-item headline-medium">
+         <button class="accordion-button headline-medium" title="Expand menu">
+          <svg class="svg-icon chevron-down-icon" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+           <path d="m19.44 5.5-7.486 7.72L4.56 5.594 2 8.234 11.954 18.5 22 8.14 19.44 5.5Z" fill="currentColor" fill-rule="evenodd">
+           </path>
+          </svg>
+         </button>
+         <a class="accordion-link headline-medium with-nested-accordion" data-track-click="" href="https://www.businessinsider.com/personal-finance">
+          Personal Finance
+         </a>
+        </span>
+        <div class="accordion level-1" data-component-type="accordion" data-group="menu" data-level="1" data-load-strategy="exclude">
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <button class="accordion-button headline-medium" title="Expand menu">
+            <svg class="svg-icon arrow-filled-right" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+             <path d="M7 22V2L22 12L7 22Z" fill="currentColor">
+             </path>
+            </svg>
+           </button>
+           <a class="accordion-link headline-medium with-nested-accordion" data-track-click="" href="https://www.businessinsider.com/personal-finance/banking">
+            Banking
+           </a>
+          </span>
+          <div class="accordion level-2" data-component-type="accordion" data-group="menu" data-level="2" data-load-strategy="exclude">
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/savings">
+              Savings
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/banking/best-high-yield-savings-accounts-rates-right-now">
+              Best Savings Accounts
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/banking/raisin-review">
+              Raisin Review
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/checking-account">
+              Checking Accounts
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/banking/best-checking-accounts">
+              Best Checking Accounts
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/banking/chime-bank-review">
+              Chime Checking Account
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/banking/sofi-checking-savings-review">
+              SoFi Checking and Saving
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/banking/best-money-market-accounts">
+              Best Money Market Accounts
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/certificates-of-deposit">
+              CDs
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/banking/who-has-the-best-cd-rates-right-now">
+              Best CD Rates
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/banking/best-bank-account-bonuses">
+              Best Bank Account Bonuses
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/banking/cash-back-debit-cards">
+              Cash Back Debit Cards
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/banking/best-banks">
+              Best Banks
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/banking/cit-bank-review">
+              CIT Bank Review
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/banking/ufb-direct-banking-review">
+              UFB Direct Bank
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/small-business">
+              Small Business Banking
+             </a>
+            </span>
+           </div>
+          </div>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <button class="accordion-button headline-medium" title="Expand menu">
+            <svg class="svg-icon arrow-filled-right" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+             <path d="M7 22V2L22 12L7 22Z" fill="currentColor">
+             </path>
+            </svg>
+           </button>
+           <a class="accordion-link headline-medium with-nested-accordion" data-track-click="" href="https://www.businessinsider.com/personal-finance/credit-cards">
+            Credit Cards
+           </a>
+          </span>
+          <div class="accordion level-2" data-component-type="accordion" data-group="menu" data-level="2" data-load-strategy="exclude">
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/credit-score">
+              Credit Scores
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/credit-score/best-credit-monitoring-services">
+              Credit Monitoring
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/credit-cards/best-credit-cards">
+              Best Credit Cards
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/credit-cards/best-cash-back-credit-cards">
+              Best Cash Back Credit Cards
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/credit-cards/best-rewards-credit-cards">
+              Best Rewards Credit Cards
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/credit-cards/best-travel-rewards-credit-cards">
+              Best Travel Credit Cards
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/credit-cards/best-zero-interest-credit-cards">
+              Best 0% APR Credit Cards
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/credit-cards/best-balance-transfer-credit-cards">
+              Best Balance Transfer Credit Cards
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/credit-cards/best-starter-credit-cards">
+              Best First Credit Cards
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/credit-cards/best-small-business-credit-card">
+              Best Business Credit Cards
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/credit-cards/discover-it-cash-back-card-review">
+              Discover it Cash Back Credit Card
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/credit-cards/chase-sapphire-preferred-card-review">
+              Chase Sapphire Preferred Credit Card
+             </a>
+            </span>
+           </div>
+          </div>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <button class="accordion-button headline-medium" title="Expand menu">
+            <svg class="svg-icon arrow-filled-right" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+             <path d="M7 22V2L22 12L7 22Z" fill="currentColor">
+             </path>
+            </svg>
+           </button>
+           <a class="accordion-link headline-medium with-nested-accordion" data-track-click="" href="https://www.businessinsider.com/personal-finance/investing">
+            Investing
+           </a>
+          </span>
+          <div class="accordion level-2" data-component-type="accordion" data-group="menu" data-level="2" data-load-strategy="exclude">
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/financial-planning">
+              Financial Planning
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/retirement">
+              Retirement
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/taxes">
+              Taxes
+             </a>
+            </span>
+           </div>
+          </div>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <button class="accordion-button headline-medium" title="Expand menu">
+            <svg class="svg-icon arrow-filled-right" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+             <path d="M7 22V2L22 12L7 22Z" fill="currentColor">
+             </path>
+            </svg>
+           </button>
+           <a class="accordion-link headline-medium with-nested-accordion" data-track-click="" href="https://www.businessinsider.com/personal-finance/loans">
+            Loans
+           </a>
+          </span>
+          <div class="accordion level-2" data-component-type="accordion" data-group="menu" data-level="2" data-load-strategy="exclude">
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/personal-loans/best-personal-loans">
+              Best personal loans
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/personal-loans/best-debt-consolidation-loans">
+              Best debt consolidation loans
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/personal-loans/best-personal-loans-bad-credit">
+              Best Loans for Bad Credit
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/student-loans">
+              Student Loans
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/student-loans/best-private-student-loans">
+              Best Student Loans
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/student-loans/best-student-loan-refinance-companies">
+              Best Student Loan Refinance
+             </a>
+            </span>
+           </div>
+          </div>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <button class="accordion-button headline-medium" title="Expand menu">
+            <svg class="svg-icon arrow-filled-right" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+             <path d="M7 22V2L22 12L7 22Z" fill="currentColor">
+             </path>
+            </svg>
+           </button>
+           <a class="accordion-link headline-medium with-nested-accordion" data-track-click="" href="https://www.businessinsider.com/personal-finance/mortgages">
+            Mortgages
+           </a>
+          </span>
+          <div class="accordion level-2" data-component-type="accordion" data-group="menu" data-level="2" data-load-strategy="exclude">
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/mortgages/best-mortgage-lenders">
+              Best mortgage lenders
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/mortgages/best-mortgage-refinance-lenders">
+              Best mortgage refinance lenders
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/mortgages/fha-interest-rates">
+              Best FHA Lenders
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/mortgages/current-heloc-rates">
+              Best HELOC Lenders
+             </a>
+            </span>
+           </div>
+          </div>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <button class="accordion-button headline-medium" title="Expand menu">
+            <svg class="svg-icon arrow-filled-right" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+             <path d="M7 22V2L22 12L7 22Z" fill="currentColor">
+             </path>
+            </svg>
+           </button>
+           <a class="accordion-link headline-medium with-nested-accordion" data-track-click="" href="https://www.businessinsider.com/personal-finance/insurance">
+            Insurance
+           </a>
+          </span>
+          <div class="accordion level-2" data-component-type="accordion" data-group="menu" data-level="2" data-load-strategy="exclude">
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/auto-insurance/best-car-insurance-companies">
+              Best Car Insurance
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/homeowners-insurance">
+              Homeowners Insurance
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/homeowners-insurance/best-homeowners-insurance-companies">
+              Best Homeowners Insurance
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/homeowners-insurance/best-renters-insurance-companies">
+              Best Renters Insurance
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/life-insurance">
+              Life Insurance
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/life-insurance/best-life-insurance-companies">
+              Best Life Insurance
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/pet-insurance">
+              Pet Insurance
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/pet-insurance/best-pet-insurance">
+              Best Pet Insurance
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/travel-insurance">
+              Travel Insurance
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/travel-insurance/best-travel-insurance-companies">
+              Best Travel Insurance
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/travel-insurance/squaremouth-travel-insurance-review">
+              SquareMouth Travel Insurance
+             </a>
+            </span>
+           </div>
+           <div class="accordion-row">
+            <span class="accordion-item headline-medium">
+             <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/personal-finance/identity-protection">
+              Identity Theft Protection
+             </a>
+            </span>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="accordion-row">
+        <span class="accordion-item headline-medium">
+         <button class="accordion-button headline-medium" title="Expand menu">
+          <svg class="svg-icon chevron-down-icon" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+           <path d="m19.44 5.5-7.486 7.72L4.56 5.594 2 8.234 11.954 18.5 22 8.14 19.44 5.5Z" fill="currentColor" fill-rule="evenodd">
+           </path>
+          </svg>
+         </button>
+         <a class="accordion-link headline-medium with-nested-accordion" data-track-click="" href="https://www.businessinsider.com/video">
+          Video
+         </a>
+        </span>
+        <div class="accordion level-1" data-component-type="accordion" data-group="menu" data-level="1" data-load-strategy="exclude">
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/show/big-business">
+            Big Business
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/show/food-wars">
+            Food Wars
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/show/so-expensive">
+            So Expensive
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/show/still-standing">
+            Still Standing
+           </a>
+          </span>
+         </div>
+         <div class="accordion-row">
+          <span class="accordion-item headline-medium">
+           <a class="accordion-link headline-medium" data-track-click="" href="https://www.businessinsider.com/show/boot-camp">
+            Boot Camp
+           </a>
+          </span>
+         </div>
+        </div>
+       </div>
+      </div>
+     </section>
+    </section>
+    <footer class="hamburger-menu-footer">
+    </footer>
+   </nav>
+   <div class="overlay" data-component-type="overlay" data-load-strategy="interaction">
+   </div>
+  </shared-component>
+  <!-- Markets Insider Page Content -->
+  <main class="site-content">
+   <script type="application/ld+json">
+    {
+			"@context": "http://schema.org",
+			"@type": "BreadcrumbList",	"itemListElement":[
+                        {"@type": "ListItem","position": 0,"item": {"@type": "WebPage","@id": "/","name": " Markets"}}
+                            ,
+                        {"@type": "ListItem","position": 1,"item": {"@type": "WebPage","@id": "/commodities","name": " Commodities"}}
+
+			]
+		}
+   </script>
+   <div>
+    <div class="spacer-10">
+    </div>
+    <div class="site-content__row graviton">
+     <div class="site-content__col site-content__col--left">
+      <div class="graviton">
+       <h2 class="header-underline">
+        Commodities Top Performers
+       </h2>
+       <div class="tab" data-tab="Iea70b65c115e4dbeb23f1375ce34117e" data-tab-ajax-container="Iea70b65c115e4dbeb23f1375ce34117e">
+        <ul class="tab__list">
+         <li class="tab__item" data-tab-item="/ajax/GetCommodityPerformer/intraday">
+          Intraday
+         </li>
+         <li class="tab__item" data-tab-item="/ajax/GetCommodityPerformer/3m">
+          3M
+         </li>
+         <li class="tab__item" data-tab-item="/ajax/GetCommodityPerformer/6m">
+          6M
+         </li>
+         <li class="tab__item" data-tab-item="/ajax/GetCommodityPerformer/1y">
+          1y
+         </li>
+         <li class="tab__item" data-tab-item="/ajax/GetCommodityPerformer/5y">
+          5y
+         </li>
+        </ul>
+       </div>
+       <div data-tab-ajax-region-content="Iea70b65c115e4dbeb23f1375ce34117e">
+        <div class="grid--vertical-scrolling">
+         <table class="table table--col-1-font-color-black table--suppresses-line-breaks">
+          <colgroup>
+           <col class="width-30-percent"/>
+           <col class="width-50-percent"/>
+           <col/>
+          </colgroup>
+          <thead class="table__thead">
+          </thead>
+          <tbody class="table__tbody">
+           <tr class="table__tr">
+            <td class="table__td width-30-percent">
+             <span class="arrow arrow--positive">
+             </span>
+             <a class="font-color-black" href="/commodities/natural-gas-price" title="Natural Gas (Henry Hub)">
+              Natural Gas (Henry Hub)
+             </a>
+            </td>
+            <td class="table__td text-right" width="40%">
+             <span class="colorGreen font-color-green">
+              4.46%
+             </span>
+            </td>
+            <td class="table__td text-right">
+             5.29 USD
+            </td>
+           </tr>
+           <tr class="table__tr">
+            <td class="table__td width-30-percent">
+             <span class="arrow arrow--positive">
+             </span>
+             <a class="font-color-black" href="/commodities/live-cattle-price" title="Live Cattle">
+              Live Cattle
+             </a>
+            </td>
+            <td class="table__td text-right" width="40%">
+             <span class="colorGreen font-color-green">
+              2.62%
+             </span>
+            </td>
+            <td class="table__td text-right">
+             2.27 USD
+            </td>
+           </tr>
+           <tr class="table__tr">
+            <td class="table__td width-30-percent">
+             <span class="arrow arrow--positive">
+             </span>
+             <a class="font-color-black" href="/commodities/heating-oil-price" title="Heating Oil">
+              Heating Oil
+             </a>
+            </td>
+            <td class="table__td text-right" width="40%">
+             <span class="colorGreen font-color-green">
+              2.61%
+             </span>
+            </td>
+            <td class="table__td text-right">
+             62.34 USD
+            </td>
+           </tr>
+           <tr class="table__tr">
+            <td class="table__td width-30-percent">
+             <span class="arrow arrow--positive">
+             </span>
+             <a class="font-color-black" href="/commodities/cocoa-price" title="Cocoa">
+              Cocoa
+             </a>
+            </td>
+            <td class="table__td text-right" width="40%">
+             <span class="colorGreen font-color-green">
+              2.50%
+             </span>
+            </td>
+            <td class="table__td text-right">
+             3,943.00 GBP
+            </td>
+           </tr>
+           <tr class="table__tr">
+            <td class="table__td width-30-percent">
+             <span class="arrow arrow--positive">
+             </span>
+             <a class="font-color-black" href="/commodities/silver-price" title="Silver">
+              Silver
+             </a>
+            </td>
+            <td class="table__td text-right" width="40%">
+             <span class="colorGreen font-color-green">
+              2.05%
+             </span>
+            </td>
+            <td class="table__td text-right">
+             58.30 USD
+            </td>
+           </tr>
+          </tbody>
+         </table>
+        </div>
+       </div>
+      </div>
+      <div class="spacer-50 mobile-spacer-25">
+      </div>
+      <div class="htlad-mobile_in_post_ad_1" data-htlad="true" data-prebid="0x0:Commodities/Homepage/medrec_flex|768x0:" data-unit="Markets-Insider/Commodities/Homepage">
+      </div>
+      <div class="htlad-desktop_in_post_ad_1" data-htlad="true" data-prebid="0x0:|768x0:Commodities/Homepage/medrec|1261x0:Commodities/Homepage/billboard_flex" data-unit="Markets-Insider/Commodities/Homepage">
+      </div>
+      <div class="graviton">
+       <h2 class="header-underline">
+        Commodity Prices
+       </h2>
+       <div class="grid--vertical-scrolling">
+        <table class="table table--col-1-font-color-black table--suppresses-line-breaks">
+         <colgroup>
+          <col class="width-20-percent"/>
+          <col class="width-20-percent"/>
+          <col class="width-10-percent"/>
+          <col class="width-10-percent"/>
+          <col class="width-20-percent"/>
+          <col class="width-20-percent"/>
+         </colgroup>
+         <thead class="table__thead">
+          <tr class="table__tr">
+           <th class="table__th" width="20%">
+            Precious Metals
+           </th>
+           <th class="table__th text-right" width="13%">
+            Price
+           </th>
+           <th class="table__th text-right" width="7%">
+            %
+           </th>
+           <th class="table__th text-right" width="6%">
+            +/-
+           </th>
+           <th class="table__th text-right" width="19%">
+            Unit
+           </th>
+           <th class="table__th text-right" width="21%">
+            Date
+           </th>
+          </tr>
+         </thead>
+         <tbody class="table__tbody">
+          <tr class="table__tr" onclick='window.location.href = "/commodities/gold-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/gold-price" title="Gold">
+             Gold
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0101E4D000113377356" data-room="RY0101E4D000113377356" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              4,197.38
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0101E4D000113377356" data-room="RY0101E4D000113377356" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorize" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="4197.3800" style="">
+              %
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0101E4D000113377356" data-room="RY0101E4D000113377356" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorize" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="4197.3800" style="">
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per Troy Ounce
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0101E4D000113377356" data-room="RY0101E4D000113377356" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              09:58:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/palladium-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/palladium-price" title="Palladium">
+             Palladium
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0101E4D000113381502" data-room="RY0101E4D000113381502" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              1,465.50
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0101E4D000113381502" data-room="RY0101E4D000113381502" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="1465.5000" style="">
+              1.35%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0101E4D000113381502" data-room="RY0101E4D000113381502" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="1465.5000" style="">
+              19.50
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per Troy Ounce
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0101E4D000113381502" data-room="RY0101E4D000113381502" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              04:47:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/platinum-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/platinum-price" title="Platinum">
+             Platinum
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0101E4D000113380292" data-room="RY0101E4D000113380292" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              1,640.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0101E4D000113380292" data-room="RY0101E4D000113380292" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="1640.0000" style="">
+              -0.64%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0101E4D000113380292" data-room="RY0101E4D000113380292" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="1640.0000" style="">
+              -10.50
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per Troy Ounce
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0101E4D000113380292" data-room="RY0101E4D000113380292" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              04:55:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/silver-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/silver-price" title="Silver">
+             Silver
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0101E4D000113376801" data-room="RY0101E4D000113376801" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              58.30
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0101E4D000113376801" data-room="RY0101E4D000113376801" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="58.3000" style="">
+              2.05%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0101E4D000113376801" data-room="RY0101E4D000113376801" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="58.3000" style="">
+              1.17
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per Troy Ounce
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0101E4D000113376801" data-room="RY0101E4D000113376801" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              04:50:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+         </tbody>
+        </table>
+        <table class="table table--col-1-font-color-black table--suppresses-line-breaks margin-vertical--medium">
+         <colgroup>
+          <col class="width-20-percent"/>
+          <col class="width-20-percent"/>
+          <col class="width-10-percent"/>
+          <col class="width-10-percent"/>
+          <col class="width-20-percent"/>
+          <col class="width-20-percent"/>
+         </colgroup>
+         <thead class="table__thead">
+          <tr class="table__tr">
+           <th class="table__th" width="20%">
+            Energy
+           </th>
+           <th class="table__th text-right" width="13%">
+            Price
+           </th>
+           <th class="table__th text-right" width="7%">
+            %
+           </th>
+           <th class="table__th text-right" width="6%">
+            +/-
+           </th>
+           <th class="table__th text-right" width="19%">
+            Unit
+           </th>
+           <th class="table__th text-right" width="21%">
+            Date
+           </th>
+          </tr>
+         </thead>
+         <tbody class="table__tbody">
+          <tr class="table__tr" onclick='window.location.href = "/commodities/natural-gas-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/natural-gas-price" title="Natural Gas (Henry Hub)">
+             Natural Gas (Henry Hub)
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0101E4D000113382064" data-room="RY0101E4D000113382064" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              5.29
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0101E4D000113382064" data-room="RY0101E4D000113382064" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="5.0600" style="">
+              4.46%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0101E4D000113382064" data-room="RY0101E4D000113382064" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="5.0600" style="">
+              0.23
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per MMBtu
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0101E4D000113382064" data-room="RY0101E4D000113382064" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              05:39:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/heating-oil-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/heating-oil-price" title="Heating Oil">
+             Heating Oil
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              62.34
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="60.7600" style="">
+              2.61%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="60.7600" style="">
+              1.59
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per 100 Liter
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              05:39:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/coal-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/coal-price" title="Coal">
+             Coal
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              97.25
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="97.2000" style="">
+              0.26%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="97.2000" style="">
+              0.25
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            per Ton
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              06:00:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/rbob-gasoline"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/rbob-gasoline" title="RBOB Gasoline">
+             RBOB Gasoline
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              1.83
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="1.8300" style="">
+              0.38%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="1.8300" style="">
+              0.01
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            per Gallone
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              05:40:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/oil-price?type=brent"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/oil-price?type=brent" title="Oil (Brent)">
+             Oil (Brent)
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0101E4D000113378775" data-room="RY0101E4D000113378775" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              63.75
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0101E4D000113378775" data-room="RY0101E4D000113378775" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="63.2600" style="">
+              0.60%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0101E4D000113378775" data-room="RY0101E4D000113378775" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="63.2600" style="">
+              0.38
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per Barrel
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0101E4D000113378775" data-room="RY0101E4D000113378775" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              06:00:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/oil-price?type=wti"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/oil-price?type=wti" title="Oil (WTI)">
+             Oil (WTI)
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0101E4D000113381462" data-room="RY0101E4D000113381462" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              60.08
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0101E4D000113381462" data-room="RY0101E4D000113381462" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="59.6700" style="">
+              0.69%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0101E4D000113381462" data-room="RY0101E4D000113381462" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="59.6700" style="">
+              0.41
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per Barrel
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0101E4D000113381462" data-room="RY0101E4D000113381462" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              05:39:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+         </tbody>
+        </table>
+        <div class="htlad-desktop_in_post_ad_1" data-htlad="true" data-prebid="0x0:|768x0:Commodities/Homepage/medrec|1261x0:Commodities/Homepage/billboard_flex" data-unit="Markets-Insider/Commodities/Homepage">
+        </div>
+        <div class="htlad-mobile_in_post_ad_1" data-htlad="true" data-prebid="0x0:Commodities/Homepage/medrec_flex|768x0:" data-unit="Markets-Insider/Commodities/Homepage">
+        </div>
+        <table class="table table--col-1-font-color-black table--suppresses-line-breaks margin-vertical--medium">
+         <colgroup>
+          <col class="width-20-percent"/>
+          <col class="width-20-percent"/>
+          <col class="width-10-percent"/>
+          <col class="width-10-percent"/>
+          <col class="width-20-percent"/>
+          <col class="width-20-percent"/>
+         </colgroup>
+         <thead class="table__thead">
+          <tr class="table__tr">
+           <th class="table__th" width="20%">
+            Industrial Metals
+           </th>
+           <th class="table__th text-right" width="13%">
+            Price
+           </th>
+           <th class="table__th text-right" width="7%">
+            %
+           </th>
+           <th class="table__th text-right" width="6%">
+            +/-
+           </th>
+           <th class="table__th text-right" width="19%">
+            Unit
+           </th>
+           <th class="table__th text-right" width="21%">
+            Date
+           </th>
+          </tr>
+         </thead>
+         <tbody class="table__tbody">
+          <tr class="table__tr" onclick='window.location.href = "/commodities/aluminum-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/aluminum-price" title="Aluminium">
+             Aluminium
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0101E4D000113381406" data-room="RY0101E4D000113381406" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              2,907.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0101E4D000113381406" data-room="RY0101E4D000113381406" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="2907.1500" style="">
+              -0.01%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0101E4D000113381406" data-room="RY0101E4D000113381406" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="2907.1500" style="">
+              -0.15
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per Ton
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0101E4D000113381406" data-room="RY0101E4D000113381406" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              01:48:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/lead-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/lead-price" title="Lead">
+             Lead
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0101E4D000113382074" data-room="RY0101E4D000113382074" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              1,967.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0101E4D000113382074" data-room="RY0101E4D000113382074" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="1962.0000" style="">
+              0.25%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0101E4D000113382074" data-room="RY0101E4D000113382074" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="1962.0000" style="">
+              5.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per Ton
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0101E4D000113382074" data-room="RY0101E4D000113382074" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              08:03:00 AM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/copper-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/copper-price" title="Copper">
+             Copper
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0101E4D000113378768" data-room="RY0101E4D000113378768" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              11,645.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0101E4D000113378768" data-room="RY0101E4D000113378768" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="11472.0000" style="">
+              1.51%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0101E4D000113378768" data-room="RY0101E4D000113378768" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="11472.0000" style="">
+              173.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per Ton
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0101E4D000113378768" data-room="RY0101E4D000113378768" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              07:50:00 AM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/nickel-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/nickel-price" title="Nickel">
+             Nickel
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0101E4D000113381378" data-room="RY0101E4D000113381378" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              14,720.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0101E4D000113381378" data-room="RY0101E4D000113381378" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="14725.0000" style="">
+              -0.03%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0101E4D000113381378" data-room="RY0101E4D000113381378" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="14725.0000" style="">
+              -5.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per Ton
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0101E4D000113381378" data-room="RY0101E4D000113381378" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              08:16:00 AM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/zinc-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/zinc-price" title="Zinc">
+             Zinc
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              3,222.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="3226.0000" style="">
+              -0.12%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="3226.0000" style="">
+              -4.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per Ton
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              08:10:00 AM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/tin-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/tin-price" title="Tin">
+             Tin
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              40,300.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="40295.0000" style="">
+              0.01%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="40295.0000" style="">
+              5.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per Ton
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              08:06:00 AM
+             </span>
+            </div>
+           </td>
+          </tr>
+         </tbody>
+        </table>
+        <div class="htlad-desktop_in_post_ad_1" data-htlad="true" data-prebid="0x0:|768x0:Commodities/Homepage/medrec|1261x0:Commodities/Homepage/billboard_flex" data-unit="Markets-Insider/Commodities/Homepage">
+        </div>
+        <div class="htlad-mobile_in_post_ad_1" data-htlad="true" data-prebid="0x0:Commodities/Homepage/medrec_flex|768x0:" data-unit="Markets-Insider/Commodities/Homepage">
+        </div>
+        <table class="table table--col-1-font-color-black table--suppresses-line-breaks margin-vertical--medium">
+         <colgroup>
+          <col class="width-20-percent"/>
+          <col class="width-20-percent"/>
+          <col class="width-10-percent"/>
+          <col class="width-10-percent"/>
+          <col class="width-20-percent"/>
+          <col class="width-20-percent"/>
+         </colgroup>
+         <thead class="table__thead">
+          <tr class="table__tr">
+           <th class="table__th" width="20%">
+            Agriculture
+           </th>
+           <th class="table__th text-right" width="13%">
+            Price
+           </th>
+           <th class="table__th text-right" width="7%">
+            %
+           </th>
+           <th class="table__th text-right" width="6%">
+            +/-
+           </th>
+           <th class="table__th text-right" width="19%">
+            Unit
+           </th>
+           <th class="table__th text-right" width="21%">
+            Date
+           </th>
+          </tr>
+         </thead>
+         <tbody class="table__tbody">
+          <tr class="table__tr" onclick='window.location.href = "/commodities/cotton-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/cotton-price" title="Cotton">
+             Cotton
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              0.62
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="0.6200" style="">
+              -0.24%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorize" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="0.6200" style="">
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USc per lb.
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              02:22:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/oats-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/oats-price" title="Oats">
+             Oats
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              2.97
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="3.0300" style="">
+              -2.15%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="3.0300" style="">
+              -0.07
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USc per Bushel
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              02:16:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/lumber-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/lumber-price" title="Lumber">
+             Lumber
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              539.50
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="536.5000" style="">
+              0.56%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="536.5000" style="">
+              3.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            per 1.000 board feet
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              04:00:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/coffee-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/coffee-price" title="Coffee">
+             Coffee
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              4.06
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="4.0600" style="">
+              -1.38%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="4.0600" style="">
+              -0.06
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USc per lb.
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              01:30:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/cocoa-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/cocoa-price" title="Cocoa">
+             Cocoa
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              3,943.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="3847.0000" style="">
+              2.50%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="3847.0000" style="">
+              96.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            GBP per Ton
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              12:01:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/live-cattle-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/live-cattle-price" title="Live Cattle">
+             Live Cattle
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              2.27
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="2.2100" style="">
+              2.62%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="2.2100" style="">
+              0.06
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per lb.
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              02:05:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/lean-hog-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/lean-hog-price" title="Lean Hog">
+             Lean Hog
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              0.82
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="0.8100" style="">
+              0.59%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorize" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="0.8100" style="">
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USc per lb.
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              02:05:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/corn-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/corn-price" title="Corn">
+             Corn
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              4.37
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="4.3800" style="">
+              -0.17%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="4.3800" style="">
+              -0.01
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USc per Bushel
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              02:20:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/feeder-cattle-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/feeder-cattle-price" title="Feeder Cattle">
+             Feeder Cattle
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              3.39
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="3.3700" style="">
+              0.71%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="3.3700" style="">
+              0.02
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USc per lb.
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              02:05:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/milk-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/milk-price" title="Milk">
+             Milk
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              16.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="16.1000" style="">
+              -0.62%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="16.1000" style="">
+              -0.10
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per cwt.sh.
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              02:45:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/orange-juice-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/orange-juice-price" title="Orange Juice">
+             Orange Juice
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              1.46
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="1.4600" style="">
+              -3.13%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="1.4600" style="">
+              -0.05
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USc per lb.
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              02:00:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/palm-oil-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/palm-oil-price" title="Palm Oil">
+             Palm Oil
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              4,095.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="4065.0000" style="">
+              0.74%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="4065.0000" style="">
+              30.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            Ringgit per Ton
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              06:54:00 AM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/rapeseed-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/rapeseed-price" title="Rapeseed">
+             Rapeseed
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              476.50
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="474.5000" style="">
+              0.42%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorGreen" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="474.5000" style="">
+              2.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            EUR per Ton
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              12:31:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/rice-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/rice-price" title="Rice">
+             Rice
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              9.97
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="10.0900" style="">
+              -1.19%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="10.0900" style="">
+              -0.12
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            per cwt.
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              02:20:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/soybean-meal-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/soybean-meal-price" title="Soybean Meal">
+             Soybean Meal
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              304.70
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="308.5000" style="">
+              -1.23%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="308.5000" style="">
+              -3.80
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per Ton
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              02:15:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/soybeans-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/soybeans-price" title="Soybeans">
+             Soybeans
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              11.05
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="11.2000" style="">
+              -1.27%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="11.2000" style="">
+              -0.14
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USc per Bushel
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              02:20:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/soybean-oil-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/soybean-oil-price" title="Soybean Oil">
+             Soybean Oil
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              0.51
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="0.5200" style="">
+              -0.33%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorize" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="0.5200" style="">
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USD per lb.
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              02:15:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/wheat-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/wheat-price" title="Wheat">
+             Wheat
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              192.00
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="192.5000" style="">
+              -0.26%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="192.5000" style="">
+              -0.50
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USc per Ton
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              12:31:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+          <tr class="table__tr" onclick='window.location.href = "/commodities/sugar-price"'>
+           <td class="table__td bold">
+            <a class="font-color-black" href="/commodities/sugar-price" title="Sugar">
+             Sugar
+            </a>
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="Mid" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="Mid" style="display: inline;">
+             <span class="push-data" data-animation="" data-format="">
+              0.15
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangePer" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorRed" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="0.1500" style="">
+              -0.54%
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right colorize">
+            <div class="" data-field="ChangeAbs" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" style="display: inline;">
+             <span class="push-data text-right colorize" data-animation="animationType:color" data-format="maximumFractionDigits: 2" data-jsvalue="0.1500" style="">
+             </span>
+            </div>
+           </td>
+           <td class="table__td text-right">
+            USc per lb.
+           </td>
+           <td class="table__td text-right">
+            <div class="" data-field="MidTimestamp" data-item="Y0500000000" data-room="RY0500000000" data-source="mdsng" data-table="1" data-template="MidTimestamp" style="display: inline;">
+             <span class="push-data text-right" data-animation="" data-format="utcToApplicationOffset:-5;">
+              01:05:00 PM
+             </span>
+            </div>
+           </td>
+          </tr>
+         </tbody>
+        </table>
+       </div>
+      </div>
+      <div class="spacer-50 mobile-spacer-25">
+      </div>
+      <div class="htlad-mobile_in_post_ad_1" data-htlad="true" data-prebid="0x0:Commodities/Homepage/medrec_flex|768x0:" data-unit="Markets-Insider/Commodities/Homepage">
+      </div>
+      <div class="htlad-desktop_in_post_ad_1" data-htlad="true" data-prebid="0x0:|768x0:Commodities/Homepage/medrec|1261x0:Commodities/Homepage/billboard_flex" data-unit="Markets-Insider/Commodities/Homepage">
+      </div>
+      <div class="graviton">
+       <h2 class="header-underline">
+        Latest Stories
+       </h2>
+      </div>
+      <div class="graviton">
+       <section class="popular-articles">
+        <div class="popular-articles__story">
+         <div class="popular-articles__meta">
+          <span class="popular-articles__source">
+           Business Insider
+          </span>
+          <time class="popular-articles__date" datetime="2025-28-10 06:16">
+           39d
+          </time>
+         </div>
+         <a class="popular-articles__image-link" href="https://markets.businessinsider.com/news/commodities/gold-price-today-outlook-forecast-asia-central-bank-philippines-sell-2025-10" noopener&quot;="" rel='"sponsored' target='"_blank"'>
+         </a>
+         <h3 class="popular-articles__title">
+          <a class="popular-articles__link" href="https://markets.businessinsider.com/news/commodities/gold-price-today-outlook-forecast-asia-central-bank-philippines-sell-2025-10" noopener&quot;="" rel='"sponsored' target='"_blank"'>
+           Central banks are hoarding gold, but one Asian official says it might be time to sell
+          </a>
+         </h3>
+         <p class="popular-articles__teaser">
+          <a class="popular-articles__link" href="https://markets.businessinsider.com/news/commodities/gold-price-today-outlook-forecast-asia-central-bank-philippines-sell-2025-10" noopener&quot;="" rel='"sponsored' target='"_blank"'>
+           The Philippines built up its holdings when gold traded around $2,000 per troy ounce. Prices have since more than doubled.
+          </a>
+         </p>
+         <div class="popular-articles__clear">
+         </div>
+        </div>
+        <div class="popular-articles__story">
+         <div class="popular-articles__meta">
+          <span class="popular-articles__source">
+           Business Insider
+          </span>
+          <time class="popular-articles__date" datetime="2025-23-10 07:06">
+           44d
+          </time>
+         </div>
+         <a class="popular-articles__image-link" href="https://markets.businessinsider.com/news/commodities/gold-price-today-forecast-outlook-wall-street-boom-goldman-sachs-2025-10" noopener&quot;="" rel='"sponsored' target='"_blank"'>
+         </a>
+         <h3 class="popular-articles__title">
+          <a class="popular-articles__link" href="https://markets.businessinsider.com/news/commodities/gold-price-today-forecast-outlook-wall-street-boom-goldman-sachs-2025-10" noopener&quot;="" rel='"sponsored' target='"_blank"'>
+           Gold tanked, but the next boom could come from Wall Street, Goldman Sachs analysts say
+          </a>
+         </h3>
+         <p class="popular-articles__teaser">
+          <a class="popular-articles__link" href="https://markets.businessinsider.com/news/commodities/gold-price-today-forecast-outlook-wall-street-boom-goldman-sachs-2025-10" noopener&quot;="" rel='"sponsored' target='"_blank"'>
+           Prices of the yellow metal have been volatile, with spot gold hitting an all-time high of about $4,380 per ounce on Monday before falling sharply.
+          </a>
+         </p>
+         <div class="popular-articles__clear">
+         </div>
+        </div>
+        <div class="popular-articles__story">
+         <div class="popular-articles__meta">
+          <span class="popular-articles__source">
+           Business Insider
+          </span>
+          <time class="popular-articles__date" datetime="2025-22-10 08:22">
+           45d
+          </time>
+         </div>
+         <a class="popular-articles__image-link" href="https://markets.businessinsider.com/news/commodities/gold-price-today-outlook-forecast-market-selloff-central-bank-buying-2025-10" noopener&quot;="" rel='"sponsored' target='"_blank"'>
+         </a>
+         <h3 class="popular-articles__title">
+          <a class="popular-articles__link" href="https://markets.businessinsider.com/news/commodities/gold-price-today-outlook-forecast-market-selloff-central-bank-buying-2025-10" noopener&quot;="" rel='"sponsored' target='"_blank"'>
+           Gold's rally just cracked, but one private Swiss bank says it's not over
+          </a>
+         </h3>
+         <p class="popular-articles__teaser">
+          <a class="popular-articles__link" href="https://markets.businessinsider.com/news/commodities/gold-price-today-outlook-forecast-market-selloff-central-bank-buying-2025-10" noopener&quot;="" rel='"sponsored' target='"_blank"'>
+           Gold's recent record rally left has caused the precious metal to be "significantly overbought" in the short term.
+          </a>
+         </p>
+         <div class="popular-articles__clear">
+         </div>
+        </div>
+        <div class="popular-articles__story">
+         <div class="popular-articles__meta">
+          <span class="popular-articles__source">
+           Business Insider
+          </span>
+          <time class="popular-articles__date" datetime="2025-17-10 07:36">
+           50d
+          </time>
+         </div>
+         <a class="popular-articles__image-link" href="https://markets.businessinsider.com/news/commodities/gold-price-today-forecast-outlook-echo-1970s-spike-goldman-sachs-2025-10" noopener&quot;="" rel='"sponsored' target='"_blank"'>
+         </a>
+         <h3 class="popular-articles__title">
+          <a class="popular-articles__link" href="https://markets.businessinsider.com/news/commodities/gold-price-today-forecast-outlook-echo-1970s-spike-goldman-sachs-2025-10" noopener&quot;="" rel='"sponsored' target='"_blank"'>
+           Gold could echo the 70s spike but today's rally is built on real demand, Goldman Sachs analyst says
+          </a>
+         </h3>
+         <p class="popular-articles__teaser">
+          <a class="popular-articles__link" href="https://markets.businessinsider.com/news/commodities/gold-price-today-forecast-outlook-echo-1970s-spike-goldman-sachs-2025-10" noopener&quot;="" rel='"sponsored' target='"_blank"'>
+           Gold breached another record high above $4,300 an ounce.
+          </a>
+         </p>
+         <div class="popular-articles__clear">
+         </div>
+        </div>
+        <div class="popular-articles__story">
+         <div class="popular-articles__meta">
+          <span class="popular-articles__source">
+           Business Insider
+          </span>
+          <time class="popular-articles__date" datetime="2025-13-10 07:34">
+           54d
+          </time>
+         </div>
+         <a class="popular-articles__image-link" href="https://markets.businessinsider.com/news/commodities/gold-price-today-silver-riskier-investment-central-banks-goldman-sachs-2025-10" noopener&quot;="" rel='"sponsored' target='"_blank"'>
+         </a>
+         <h3 class="popular-articles__title">
+          <a class="popular-articles__link" href="https://markets.businessinsider.com/news/commodities/gold-price-today-silver-riskier-investment-central-banks-goldman-sachs-2025-10" noopener&quot;="" rel='"sponsored' target='"_blank"'>
+           Why silver is riskier than gold, according to Goldman Sachs
+          </a>
+         </h3>
+         <p class="popular-articles__teaser">
+          <a class="popular-articles__link" href="https://markets.businessinsider.com/news/commodities/gold-price-today-silver-riskier-investment-central-banks-goldman-sachs-2025-10" noopener&quot;="" rel='"sponsored' target='"_blank"'>
+           Silver could face "significantly more" volatility and downside risk than gold, since only gold enjoys central-bank support.
+          </a>
+         </p>
+         <div class="popular-articles__clear">
+         </div>
+        </div>
+        <div class="popular-articles__border">
+        </div>
+       </section>
+      </div>
+      <div class="spacer-50 mobile-spacer-25">
+      </div>
+      <div id="taboola-mi">
+      </div>
+      <script defer="">
+       window.taboolaConfiguration = window.taboolaConfiguration || {};
+
+        var pageType = window.taboolaConfiguration.taboolaPageType;
+        var pos = '';
+
+        if (pos.length !== 0)
+        {
+            pageType = pos;
+        }
+
+        window.taboolaConfiguration.taboolaPlacements.push(pageType);
+        window.taboolaConfiguration.taboolaPlacementIds.push('taboola-mi');
+      </script>
+     </div>
+     <div class="site-content__col site-content__col--right">
+      <div class="htlad-upper_300_1" data-htlad="true" data-prebid="0x0:|960x0:Commodities/Homepage/halfpage_flex" data-unit="Markets-Insider/Commodities/Homepage">
+      </div>
+      <script>
+       // Listener for ads to send the proper height based on flight count. Uses identifier we send in iframe url above.
+		window.addEventListener('message', (e) => {
+			if (e.data) {
+				const source = e.data.source;
+				const id = e.data.id;
+				const height = e.data.height;
+				if (source && id && undefined !== height) {
+					const chosenFrame = document.querySelector(`iframe[data-ident="${id}"]`);
+					if (chosenFrame) {
+						chosenFrame.style.height = height + 'px';
+					}
+				}
+			}
+		}, false);
+      </script>
+      <!-- code from GoBankingRates - Markets Insider - MarketsInsider -->
+      <div class="htl-ad-placeholder htl-ad-placeholder--goBankingRates">
+       <iframe data-ident="1234" frameborder="0" scrolling="no" src="https://products.gobankingrates.com/pub/2e40eeb4-27e5-11ed-9a44-0a919b37cd73?resize=1&amp;ident=1234" style="min-width:300px;max-width:595px;max-height:475px;" width="100%">
+       </iframe>
+      </div>
+     </div>
+    </div>
+    <div class="spacer-10">
+    </div>
+    <div class="site-content__row">
+     <div class="grid__col--12 grid__col--m-12 grid__col--s-12 site-content__col--spacer">
+     </div>
+    </div>
+    <div class="spacer-10">
+    </div>
+   </div>
+  </main>
+  <!-- Markets Insider Page Footer -->
+  <!-- this component generated on: 2025-05-30 -->
+  <shared-component class="scs">
+   <footer class="markets-insider-footer" data-component-type="markets-insider-footer" data-e2e-name="footer" data-load-strategy="lazy" data-track-view='{"subscription_experience":"bi_value_unassigned","product_field":"bi_value_unassigned","element_name":"footer"}' id="site-footer">
+    <section class="top-section">
+     <div class="logo">
+      <a aria-label="Click to visit Markets Insider" class="" data-e2e-name="footer-insider" href="https://markets.businessinsider.com/">
+       <div class="lazy-holder lazy-holder has-transparency" style="padding-top: calc(100% * 40 / 115.56)">
+        <img alt="Click to visit Markets Insider" class="lazy-image has-transparency" data-src="/public/assets/MI/logos/markets-insider-stacked.svg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E"/>
+        <noscript>
+         <img class="no-script" src="/public/assets/MI/logos/markets-insider-stacked.svg">
+         </img>
+        </noscript>
+       </div>
+      </a>
+     </div>
+     <div class="social-icons" data-e2e-name="social-links" data-track-click-shared='{"click_type":"owned_socials","element_name":"footer","event":"outbound_click"}'>
+      <a aria-label="Click to visit us on Facebook" class="social-link" data-e2e-name="facebook" data-track-click='{"click_url":"https://www.facebook.com/MrktsInsider","click_text":"facebook"}' href="https://www.facebook.com/MrktsInsider" rel="noopener nofollow" target="_blank" title="Follow us on Facebook">
+       <div class="lazy-holder lazy-holder has-transparency" style="padding-top: calc(100% * 24 / 24)">
+        <img alt="Facebook" class="lazy-image has-transparency" data-src="/public/assets/social/social-facebook.svg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E"/>
+        <noscript>
+         <img class="no-script" src="/public/assets/social/social-facebook.svg">
+         </img>
+        </noscript>
+       </div>
+      </a>
+      <a aria-label="Click to visit us on X" class="social-link" data-e2e-name="X" data-track-click='{"click_url":"https://x.com/mktsinsider","click_text":"X"}' href="https://x.com/mktsinsider" rel="noopener nofollow" target="_blank" title="Follow us on X">
+       <div class="lazy-holder lazy-holder has-transparency" style="padding-top: calc(100% * 24 / 24)">
+        <img alt="X" class="lazy-image has-transparency" data-src="/public/assets/social/social-x.svg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E"/>
+        <noscript>
+         <img class="no-script" src="/public/assets/social/social-x.svg">
+         </img>
+        </noscript>
+       </div>
+      </a>
+     </div>
+    </section>
+    <hr/>
+    <section class="link-section">
+     <section class="footer-columns">
+      <section class="footer-list-column">
+       <a class="label-md-strong" href="/indices">
+        Indices
+       </a>
+       <a class="label-md-subtle" href="/index/dow_jones">
+        Dow Jones
+       </a>
+       <a class="label-md-subtle" href="/index/s&amp;p_500">
+        S&amp;P 500
+       </a>
+       <a class="label-md-subtle" href="/index/nasdaq_100">
+        Nasdaq 100
+       </a>
+       <a class="label-md-subtle" href="/index/nasdaq_composite">
+        Nasdaq Composite
+       </a>
+       <a class="label-md-subtle" href="/index/ftse_100">
+        FTSE 100
+       </a>
+       <a class="label-md-subtle" href="/index/nikkei_225">
+        Nikkei 225
+       </a>
+       <a class="label-md-subtle" href="/index/dax">
+        DAX 40
+       </a>
+       <a class="label-md-subtle" href="/index/hang_seng">
+        Hang Seng
+       </a>
+       <a class="label-md-subtle" href="/index/kospi">
+        Kospi
+       </a>
+       <a class="label-md-subtle" href="/index/s&amp;p_tsx_composite_index">
+        S&amp;P TSX Composite Index
+       </a>
+       <a class="label-md-subtle" href="/index/asx">
+        ASX
+       </a>
+       <a class="label-md-subtle" href="/index/us-dollar-index">
+        US Dollar Index
+       </a>
+       <a class="label-md-subtle" href="/indices">
+        Stock Indices
+       </a>
+       <a class="label-md-subtle" href="/futures/dow-futures">
+        Dow Futures
+       </a>
+       <a class="label-md-subtle" href="/market-movers/dow_jones">
+        Dow Jones Market Movers
+       </a>
+      </section>
+      <section class="footer-list-column">
+       <a class="label-md-strong" href="/commodities">
+        Commodities
+       </a>
+       <a class="label-md-subtle" href="/commodities/gold-price">
+        Gold Price
+       </a>
+       <a class="label-md-subtle" href="/commodities/oil-price?type=wti">
+        Oil Price
+       </a>
+       <a class="label-md-subtle" href="/commodities/silver-price">
+        Silver Price
+       </a>
+       <a class="label-md-subtle" href="/commodities/copper-price">
+        Copper Price
+       </a>
+       <a class="label-md-subtle" href="/commodities/cotton-price">
+        Cotton Price
+       </a>
+       <a class="label-md-subtle" href="/commodities/heating-oil-price">
+        Heating Oil Price
+       </a>
+       <a class="label-md-subtle" href="/commodities/aluminum-price">
+        Aluminum Price
+       </a>
+       <a class="label-md-subtle" href="/commodities/natural-gas-price">
+        Natural Gas Price
+       </a>
+       <a class="label-md-subtle" href="/commodities/realtime-list">
+        Realtime Commodity Prices
+       </a>
+      </section>
+      <section class="footer-list-column">
+       <a class="label-md-strong" href="/currencies">
+        Currencies
+       </a>
+       <a class="label-md-subtle" href="/currencies/eur-usd">
+        EURO DOLLAR
+       </a>
+       <a class="label-md-subtle" href="/currencies/btc-usd">
+        Bitcoin Price
+       </a>
+       <a class="label-md-subtle" href="/currencies/eth-usd">
+        ETH USD
+       </a>
+       <a class="label-md-subtle" href="/currencies/usd-cad">
+        CAD USD
+       </a>
+       <a class="label-md-subtle" href="/currencies/usd-mxn">
+        PESO USD
+       </a>
+       <a class="label-md-subtle" href="/currencies/gbp-usd">
+        POUND USD
+       </a>
+       <a class="label-md-subtle" href="/currencies/usd-inr">
+        USD INR
+       </a>
+       <a class="label-md-subtle" href="/currency-converter">
+        Currency Converter
+       </a>
+       <a class="label-md-subtle" href="/currencies">
+        Exchange Rates
+       </a>
+      </section>
+      <section class="footer-list-column">
+       <a class="label-md-strong" href="/stocks">
+        Stocks
+       </a>
+       <a class="label-md-subtle" href="/stocks/goog-stock">
+        Google Stock
+       </a>
+       <a class="label-md-subtle" href="/stocks/meta-stock">
+        Meta Stock
+       </a>
+       <a class="label-md-subtle" href="/stocks/amzn-stock">
+        Amazon Stock
+       </a>
+       <a class="label-md-subtle" href="/stocks/tsla-stock">
+        Tesla Stock
+       </a>
+       <a class="label-md-subtle" href="/stocks/dow-stock">
+        Dow-Stock
+       </a>
+       <a class="label-md-subtle" href="/premarket">
+        Premarket
+       </a>
+       <a class="label-md-subtle" href="/news">
+        Stock Market News
+       </a>
+      </section>
+     </section>
+    </section>
+    <button class="expand-button label-md strong">
+     <svg class="svg-icon plus-icon show-more" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14.006 2H9.994v7.994H2v4.012h7.994V22h4.012v-7.994H22V9.994h-7.994V2Z" fill="currentColor">
+      </path>
+     </svg>
+     <svg class="svg-icon minus-icon show-less" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg">
+      <path d="M22 14v-4H2v4h20Z" fill="currentColor">
+      </path>
+     </svg>
+     <span class="expand-button-text">
+      See more categories
+     </span>
+    </button>
+    <hr/>
+    <section class="bottom-section label-md subtle">
+     <p>
+      <a href="https://businessinsider.com/terms">
+       Copyright © 2025
+      </a>
+      Insider Inc and
+      <a href="https://www.finanzen.net/impressum">
+       finanzen.net
+      </a>
+      GmbH (Imprint). All rights reserved.
+    Registration on or use of this site constitutes acceptance of our
+      <a data-e2e-name="footer-terms-of-service" href="https://www.businessinsider.com/terms">
+       Terms of Service
+      </a>
+      and
+      <a data-e2e-name="footer-privacy-policy" href="https://www.businessinsider.com/privacy-policy">
+       Privacy Policy.
+      </a>
+     </p>
+     <div class="with-divider">
+      <a href="https://www.businessinsider.com/disclaimer">
+       Disclaimer
+      </a>
+      <a href="https://www.businessinsider.com/accessibility">
+       Accessibility
+      </a>
+      <a href="https://www.businessinsider.com/commerce-policy">
+       Commerce Policy
+      </a>
+      <a href="https://www.businessinsider.com/advertising-policies">
+       Advertising Policies
+      </a>
+      Stock quotes by
+      <a href="https://www.finanzen.net/">
+       finanzen.net
+      </a>
+      <a href="https://www.businessinsider.com/contact">
+       Contact Us
+      </a>
+      <a href="https://www.businessinsider.com/masthead">
+       Masthead
+      </a>
+     </div>
+     <div>
+      <section class="privacy-footer headline-regular">
+       <a class="privacy-link" href="/your-privacy-choices">
+        Your Privacy Choices
+       </a>
+      </section>
+     </div>
+     <div class="logos">
+      <div class="logo">
+       <div class="lazy-holder lazy-holder has-transparency" style="padding-top: calc(100% * 28 / 81.27)">
+        <img alt="Business Insider Logo" class="lazy-image has-transparency" data-src="/public/assets/logos/stacked-black.svg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E"/>
+        <noscript>
+         <img class="no-script" src="/public/assets/logos/stacked-black.svg">
+         </img>
+        </noscript>
+       </div>
+      </div>
+      <div class="logo">
+       <div class="lazy-holder lazy-holder has-transparency" style="padding-top: calc(100% * 12 / 79.2)">
+        <img alt="Insider Logo" class="lazy-image has-transparency" data-src="/public/assets/INSIDER/US/logos/Insider-logo-dark-opt.svg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E"/>
+        <noscript>
+         <img class="no-script" src="/public/assets/INSIDER/US/logos/Insider-logo-dark-opt.svg">
+         </img>
+        </noscript>
+       </div>
+      </div>
+     </div>
+    </section>
+   </footer>
+  </shared-component>
+  <!-- this component generated on: 2025-05-30 -->
+  <script async="" data-load-strategy="first-party" src="/scripts/utilities.3ad7ca1ae4d72ac62a3e.js" type="text/javascript">
+  </script>
+  <script async="" data-load-strategy="first-party" src="/scripts/vendors.bdc5721c5cc1e0c576a8.js" type="text/javascript">
+  </script>
+  <script async="" data-load-strategy="first-party" src="/scripts/main.a094f62ef50e1b636a21.js" type="text/javascript">
+  </script>
+  <noscript>
+   <iframe height="0" src="https://www.googletagmanager.com/ns.html?id=GTM-MP6F46L" style="display:none;visibility:hidden" title="GTM" width="0">
+   </iframe>
+  </noscript>
+  <script data-load-strategy="domready" id="consent-manager-script">
+   (()=>{var e={19249:(e,n,t)=>{"use strict";const o=async()=>{const e=localStorage.getItem("profile");if(!e)return;let n;try{n=JSON.parse(e)}catch{return}const t=n["https://insider/memberId"],o=n["https://insider/token"];if(!t||!o)return;const i=window.Fenrir.cm?.isOptedOutOfAds,{privacyApi:r}=window.Fenrir,{countryCode:s}=window.Fenrir.geoData,a={ads:i,privacyApi:r,countryCode:s},c=localStorage.getItem("idun-consent-preferences");let d={};if(c)try{d=JSON.parse(c)}catch{}if(d.ads!==i)try{(await fetch(`${window.Fenrir.config.apigateway.domain}/v1.0/users/${t}/consent-preferences`,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${o}`},body:JSON.stringify(a)})).ok&&localStorage.setItem("idun-consent-preferences",JSON.stringify(a))}catch(e){}};const i=function(){window.Fenrir.geoData?o():document.addEventListener("onGeoDataCaptured",()=>{o()})};t(61187);const r="Sourcepoint Load - start",s="Sourcepoint Load - end sourcepoint",a="Sourcepoint Load - has consent",c="Sourcepoint Load - load queue consent";let d=!1,w=!1,u=!1;function p(){return w||d}function m(){let e=!0,n=null;const t=localStorage.getItem("_sp_user_consent_6165");try{n=t?JSON.parse(t):null}catch(e){}if("GPP"===window.Fenrir.privacyApi){const{granularStatus:t}=n?.usnat?.consentStatus||{};e=!1===t?.sellStatus}else if("TCF"===window.Fenrir.privacyApi){const{granularStatus:t}=n?.gdpr?.consentStatus||{};e="ALL"!==t?.purposeConsent?.toUpperCase()}return e}function l(e){const{step:n,timeFromStart:t}=e;delete e.step,delete e.timeFromStart;const o={now:window.Fenrir.getTime(),step:n,timeFromStart:t,cmStarted:window.Fenrir.cm.cmStarted,usPrivacyApplies:window.Fenrir.cm.usPrivacyApplies,euPrivacyApplies:window.Fenrir.cm.euPrivacyApplies,windowLoaded:window.Fenrir.cm.windowLoaded,isOptedOutOfAds:window.Fenrir.cm.isOptedOutOfAds,queueConsent:window.Fenrir.cm.queueConsent,...e};return o.timeFromStart||delete o.timeFromStart,o}function f(e){window.Fenrir.cm.isOptedOutOfAds=e,window.Fenrir.cm.cmStarted=!0,window.Fenrir.cm.loadQueueConsent();const n=new CustomEvent("onConsentReady",{detail:{isOptedOutOfAds:window.Fenrir.cm.isOptedOutOfAds,type:"update"}});document.dispatchEvent(n),i()}window.performance.mark(r),window.__tcfapi&&window.__tcfapi("addEventListener",2,function(e,n){if(n&&e){if("cmpuishown"===e.eventStatus){if(window.Fenrir.console.info(l({step:"consentManager sp.getTCData cmpuishown"})),window.Fenrir.cm.isOptedOutOfAds=m(),!w){window.performance.mark(s);const e=window.performance.measure("load - sourcepoint",r,s);window.Fenrir.console.info(l({step:"consentManager europePrivacy.bannerShown",timeFromStart:e.duration}))}w=!0,window.Fenrir.cm.cmStarted=p(),window.Fenrir.cm.loadQueueConsent()}else if("useractioncomplete"===e.eventStatus||"tcloaded"===e.eventStatus){window.Fenrir.console.info(l({step:`consentManager sp.getTCData ${e.eventStatus}`})),window.Fenrir.cm.isOptedOutOfAds=m(),d||(window.performance.mark(a),window.performance.measure("consentManager europePrivacy.consentGiven",r,a)),d=!0,window.Fenrir.cm.cmStarted=p(),window.Fenrir.cm.loadQueueConsent();const n=new CustomEvent("onConsentReady",{detail:{isOptedOutOfAds:window.Fenrir.cm.isOptedOutOfAds,type:"update"}});document.dispatchEvent(n),i()}}else window.Fenrir.console.info(l({step:"consentManager sp.getTCData error",tcData:e}))}),window.__gpp&&window.__gpp("addEventListener",function(e){if("sectionChange"===e.eventName){let n=!1;Object.keys(e.pingData.parsedSections).forEach(t=>{1===e.pingData?.parsedSections[t]?.SaleOptOut&&(n=!0)}),window.Fenrir.console.info(l({step:"consentManager gpp.sectionChange",data:e})),f(n)}else"signalStatus"===e.eventName&&"disabled"===e.pingData?.cmpDisplayStatus&&(window.Fenrir.console.info(l({step:"consentManager gpp.signalStatus",data:e})),f(!1))});const F="GPP"===window.Fenrir?.privacyApi,g="TCF"===window.Fenrir?.privacyApi;window.Fenrir.cm=Object.assign({},window.Fenrir.cm,{cmStarted:!1,windowLoaded:!1,usPrivacyApplies:F,euPrivacyApplies:g,onConsent:function(e){if("function"!=typeof e)throw new Error("method `onConsent` requires `callback` function");return document.addEventListener("onConsentReady",n=>{window.Fenrir.console.info(l({step:"consentManager onConsentReady",event:n})),e(n.detail)}),e({isOptedOutOfAds:window.Fenrir.cm.isOptedOutOfAds})},requestConsent:function(e){window.Fenrir.console.info(l({step:"consentManager requestConsent",requestor:e}));const n=new CustomEvent("onConsentReady",{detail:{isOptedOutOfAds:window.Fenrir.cm.isOptedOutOfAds,type:"request",scope:e}});document.dispatchEvent(n)},loadQueueConsent:function(){if(window.Fenrir.console.info(l({step:"consentManager loadQueueConsent"})),!window.Fenrir.cm.windowLoaded||!window.Fenrir.cm.cmStarted)return;let e;u||(window.performance.mark(c),e=window.performance.measure("queue load - sourcepoint",r,c)),u=!0,window.Fenrir.config.delayThirdPartyScripts=!1,window.Fenrir.console.info(l({step:"consentManager loadQueueConsent load scripts",timeFromStart:e?.duration}));let n=window.Fenrir.cm.queueConsent.length;for(;n;){const e=window.Fenrir.cm.queueConsent.shift();n=window.Fenrir.cm.queueConsent.length,"function"==typeof e&&e(),window.Fenrir.console.info(l({step:"consentManager loadQueueConsent script",queueLength:n}))}},getAdConsent:function(){function e(){let e=!0;if(window.Fenrir.cm.usPrivacyApplies||window.Fenrir.cm.euPrivacyApplies){const{isOptedOutOfAds:n}=window.Fenrir.cm;e=!n}return e}return new Promise(n=>{if("boolean"!=typeof window.Fenrir?.cm?.isOptedOutOfAds){const t=setTimeout(()=>n(!0),3e3);document.addEventListener("onConsentSaved",()=>{t&&clearTimeout(t),n(e())})}else n(e())})},queueConsent:[],forceCMP:function(){const e="/your-privacy-choices"===window.location.pathname,n=navigator?.globalPrivacyControl;return e||n}()}),window.Fenrir.console.info(l({now:window.Fenrir.getTime(),step:"consentManager starting...",tcfapi:window.__tcfapi}))},61187:()=>{window._sp_queue&&window._sp_queue.push(()=>{window._sp_.addEventListener("onMessageChoiceSelect",(e,n,t)=>{const o=window.dataLayer||[],i={event:"privacy_center_engagement",element_name:"privacy_banner",action:"save"};if("gdpr"===e){switch(t){case 11:i.is_opted_out_of_ads=!1;break;case 12:i.action="click_to_preference_center",i.is_opted_out_of_ads="bi_value_unassigned";break;case 13:i.is_opted_out_of_ads=!0}o.push(i),window.Fenrir.console.info({now:window.Fenrir.getTime(),step:"privacy modal engagement dataLayer push",dataEvent:i})}})})}},n={};function t(o){var i=n[o];if(void 0!==i)return i.exports;var r=n[o]={exports:{}};return e[o](r,r.exports,t),r.exports}t.m=e,t.c=n,t.o=(e,n)=>Object.prototype.hasOwnProperty.call(e,n),(()=>{t.S={};var e={},n={};t.I=(o,i)=>{i||(i=[]);var r=n[o];if(r||(r=n[o]={}),!(i.indexOf(r)>=0)){if(i.push(r),e[o])return e[o];t.o(t.S,o)||(t.S[o]={});t.S[o];var s=[];return s.length?e[o]=Promise.all(s).then(()=>e[o]=1):e[o]=1}}})();t(19249)})();
+  </script>
+ </body>
+</html>

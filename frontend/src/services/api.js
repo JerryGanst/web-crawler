@@ -4,28 +4,42 @@ import axios from 'axios';
 const API_BASE = 'http://localhost:8000';
 
 // ============================================
-// 简单的请求缓存 + 去重机制
+// 增强版请求缓存 + 去重 + 防抖机制
 // ============================================
 
 // 缓存存储
 const cache = new Map();
-const CACHE_TTL = 30000; // 30秒缓存有效期
+const CACHE_TTL = 60000; // 60秒缓存有效期（增加到1分钟）
 
 // 进行中的请求（用于去重）
 const pendingRequests = new Map();
 
+// 请求防抖计时器
+const debounceTimers = new Map();
+
+// AbortController 存储（用于取消重复请求）
+const abortControllers = new Map();
+
 /**
- * 带缓存和去重的请求函数
+ * 带缓存、去重、防抖的请求函数
  * @param {string} key - 缓存键
  * @param {Function} fetcher - 实际请求函数
- * @param {number} ttl - 缓存时间（毫秒）
+ * @param {Object} options - 配置选项
  */
-const cachedRequest = async (key, fetcher, ttl = CACHE_TTL) => {
-    // 1. 检查缓存是否有效
-    const cached = cache.get(key);
-    if (cached && Date.now() - cached.timestamp < ttl) {
-        console.log(`[Cache HIT] ${key}`);
-        return cached.data;
+const cachedRequest = async (key, fetcher, options = {}) => {
+    const { 
+        ttl = CACHE_TTL, 
+        debounce = 0,
+        forceRefresh = false 
+    } = options;
+
+    // 1. 检查缓存是否有效（非强制刷新时）
+    if (!forceRefresh) {
+        const cached = cache.get(key);
+        if (cached && Date.now() - cached.timestamp < ttl) {
+            console.log(`[Cache HIT] ${key} (age: ${Math.round((Date.now() - cached.timestamp) / 1000)}s)`);
+            return cached.data;
+        }
     }
 
     // 2. 检查是否有相同请求正在进行中（去重）
@@ -34,21 +48,72 @@ const cachedRequest = async (key, fetcher, ttl = CACHE_TTL) => {
         return pendingRequests.get(key);
     }
 
-    // 3. 发起新请求
-    console.log(`[Cache MISS] ${key} - fetching...`);
-    const promise = fetcher().then(response => {
-        // 存入缓存
-        cache.set(key, {
-            data: response,
-            timestamp: Date.now()
+    // 3. 防抖处理
+    if (debounce > 0) {
+        if (debounceTimers.has(key)) {
+            clearTimeout(debounceTimers.get(key));
+        }
+        
+        return new Promise((resolve, reject) => {
+            const timer = setTimeout(async () => {
+                debounceTimers.delete(key);
+                try {
+                    const result = await executeRequest(key, fetcher, ttl);
+                    resolve(result);
+                } catch (error) {
+                    reject(error);
+                }
+            }, debounce);
+            debounceTimers.set(key, timer);
         });
-        // 清除进行中标记
-        pendingRequests.delete(key);
-        return response;
-    }).catch(error => {
-        pendingRequests.delete(key);
-        throw error;
-    });
+    }
+
+    // 4. 直接执行请求
+    return executeRequest(key, fetcher, ttl);
+};
+
+/**
+ * 执行实际请求
+ */
+const executeRequest = async (key, fetcher, ttl) => {
+    // 取消之前的同类请求
+    if (abortControllers.has(key)) {
+        abortControllers.get(key).abort();
+    }
+    
+    // 创建新的 AbortController
+    const controller = new AbortController();
+    abortControllers.set(key, controller);
+
+    console.log(`[Cache MISS] ${key} - fetching...`);
+    
+    const promise = fetcher(controller.signal)
+        .then(response => {
+            // 存入缓存
+            cache.set(key, {
+                data: response,
+                timestamp: Date.now()
+            });
+            // 清除状态
+            pendingRequests.delete(key);
+            abortControllers.delete(key);
+            return response;
+        })
+        .catch(error => {
+            pendingRequests.delete(key);
+            abortControllers.delete(key);
+            
+            // 如果是取消请求，不抛出错误
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                console.log(`[Request CANCELLED] ${key}`);
+                // 返回缓存数据（如果有）
+                const cached = cache.get(key);
+                if (cached) {
+                    return cached.data;
+                }
+            }
+            throw error;
+        });
 
     // 标记请求进行中
     pendingRequests.set(key, promise);
@@ -72,14 +137,28 @@ const clearCache = (keyPattern) => {
     }
 };
 
+/**
+ * 预加载数据到缓存（后台静默加载）
+ */
+const preloadCache = async (keys) => {
+    console.log('[Preload] Starting preload for:', keys);
+    const promises = keys.map(key => {
+        if (key === 'categories') {
+            return api.getCategories().catch(() => null);
+        }
+        // 可以添加更多预加载逻辑
+        return Promise.resolve();
+    });
+    await Promise.allSettled(promises);
+    console.log('[Preload] Complete');
+};
+
 // ============================================
 // API 方法
 // ============================================
 
 const api = {
     // 获取大宗商品数据
-    // refresh=false: 从 Redis 缓存获取
-    // refresh=true: 强制重新爬取
     getData: (refresh = false) => {
         if (refresh) {
             clearCache('api:data');
@@ -87,8 +166,8 @@ const api = {
         }
         return cachedRequest(
             'api:data',
-            () => axios.get(`${API_BASE}/api/data`),
-            60000  // 前端缓存1分钟
+            (signal) => axios.get(`${API_BASE}/api/data`, { signal }),
+            { ttl: 120000 }  // 2分钟缓存
         );
     },
 
@@ -98,25 +177,35 @@ const api = {
     // 保存配置
     saveConfig: (config) => axios.post(`${API_BASE}/api/config`, config),
 
-    // 获取分类（5分钟缓存，分类很少变化）
+    // 获取分类（10分钟缓存，分类很少变化）
     getCategories: () => cachedRequest(
         'api:categories',
-        () => axios.get(`${API_BASE}/api/categories`),
-        300000
+        (signal) => axios.get(`${API_BASE}/api/categories`, { signal }),
+        { ttl: 600000 }  // 10分钟
     ),
 
-    // 获取新闻
-    // refresh=false: 从 Redis 缓存获取
-    // refresh=true: 强制重新爬取
+    // 获取新闻（核心方法，带防抖）
     getNews: (category, includeCustom = true, refresh = false) => {
+        const cacheKey = `api:news:${category}:${includeCustom}`;
+        
         if (refresh) {
             clearCache(`api:news:${category}`);
-            return axios.get(`${API_BASE}/api/news/${category}?include_custom=${includeCustom}&refresh=true`);
+            return axios.get(
+                `${API_BASE}/api/news/${category}?include_custom=${includeCustom}&refresh=true`,
+                { timeout: 90000 }  // 90秒超时
+            );
         }
+        
         return cachedRequest(
-            `api:news:${category}:${includeCustom}`,
-            () => axios.get(`${API_BASE}/api/news/${category}?include_custom=${includeCustom}`),
-            60000
+            cacheKey,
+            (signal) => axios.get(
+                `${API_BASE}/api/news/${category}?include_custom=${includeCustom}`,
+                { signal, timeout: 90000 }
+            ),
+            { 
+                ttl: 120000,  // 2分钟缓存
+                debounce: 100  // 100ms 防抖
+            }
         );
     },
 
@@ -124,12 +213,12 @@ const api = {
     getCommodityNews: (refresh = false) => {
         if (refresh) {
             clearCache('api:commodity-news');
-            return axios.get(`${API_BASE}/api/commodity-news?refresh=true`);
+            return axios.get(`${API_BASE}/api/commodity-news?refresh=true`, { timeout: 90000 });
         }
         return cachedRequest(
             'api:commodity-news',
-            () => axios.get(`${API_BASE}/api/commodity-news`),
-            60000
+            (signal) => axios.get(`${API_BASE}/api/commodity-news`, { signal, timeout: 90000 }),
+            { ttl: 120000 }
         );
     },
 
@@ -137,26 +226,26 @@ const api = {
     getSupplyChainNews: (refresh = false) => {
         if (refresh) {
             clearCache('api:supply-chain');
-            return axios.get(`${API_BASE}/api/news/supply-chain?refresh=true`);
+            return axios.get(`${API_BASE}/api/news/supply-chain?refresh=true`, { timeout: 90000 });
         }
         return cachedRequest(
             'api:supply-chain',
-            () => axios.get(`${API_BASE}/api/news/supply-chain`),
-            60000
+            (signal) => axios.get(`${API_BASE}/api/news/supply-chain`, { signal, timeout: 90000 }),
+            { ttl: 120000 }
         );
     },
 
-    // 触发爬取（保留兼容）
+    // 触发爬取
     crawl: async (category, includeCustom = true) => {
         const result = await axios.post(`${API_BASE}/api/crawl`, {
             category,
             include_custom: includeCustom
-        });
+        }, { timeout: 120000 });
         clearCache(`api:news:${category}`);
         return result;
     },
 
-    // 刷新指定分类数据（新方法，推荐使用）
+    // 刷新指定分类数据
     refresh: async (type, category = null) => {
         switch (type) {
             case 'news':
@@ -172,7 +261,7 @@ const api = {
         }
     },
 
-    // 获取价格历史数据（周数据）
+    // 获取价格历史数据
     getPriceHistory: (commodity = null, days = 7) => {
         const params = new URLSearchParams();
         if (commodity) params.append('commodity', commodity);
@@ -185,10 +274,10 @@ const api = {
         const url = refresh 
             ? `${API_BASE}/api/market-analysis?refresh=true`
             : `${API_BASE}/api/market-analysis`;
-        return axios.get(url, { timeout: 90000 }); // 90秒超时，AI生成可能较慢
+        return axios.get(url, { timeout: 120000 });
     },
 
-    // 获取数据来源（国家/网站级联）
+    // 获取数据来源
     getDataSources: () => axios.get(`${API_BASE}/api/data/sources`),
 
     // 获取 Redis 缓存状态
@@ -199,18 +288,24 @@ const api = {
 
     // 工具方法
     clearCache,
+    preloadCache,
     
     // 获取前端缓存状态（用于调试）
     getCacheStatus: () => {
         const status = {};
         for (const [key, value] of cache.entries()) {
+            const age = Math.round((Date.now() - value.timestamp) / 1000);
             status[key] = {
-                age: Math.round((Date.now() - value.timestamp) / 1000) + 's',
-                valid: Date.now() - value.timestamp < CACHE_TTL
+                age: age + 's',
+                valid: Date.now() - value.timestamp < CACHE_TTL,
+                expires_in: Math.max(0, Math.round((CACHE_TTL - (Date.now() - value.timestamp)) / 1000)) + 's'
             };
         }
         return status;
-    }
+    },
+    
+    // 获取待处理请求数（用于调试）
+    getPendingRequests: () => Array.from(pendingRequests.keys())
 };
 
 export default api;

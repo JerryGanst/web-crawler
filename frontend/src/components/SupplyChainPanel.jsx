@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
     Building2, 
     Swords, 
@@ -16,7 +16,10 @@ import {
     Copy,
     Check,
     RefreshCw,
-    Send
+    Send,
+    Package,
+    Users,
+    AlertTriangle
 } from 'lucide-react';
 import api from '../services/api';
 
@@ -106,42 +109,80 @@ const renderMarkdown = (text) => {
     return html;
 };
 
-// 立讯精密产业链数据
+// 立讯技术产业链数据（根据分析报告需求重新规划）
 const LUXSHARE_DATA = {
     company: {
-        name: '立讯精密',
+        name: '立讯技术',
         code: '002475.SZ',
         exchange: '深交所',
         mainBusiness: ['消费电子', '汽车电子', '通信及数据中心'],
         topCustomer: '苹果（占比约75%）',
-        products: ['iPhone代工', 'AirPods', 'Apple Watch', 'Vision Pro']
+        products: ['连接器', '线材', '电源模组', 'AirPods', 'Apple Watch']
     },
-    competitors: [
-        { name: '歌尔股份', code: '002241.SZ', business: '声学元件、VR/AR代工、AirPods', compete: 'TWS耳机、声学模组、VR头显', hot: true },
-        { name: '蓝思科技', code: '300433.SZ', business: '玻璃盖板、结构件', compete: '手机/穿戴结构件、汽车玻璃', hot: false },
-        { name: '工业富联', code: '601138.SH', business: 'iPhone整机组装、AI服务器', compete: 'iPhone代工、服务器', hot: true },
-        { name: '鹏鼎控股', code: '002938.SZ', business: 'FPC柔性电路板', compete: 'PCB/FPC供应', hot: false },
-        { name: '东山精密', code: '002384.SZ', business: 'PCB、精密制造', compete: '电路板、精密组件', hot: false },
-        { name: '领益智造', code: '002600.SZ', business: '精密结构件、模组', compete: '消费电子结构件', hot: false },
-        { name: '瑞声科技', code: '02018.HK', business: '声学元件、光学元件', compete: '声学、马达', hot: true }
-    ],
-    upstream: [
-        { name: '京东方A', code: '000725.SZ', supply: '显示面板、OLED屏幕', category: '显示' },
-        { name: '舜宇光学', code: '02382.HK', supply: '光学镜头模组', category: '光学' },
-        { name: '欣旺达', code: '300207.SZ', supply: '锂电池、电源管理', category: '电池' },
-        { name: '德赛电池', code: '000049.SZ', supply: '电池模组', category: '电池' },
-        { name: '信维通信', code: '300136.SZ', supply: '天线、无线充电模组', category: '无线' },
-        { name: '速腾聚创', code: '02498.HK', supply: '激光雷达（汽车业务合作）', category: '汽车' },
-        { name: '长盈精密', code: '300115.SZ', supply: '精密结构件、连接器', category: '连接器' }
-    ],
-    downstream: [
-        { name: '苹果', code: 'AAPL', relation: 'iPhone、AirPods、Apple Watch、Vision Pro代工', icon: 'apple', primary: true },
-        { name: '华为', code: '-', relation: '消费电子组件', icon: 'phone', primary: true },
-        { name: 'Meta', code: 'META', relation: 'VR设备', icon: 'vr', primary: false },
-        { name: '奇瑞汽车', code: '-', relation: '合资成立汽车公司（ODM整车）', icon: 'car', primary: true },
-        { name: '各大车企', code: '-', relation: '汽车线束、连接器、智能座舱', icon: 'car', primary: false },
-        { name: '通信运营商/AI智算中心', code: '-', relation: '数据中心产品', icon: 'server', primary: false }
+    // 友商数据（按产品分类）
+    competitors: {
+        '光电': [
+            { name: 'Credo', code: '-', business: '光电模块', hot: true },
+            { name: '旭创', code: '002281.SZ', business: '光模块', hot: true },
+            { name: '新易盛', code: '300502.SZ', business: '光模块', hot: true },
+            { name: '天孚', code: '300394.SZ', business: '光器件', hot: false },
+            { name: '光迅', code: '002281.SZ', business: '光通信', hot: false },
+            { name: 'Finisha', code: '-', business: '光电组件', hot: false }
+        ],
+        '连接器/线束': [
+            { name: '安费诺', code: 'APH', business: '连接器', hot: true },
+            { name: '莫仕', code: '-', business: '连接器', hot: true },
+            { name: 'TE', code: 'TEL', business: '连接器', hot: true },
+            { name: '中航', code: '002179.SZ', business: '连接器', hot: false },
+            { name: '得意', code: '-', business: '连接器', hot: false },
+            { name: '意华', code: '002897.SZ', business: '连接器', hot: false },
+            { name: '金星诺', code: '-', business: '线束', hot: false },
+            { name: '华旗', code: '-', business: '线束', hot: false }
+        ],
+        '电源': [
+            { name: '奥海', code: '002993.SZ', business: '电源适配器', hot: true },
+            { name: '航嘉', code: '300508.SZ', business: '电源', hot: false },
+            { name: '赛尔康', code: '-', business: '电源管理', hot: false },
+            { name: '台达', code: '2308.TW', business: '电源', hot: true }
+        ]
+    },
+    // 供应商数据（按物料品类分类）
+    suppliers: {
+        'IC': ['安费诺', 'Marvell', 'Broadcom', 'Cisco', 'Macom', 'Semtech', 'ADI', 'ST', 'TI', 'MPS'],
+        'PCB': ['莫仕', '龙腾电路', '方正'],
+        '连接器': ['TE', '中航', '安费诺', '莫仕'],
+        '注塑件': ['Marvell', '深圳市德发新材料有限公司', '东莞市华赢电子塑胶有限公司'],
+        '压铸件': ['Broadcom', '广玮'],
+        '电阻': ['Cisco', '国巨', '华科', '风华'],
+        '电容': ['Macom', '村田', '华旗'],
+        '传感器': ['Semtech', '林积为', '翰百']
+    },
+    // 物料品类
+    materialCategories: ['IC', 'PCB', '连接器', '注塑件', '压铸件', '电阻', '电容', '传感器'],
+    // 客户数据
+    customers: [
+        { name: '苹果', code: 'AAPL', relation: 'iPhone、AirPods、Apple Watch、Vision Pro代工', primary: true },
+        { name: '华为', code: '-', relation: '消费电子组件', primary: true },
+        { name: 'Meta', code: 'META', relation: 'VR设备', primary: false },
+        { name: '奇瑞汽车', code: '-', relation: '合资成立汽车公司（ODM整车）', primary: true },
+        { name: '各大车企', code: '-', relation: '汽车线束、连接器、智能座舱', primary: false }
     ]
+};
+
+// 新闻分类Tab配置
+const NEWS_TABS = [
+    { id: 'competitors', name: '友商', icon: 'Swords', color: '#ef4444', bgColor: '#fef2f2' },
+    { id: 'customers', name: '客户', icon: 'Users', color: '#f59e0b', bgColor: '#fffbeb' },
+    { id: 'materials', name: '物料品类', icon: 'Package', color: '#10b981', bgColor: '#ecfdf5' },
+    { id: 'tariff', name: '关税政策', icon: 'FileText', color: '#8b5cf6', bgColor: '#f5f3ff' }
+];
+
+// 新闻关键词配置（用于分类新闻）
+const NEWS_KEYWORDS = {
+    competitors: ['Credo', '旭创', '新易盛', '天孚', '光迅', '安费诺', '莫仕', 'TE', '中航', '得意', '意华', '金星诺', '华旗', '奥海', '航嘉', '赛尔康', '台达', '工业富联', '歌尔', '蓝思', '鹏鼎', '东山精密', '领益智造', '瑞声'],
+    customers: ['苹果', 'Apple', 'iPhone', 'AirPods', '华为', 'Huawei', 'Meta', 'Quest', '奇瑞', '汽车', '车企', 'VR', '特斯拉', 'Tesla'],
+    materials: ['IC', 'PCB', '连接器', '注塑', '压铸', '电阻', '电容', '传感器', '芯片', '元器件', '半导体', '物料', '原材料', '铜', '铝', '塑料', 'PA66', 'PBT'],
+    tariff: ['关税', '贸易战', '制裁', '出口管制', '进口', '加征', '关税政策', '贸易摩擦', '中美', '实体清单', '海关']
 };
 
 // 获取股票链接
@@ -169,6 +210,9 @@ const SupplyChainPanel = () => {
     const [newsData, setNewsData] = useState([]);
     const [loadingNews, setLoadingNews] = useState(true);
     
+    // 新闻分类Tab状态
+    const [activeNewsTab, setActiveNewsTab] = useState('competitors');
+    
     // 防止 StrictMode 双重请求
     const hasFetchedNews = React.useRef(false);
     const hasFetchedSupplyNews = React.useRef(false);
@@ -186,6 +230,31 @@ const SupplyChainPanel = () => {
     const [supplyChainNews, setSupplyChainNews] = useState([]);
     const [loadingSupplyNews, setLoadingSupplyNews] = useState(true);
     const [newsStatus, setNewsStatus] = useState(''); // cache 或 success
+    
+    // 根据关键词分类新闻
+    const categorizeNews = (news, category) => {
+        if (!news || !news.length) return [];
+        const keywords = NEWS_KEYWORDS[category] || [];
+        return news.filter(item => 
+            keywords.some(kw => item.title && item.title.toLowerCase().includes(kw.toLowerCase()))
+        );
+    };
+    
+    // 获取当前Tab的新闻
+    const getNewsForTab = (tabId) => {
+        return categorizeNews(supplyChainNews, tabId);
+    };
+    
+    // Tab图标映射
+    const getTabIcon = (iconName) => {
+        switch(iconName) {
+            case 'Swords': return <Swords size={16} />;
+            case 'Users': return <Users size={16} />;
+            case 'Package': return <Package size={16} />;
+            case 'FileText': return <AlertTriangle size={16} />;
+            default: return <Newspaper size={16} />;
+        }
+    };
 
     // 获取财经新闻（用于公司卡片）
     useEffect(() => {
@@ -241,15 +310,22 @@ const SupplyChainPanel = () => {
         setShowReport(true);
         
         try {
+            // 获取所有友商名称（从对象中提取）
+            const allCompetitors = Object.values(LUXSHARE_DATA.competitors).flat().map(c => c.name);
+            // 获取所有供应商名称
+            const allSuppliers = Object.values(LUXSHARE_DATA.suppliers).flat();
+            // 获取所有客户名称
+            const allCustomers = LUXSHARE_DATA.customers.map(c => c.name);
+            
             // 使用已缓存的供应链新闻
             const response = await fetch(`${TRENDRADAR_API}/api/generate-analysis`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     company_name: LUXSHARE_DATA.company.name,
-                    competitors: LUXSHARE_DATA.competitors.map(c => c.name),
-                    upstream: LUXSHARE_DATA.upstream.map(c => c.name),
-                    downstream: LUXSHARE_DATA.downstream.map(c => c.name),
+                    competitors: allCompetitors,
+                    upstream: allSuppliers,
+                    downstream: allCustomers,
                     news: supplyChainNews  // 使用已缓存的新闻
                 })
             });
@@ -558,126 +634,76 @@ const SupplyChainPanel = () => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {/* 顶部：立讯精密概览 */}
+            {/* 顶部：标题和操作按钮 */}
             <div style={{ 
-                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', 
-                borderRadius: '16px',
-                padding: '24px',
-                color: '#fff',
-                boxShadow: '0 4px 20px rgba(59, 130, 246, 0.3)'
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '4px'
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        <div style={{
-                            width: '56px',
-                            height: '56px',
-                            background: 'rgba(255,255,255,0.2)',
-                            borderRadius: '14px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}>
-                            <Building2 size={28} />
-                        </div>
-                        <div>
-                            <div style={{ fontWeight: '700', fontSize: '24px', marginBottom: '4px' }}>
-                                {LUXSHARE_DATA.company.name}
-                            </div>
-                            <div style={{ fontSize: '14px', opacity: 0.9 }}>
-                                {LUXSHARE_DATA.company.code} · {LUXSHARE_DATA.company.exchange}
-                            </div>
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                        <button
-                            onClick={generateReport}
-                            disabled={generatingReport}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                fontSize: '14px',
-                                color: '#fff',
-                                background: generatingReport ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, #f59e0b, #d97706)',
-                                padding: '10px 20px',
-                                borderRadius: '10px',
-                                border: 'none',
-                                cursor: generatingReport ? 'wait' : 'pointer',
-                                transition: 'all 0.2s',
-                                fontWeight: '600',
-                                boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
-                            }}
-                        >
-                            {generatingReport ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-                            {generatingReport ? '生成中...' : '生成分析报告'}
-                        </button>
-                        <a
-                            href={getStockUrl(LUXSHARE_DATA.company.code)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                fontSize: '14px',
-                                color: '#fff',
-                                background: 'rgba(255,255,255,0.2)',
-                                padding: '10px 20px',
-                                borderRadius: '10px',
-                                textDecoration: 'none',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            <TrendingUp size={18} />
-                            查看行情
-                        </a>
-                    </div>
-                </div>
-                
-                <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap' }}>
-                    <div>
-                        <div style={{ fontSize: '12px', opacity: 0.8, marginBottom: '8px' }}>主营业务</div>
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                            {LUXSHARE_DATA.company.mainBusiness.map(biz => (
-                                <span key={biz} style={{
-                                    fontSize: '13px',
-                                    background: 'rgba(255,255,255,0.2)',
-                                    padding: '6px 14px',
-                                    borderRadius: '8px'
-                                }}>
-                                    {biz}
-                                </span>
-                            ))}
-                        </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{
+                        width: '40px',
+                        height: '40px',
+                        background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <Building2 size={20} color="#fff" />
                     </div>
                     <div>
-                        <div style={{ fontSize: '12px', opacity: 0.8, marginBottom: '8px' }}>第一大客户</div>
-                        <div style={{ fontSize: '16px', fontWeight: '600' }}>
-                            🍎 {LUXSHARE_DATA.company.topCustomer}
+                        <div style={{ fontWeight: '700', fontSize: '18px', color: '#1e293b' }}>
+                            供应链分析
                         </div>
-                    </div>
-                    <div>
-                        <div style={{ fontSize: '12px', opacity: 0.8, marginBottom: '8px' }}>代工产品</div>
-                        <div style={{ fontSize: '14px' }}>
-                            {LUXSHARE_DATA.company.products.join(' · ')}
+                        <div style={{ fontSize: '12px', color: '#64748b' }}>
+                            立讯技术 · 友商/客户/物料/关税
                         </div>
                     </div>
                 </div>
+                <button
+                    onClick={generateReport}
+                    disabled={generatingReport}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 18px',
+                        background: generatingReport ? '#94a3b8' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                        border: 'none',
+                        borderRadius: '10px',
+                        color: '#fff',
+                        cursor: generatingReport ? 'not-allowed' : 'pointer',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        transition: 'all 0.2s',
+                        boxShadow: generatingReport ? 'none' : '0 2px 8px rgba(59, 130, 246, 0.3)'
+                    }}
+                >
+                    {generatingReport ? (
+                        <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                        <Sparkles size={16} />
+                    )}
+                    {generatingReport ? '生成中...' : '生成分析报告'}
+                </button>
             </div>
 
-            {/* 实时供应链新闻 */}
+            {/* 供应链新闻 - 四分类Tab */}
             <div style={{ 
                 background: '#fff', 
                 borderRadius: '16px', 
-                padding: '20px',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                marginBottom: '20px'
+                overflow: 'hidden'
             }}>
+                {/* 标题栏 */}
                 <div style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'space-between',
-                    marginBottom: '16px'
+                    padding: '16px 20px',
+                    borderBottom: '1px solid #e2e8f0'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={{
@@ -693,11 +719,10 @@ const SupplyChainPanel = () => {
                         </div>
                         <div>
                             <div style={{ fontWeight: '600', fontSize: '15px', color: '#1e293b' }}>
-                                实时供应链动态
+                                供应链分析新闻
                             </div>
                             <div style={{ fontSize: '12px', color: '#64748b' }}>
-                                {loadingSupplyNews ? '加载中...' : 
-                                 newsStatus === 'cache' ? '缓存数据' : '实时抓取'} · {supplyChainNews.length} 条相关新闻
+                                按友商、客户、物料品类、关税政策分类
                             </div>
                         </div>
                     </div>
@@ -705,7 +730,6 @@ const SupplyChainPanel = () => {
                         onClick={async () => {
                             setLoadingSupplyNews(true);
                             try {
-                                // 使用 refresh=true 触发后端重新爬取
                                 const response = await api.getSupplyChainNews(true);
                                 const data = response.data || response;
                                 setSupplyChainNews(data.data || []);
@@ -736,70 +760,167 @@ const SupplyChainPanel = () => {
                     </button>
                 </div>
                 
-                {loadingSupplyNews ? (
-                    <div style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
-                        <Loader2 size={24} className="animate-spin" style={{ margin: '0 auto 10px' }} />
-                        正在抓取最新新闻...
-                    </div>
-                ) : supplyChainNews.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>
-                        暂无相关新闻
-                    </div>
-                ) : (
-                    <div style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: 'repeat(2, 1fr)', 
-                        gap: '12px',
-                        maxHeight: '300px',
-                        overflowY: 'auto'
-                    }}>
-                        {supplyChainNews.map((news, idx) => (
-                            <a
-                                key={idx}
-                                href={news.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                {/* Tab栏 */}
+                <div style={{ 
+                    display: 'flex', 
+                    borderBottom: '1px solid #e2e8f0',
+                    background: '#f8fafc'
+                }}>
+                    {NEWS_TABS.map(tab => {
+                        const newsCount = getNewsForTab(tab.id).length;
+                        const isActive = activeNewsTab === tab.id;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveNewsTab(tab.id)}
                                 style={{
+                                    flex: 1,
                                     display: 'flex',
-                                    alignItems: 'flex-start',
-                                    gap: '10px',
-                                    padding: '12px',
-                                    background: '#f8fafc',
-                                    borderRadius: '10px',
-                                    textDecoration: 'none',
-                                    transition: 'all 0.2s'
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                    padding: '14px 16px',
+                                    background: isActive ? '#fff' : 'transparent',
+                                    border: 'none',
+                                    borderBottom: isActive ? `3px solid ${tab.color}` : '3px solid transparent',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    color: isActive ? tab.color : '#64748b',
+                                    fontWeight: isActive ? '600' : '400',
+                                    fontSize: '14px'
                                 }}
-                                onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
-                                onMouseLeave={e => e.currentTarget.style.background = '#f8fafc'}
                             >
+                                {getTabIcon(tab.icon)}
+                                {tab.name}
                                 <span style={{
-                                    fontSize: '12px',
-                                    color: '#3b82f6',
-                                    background: '#dbeafe',
+                                    fontSize: '11px',
+                                    background: isActive ? tab.color : '#e2e8f0',
+                                    color: isActive ? '#fff' : '#64748b',
                                     padding: '2px 8px',
-                                    borderRadius: '4px',
-                                    whiteSpace: 'nowrap'
+                                    borderRadius: '10px',
+                                    fontWeight: '600'
                                 }}>
-                                    {news.source || '新闻'}
+                                    {newsCount}
                                 </span>
-                                <span style={{ 
-                                    fontSize: '13px', 
-                                    color: '#334155',
-                                    lineHeight: '1.5',
-                                    flex: 1
+                            </button>
+                        );
+                    })}
+                </div>
+                
+                {/* 新闻内容区 */}
+                <div style={{ padding: '16px 20px' }}>
+                    {loadingSupplyNews ? (
+                        <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                            <Loader2 size={24} className="animate-spin" style={{ margin: '0 auto 10px' }} />
+                            正在抓取最新新闻...
+                        </div>
+                    ) : (() => {
+                        const currentNews = getNewsForTab(activeNewsTab);
+                        const currentTab = NEWS_TABS.find(t => t.id === activeNewsTab);
+                        
+                        if (currentNews.length === 0) {
+                            return (
+                                <div style={{ 
+                                    textAlign: 'center', 
+                                    padding: '40px', 
+                                    color: '#94a3b8',
+                                    background: currentTab?.bgColor || '#f8fafc',
+                                    borderRadius: '12px'
                                 }}>
-                                    {news.title}
-                                </span>
-                                <ExternalLink size={14} color="#94a3b8" style={{ flexShrink: 0 }} />
-                            </a>
-                        ))}
-                    </div>
-                )}
+                                    <div style={{ marginBottom: '8px' }}>
+                                        {getTabIcon(currentTab?.icon)}
+                                    </div>
+                                    暂无{currentTab?.name}相关新闻
+                                </div>
+                            );
+                        }
+                        
+                        return (
+                            <div style={{ 
+                                display: 'flex', 
+                                flexDirection: 'column',
+                                gap: '10px',
+                                maxHeight: '350px',
+                                overflowY: 'auto'
+                            }}>
+                                {currentNews.map((news, idx) => (
+                                    <a
+                                        key={idx}
+                                        href={news.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'flex-start',
+                                            gap: '12px',
+                                            padding: '14px',
+                                            background: currentTab?.bgColor || '#f8fafc',
+                                            borderRadius: '10px',
+                                            textDecoration: 'none',
+                                            transition: 'all 0.2s',
+                                            borderLeft: `4px solid ${currentTab?.color || '#3b82f6'}`
+                                        }}
+                                        onMouseEnter={e => {
+                                            e.currentTarget.style.transform = 'translateX(4px)';
+                                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.currentTarget.style.transform = 'translateX(0)';
+                                            e.currentTarget.style.boxShadow = 'none';
+                                        }}
+                                    >
+                                        <span style={{
+                                            minWidth: '24px',
+                                            height: '24px',
+                                            borderRadius: '6px',
+                                            background: currentTab?.color || '#3b82f6',
+                                            color: '#fff',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '12px',
+                                            fontWeight: '600'
+                                        }}>
+                                            {idx + 1}
+                                        </span>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ 
+                                                fontSize: '14px', 
+                                                color: '#1e293b',
+                                                lineHeight: '1.5',
+                                                marginBottom: '6px'
+                                            }}>
+                                                {news.title}
+                                            </div>
+                                            <div style={{ 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                gap: '8px',
+                                                fontSize: '12px',
+                                                color: '#94a3b8'
+                                            }}>
+                                                <span style={{
+                                                    background: '#fff',
+                                                    padding: '2px 8px',
+                                                    borderRadius: '4px',
+                                                    border: '1px solid #e2e8f0'
+                                                }}>
+                                                    {news.source || news.platform_name || '新闻'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <ExternalLink size={16} color={currentTab?.color || '#94a3b8'} style={{ flexShrink: 0 }} />
+                                    </a>
+                                ))}
+                            </div>
+                        );
+                    })()}
+                </div>
             </div>
 
-            {/* 三栏布局：竞争对手 | 上游 | 下游 */}
+            {/* 三栏布局：友商(按产品) | 供应商(按物料) | 客户 */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-                {/* 竞争对手 */}
+                {/* 友商（按产品分类） */}
                 <div style={{ 
                     background: '#fff', 
                     borderRadius: '16px', 
@@ -833,10 +954,10 @@ const SupplyChainPanel = () => {
                         </div>
                         <div style={{ flex: 1, textAlign: 'left' }}>
                             <div style={{ fontWeight: '600', fontSize: '16px', color: '#1e293b' }}>
-                                主要竞争对手
+                                友商
                             </div>
                             <div style={{ fontSize: '12px', color: '#64748b' }}>
-                                果链企业竞争格局
+                                按产品分类：光电/连接器/电源
                             </div>
                         </div>
                         <span style={{
@@ -847,18 +968,58 @@ const SupplyChainPanel = () => {
                             borderRadius: '10px',
                             fontWeight: '600'
                         }}>
-                            {LUXSHARE_DATA.competitors.length}
+                            {Object.values(LUXSHARE_DATA.competitors).flat().length}
                         </span>
                         {expandedSections.competitors ? <ChevronUp size={20} color="#64748b" /> : <ChevronDown size={20} color="#64748b" />}
                     </button>
                     {expandedSections.competitors && (
-                        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
-                            {LUXSHARE_DATA.competitors.map(item => renderCompanyCard(item, 'competitor'))}
+                        <div style={{ padding: '16px', maxHeight: '450px', overflowY: 'auto' }}>
+                            {Object.entries(LUXSHARE_DATA.competitors).map(([category, items]) => (
+                                <div key={category} style={{ marginBottom: '16px' }}>
+                                    <div style={{ 
+                                        fontSize: '13px', 
+                                        fontWeight: '600', 
+                                        color: '#64748b',
+                                        marginBottom: '10px',
+                                        padding: '6px 10px',
+                                        background: '#f8fafc',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
+                                    }}>
+                                        <span style={{ color: '#ef4444' }}>●</span>
+                                        {category}
+                                        <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#94a3b8' }}>
+                                            {items.length}家
+                                        </span>
+                                    </div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                        {items.map(item => (
+                                            <span 
+                                                key={item.name}
+                                                style={{
+                                                    fontSize: '13px',
+                                                    padding: '6px 12px',
+                                                    background: item.hot ? '#fef2f2' : '#f8fafc',
+                                                    color: item.hot ? '#dc2626' : '#475569',
+                                                    borderRadius: '8px',
+                                                    border: item.hot ? '1px solid #fecaca' : '1px solid #e2e8f0',
+                                                    fontWeight: item.hot ? '600' : '400'
+                                                }}
+                                            >
+                                                {item.name}
+                                                {item.hot && <span style={{ marginLeft: '4px', fontSize: '10px' }}>🔥</span>}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>
 
-                {/* 上游供应商 */}
+                {/* 供应商（按物料品类） */}
                 <div style={{ 
                     background: '#fff', 
                     borderRadius: '16px', 
@@ -892,10 +1053,10 @@ const SupplyChainPanel = () => {
                         </div>
                         <div style={{ flex: 1, textAlign: 'left' }}>
                             <div style={{ fontWeight: '600', fontSize: '16px', color: '#1e293b' }}>
-                                上游供应商
+                                供应商
                             </div>
                             <div style={{ fontSize: '12px', color: '#64748b' }}>
-                                零部件及原材料
+                                按物料品类分类
                             </div>
                         </div>
                         <span style={{
@@ -906,18 +1067,56 @@ const SupplyChainPanel = () => {
                             borderRadius: '10px',
                             fontWeight: '600'
                         }}>
-                            {LUXSHARE_DATA.upstream.length}
+                            {Object.values(LUXSHARE_DATA.suppliers).flat().length}
                         </span>
                         {expandedSections.upstream ? <ChevronUp size={20} color="#64748b" /> : <ChevronDown size={20} color="#64748b" />}
                     </button>
                     {expandedSections.upstream && (
-                        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
-                            {LUXSHARE_DATA.upstream.map(item => renderCompanyCard(item, 'upstream'))}
+                        <div style={{ padding: '16px', maxHeight: '450px', overflowY: 'auto' }}>
+                            {Object.entries(LUXSHARE_DATA.suppliers).map(([category, items]) => (
+                                <div key={category} style={{ marginBottom: '16px' }}>
+                                    <div style={{ 
+                                        fontSize: '13px', 
+                                        fontWeight: '600', 
+                                        color: '#64748b',
+                                        marginBottom: '10px',
+                                        padding: '6px 10px',
+                                        background: '#f0fdf4',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
+                                    }}>
+                                        <span style={{ color: '#10b981' }}>●</span>
+                                        {category}
+                                        <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#94a3b8' }}>
+                                            {items.length}家
+                                        </span>
+                                    </div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                        {items.map(name => (
+                                            <span 
+                                                key={name}
+                                                style={{
+                                                    fontSize: '13px',
+                                                    padding: '6px 12px',
+                                                    background: '#f8fafc',
+                                                    color: '#475569',
+                                                    borderRadius: '8px',
+                                                    border: '1px solid #e2e8f0'
+                                                }}
+                                            >
+                                                {name}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>
 
-                {/* 下游客户 */}
+                {/* 客户 */}
                 <div style={{ 
                     background: '#fff', 
                     borderRadius: '16px', 
@@ -951,7 +1150,7 @@ const SupplyChainPanel = () => {
                         </div>
                         <div style={{ flex: 1, textAlign: 'left' }}>
                             <div style={{ fontWeight: '600', fontSize: '16px', color: '#1e293b' }}>
-                                下游客户
+                                客户
                             </div>
                             <div style={{ fontSize: '12px', color: '#64748b' }}>
                                 终端客户与合作伙伴
@@ -965,13 +1164,70 @@ const SupplyChainPanel = () => {
                             borderRadius: '10px',
                             fontWeight: '600'
                         }}>
-                            {LUXSHARE_DATA.downstream.length}
+                            {LUXSHARE_DATA.customers.length}
                         </span>
                         {expandedSections.downstream ? <ChevronUp size={20} color="#64748b" /> : <ChevronDown size={20} color="#64748b" />}
                     </button>
                     {expandedSections.downstream && (
-                        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
-                            {LUXSHARE_DATA.downstream.map(item => renderCompanyCard(item, 'downstream'))}
+                        <div style={{ padding: '16px', maxHeight: '450px', overflowY: 'auto' }}>
+                            {LUXSHARE_DATA.customers.map(item => (
+                                <div
+                                    key={item.name}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '12px',
+                                        padding: '12px',
+                                        background: item.primary ? '#fffbeb' : '#f8fafc',
+                                        borderRadius: '10px',
+                                        marginBottom: '10px',
+                                        border: item.primary ? '1px solid #fde68a' : '1px solid #e2e8f0'
+                                    }}
+                                >
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ 
+                                            fontWeight: '600', 
+                                            fontSize: '14px', 
+                                            color: '#1e293b',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px'
+                                        }}>
+                                            {item.name}
+                                            {item.primary && (
+                                                <span style={{
+                                                    fontSize: '10px',
+                                                    background: '#f59e0b',
+                                                    color: '#fff',
+                                                    padding: '2px 6px',
+                                                    borderRadius: '4px'
+                                                }}>核心</span>
+                                            )}
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                                            {item.relation}
+                                        </div>
+                                    </div>
+                                    {item.code && item.code !== '-' && (
+                                        <a
+                                            href={getStockUrl(item.code)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{
+                                                fontSize: '11px',
+                                                color: '#3b82f6',
+                                                textDecoration: 'none',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '4px'
+                                            }}
+                                        >
+                                            {item.code}
+                                            <ExternalLink size={10} />
+                                        </a>
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>
