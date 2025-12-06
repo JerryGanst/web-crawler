@@ -8,6 +8,7 @@ import random
 import requests
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class UnifiedDataSource:
@@ -38,7 +39,7 @@ class UnifiedDataSource:
         return self.config.get("categories", {})
     
     def crawl_newsnow(self, platform_id: str) -> List[Dict]:
-        """从 newsnow API 爬取数据"""
+        """从 newsnow API 爬取数据（单平台）"""
         url = f"https://newsnow.busiyi.world/api/s?id={platform_id}&latest"
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -56,7 +57,7 @@ class UnifiedDataSource:
                     return items
             except Exception:
                 if retry < 2:
-                    time.sleep(random.uniform(2, 4))
+                    time.sleep(random.uniform(0.5, 1.5))
         return []
     
     def crawl_custom(self, scraper_name: str, scraper_config: Dict) -> List[Dict]:
@@ -87,26 +88,31 @@ class UnifiedDataSource:
         print(f"\n📂 正在爬取【{category_name}】分类")
         print("=" * 50)
         
-        # 1. 爬取 newsnow 平台
-        for p in platforms:
-            pid = p["id"]
-            pname = p["name"]
-            print(f"  🔄 {pname} ({pid})...", end=" ")
-            
-            items = self.crawl_newsnow(pid)
-            if items:
-                # 标准化数据格式
-                for item in items:
-                    item["platform"] = pid
-                    item["platform_name"] = pname
-                    item["category"] = category
-                    item["source"] = "newsnow"
-                all_data.extend(items)
-                print(f"✅ {len(items)} 条")
-            else:
-                print("❌ 失败")
-            
-            time.sleep(random.uniform(0.5, 1.5))
+        # 1. 并发爬取 newsnow 平台
+        max_workers = min(8, max(1, len(platforms)))
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_map = {
+                executor.submit(self.crawl_newsnow, p["id"]): p for p in platforms
+            }
+
+            for future in as_completed(future_map):
+                p = future_map[future]
+                pid = p["id"]
+                pname = p["name"]
+                try:
+                    items = future.result()
+                    if items:
+                        for item in items:
+                            item["platform"] = pid
+                            item["platform_name"] = pname
+                            item["category"] = category
+                            item["source"] = "newsnow"
+                        all_data.extend(items)
+                        print(f"  ✅ {pname} ({pid}) {len(items)} 条")
+                    else:
+                        print(f"  ❌ {pname} ({pid}) 无数据")
+                except Exception as e:
+                    print(f"  ❌ {pname} ({pid}) 失败: {e}")
         
         # 2. 爬取自定义数据源（如果启用）
         if include_custom and category == "finance":
@@ -160,15 +166,37 @@ class UnifiedDataSource:
             else:
                 print("❌ 失败")
         
+        # 3. 爬取大宗商品数据源
+        if include_custom and category == "commodity":
+            print(f"\n  📊 自定义大宗商品数据源:")
+            
+            # 上海有色金属网
+            print(f"  🔄 上海有色网...", end=" ")
+            smm_data = self.crawl_custom("smm_news", {})
+            if smm_data:
+                for item in smm_data:
+                    item["source"] = "custom"
+                    item["platform"] = "smm"
+                    item["platform_name"] = "上海有色网"
+                    item["category"] = "commodity"
+                all_data.extend(smm_data)
+                print(f"✅ {len(smm_data)} 条")
+            else:
+                print("❌ 失败")
+        
         print(f"\n📊 共获取 {len(all_data)} 条数据")
         return all_data
     
-    def push_to_wework(self, data: List[Dict], category: str, webhook_url: str):
-        """推送数据到企业微信"""
-        if not webhook_url:
+    def push_to_wework(self, data: List[Dict], category: str, webhook_url):
+        """推送数据到企业微信（支持字符串或列表 URL）"""
+        if isinstance(webhook_url, list):
+            webhook_urls = webhook_url
+        elif isinstance(webhook_url, str) and webhook_url:
+            webhook_urls = [webhook_url]
+        else:
             print("❌ 未配置企业微信 webhook")
             return
-        
+
         if not data:
             print("❌ 没有数据可推送")
             return
@@ -186,9 +214,8 @@ class UnifiedDataSource:
             by_source[source_name].append(item)
         
         # 分批发送
-        print(f"\n📤 正在推送到企业微信（共 {len(by_source)} 批）...")
+        print(f"\n📤 正在推送到企业微信（共 {len(by_source)} 批，{len(webhook_urls)} 个 webhook）...")
         
-        success_count = 0
         batch_num = 1
         
         for source_name, items in by_source.items():
@@ -205,17 +232,16 @@ class UnifiedDataSource:
             
             message = "\n".join(lines)
             
-            resp = requests.post(webhook_url, json={
-                "msgtype": "markdown",
-                "markdown": {"content": message}
-            })
-            
-            if resp.status_code == 200 and resp.json().get("errcode") == 0:
-                success_count += 1
-            else:
-                print(f"  ❌ 第 {batch_num} 批失败")
+            for wurl in webhook_urls:
+                try:
+                    resp = requests.post(wurl, json={
+                        "msgtype": "markdown",
+                        "markdown": {"content": message}
+                    })
+                    if resp.status_code != 200 or resp.json().get("errcode") != 0:
+                        print(f"  ❌ {source_name} 发送失败 ({wurl[:20]}...)")
+                except Exception as e:
+                    print(f"  ❌ {source_name} 发送异常: {e}")
             
             batch_num += 1
             time.sleep(1)
-        
-        print(f"✅ 推送完成！成功 {success_count}/{len(by_source)} 批")

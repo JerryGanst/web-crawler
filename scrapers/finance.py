@@ -257,8 +257,10 @@ class SupplyChainNewsScraper(BaseScraper):
 def register_finance_scrapers():
     """注册所有财经爬虫到工厂"""
     from .factory import ScraperFactory
+    from .smm import SMMScraper
     
     ScraperFactory.register("sina_forex", SinaForexScraper)
     ScraperFactory.register("coingecko", CoinGeckoScraper)
     ScraperFactory.register("hackernews", HackerNewsScraper)
     ScraperFactory.register("eastmoney_supply_chain", SupplyChainNewsScraper)
+    ScraperFactory.register("smm_news", SMMScraper)

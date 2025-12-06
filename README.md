@@ -1,0 +1,81 @@
+# TrendRadar 项目结构
+
+> 热点新闻聚合与推送服务
+
+## 📁 目录说明
+
+```
+TrendRadar/
+│
+├── server.py           # 🌐 FastAPI 后端 API (端口 8000)
+├── main.py             # 🖥️ CLI 主程序（爬取+分析+推送）
+│
+├── scrapers/           # 🕷️ 国内财经爬虫 (requests)
+│   ├── unified.py      # 统一数据源入口
+│   ├── finance.py      # 财经新闻
+│   ├── commodity.py    # 大宗商品
+│   └── smm.py          # 上海有色网
+│
+├── pacong/             # 🌍 高级爬虫系统（浏览器自动化）
+│   ├── browser/        # AppleScript/Selenium/CDP 控制
+│   ├── scrapers/       # Bloomberg/BusinessInsider/世界银行
+│   └── main.py         # 独立入口
+│
+├── core/               # 📦 核心模块
+│   ├── config.py       # 配置管理
+│   ├── analyzer.py     # 数据分析
+│   ├── statistics.py   # 词频统计
+│   ├── data_processor.py
+│   ├── notifiers/      # 通知推送
+│   └── reporters/      # 报告生成
+│
+├── database/           # 💾 数据库
+│   ├── mysql/          # MySQL 连接
+│   └── repositories/   # 数据仓库
+│
+├── config/             # ⚙️ 配置文件
+│   ├── config.yaml     # 主配置
+│   └── scrapers.yaml   # 爬虫配置
+│
+├── mcp_server/         # 🤖 MCP 服务（AI 工具）
+├── scripts/            # 📜 脚本工具
+├── tests/              # 🧪 测试用例
+├── docs/               # 📚 文档
+│
+└── frontend/           # ⚛️ React 前端 (端口 5173)
+```
+
+## 🚀 快速启动
+
+```bash
+# 启动后端 API
+python server.py
+
+# 启动前端
+cd frontend
+npm run dev
+
+# 运行 CLI 爬取
+python main.py
+```
+
+## 🔑 两套爬虫说明
+
+| 目录 | 用途 | 特点 |
+|------|------|------|
+| `scrapers/` | 国内财经网站 | 基于 requests，简单快速 |
+| `pacong/` | 国际网站/反爬站点 | 支持 AppleScript/Selenium/CDP |
+
+## ⚙️ 配置文件
+
+- `config/config.yaml` - 主配置（API密钥、推送等）
+- `config/scrapers.yaml` - 爬虫数据源配置
+- `pacong/config/settings.yaml` - 高级爬虫配置
+
+## 📡 API 端点
+
+- `GET /api/news/{category}` - 获取新闻
+- `GET /api/data` - 大宗商品数据
+- `GET /api/news/supply-chain` - 供应链新闻
+- `GET /api/cache/status` - Redis 缓存状态
+- `POST /api/generate-analysis` - AI 分析报告
