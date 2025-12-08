@@ -7,10 +7,12 @@ import time
 import random
 import platform
 import logging
+import hashlib
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set
 
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse, urlunparse
 
 from .base import BaseScraper
 
@@ -264,7 +266,7 @@ class PlaswaySectionScraper(BaseScraper):
             if not anchor:
                 continue
 
-            link = anchor.get("href", "")
+            original_link = anchor.get("href", "")
             title = anchor.get_text(strip=True)
 
             # 有些页面中 <a> 文本为空，标题实际在摘要区域，做降级回退
@@ -274,7 +276,7 @@ class PlaswaySectionScraper(BaseScraper):
                 if fb_el:
                     title = fb_el.get_text(strip=True)
 
-            if not title or not link or title in seen_titles:
+            if not title or not original_link or title in seen_titles:
                 continue
 
             seen_titles.add(title)
@@ -297,11 +299,42 @@ class PlaswaySectionScraper(BaseScraper):
                 if src_el:
                     source = src_el.get_text(strip=True)
 
+            # 生成唯一 ID（用于阅读器）
+            news_id = hashlib.md5(f"{title}{original_link}".encode()).hexdigest()[:12]
+            
+            # 提取文章内容（摘要 + 正文）
+            full_content = self._extract_article_content(elem, summary_sel)
+            
+            # 决定最终 URL：有内容用阅读器，否则用分类页
+            if full_content:
+                final_url = f"http://localhost:8000/api/reader/{news_id}"
+                content_available = True
+            else:
+                final_url = self._normalize_url(original_link, section_name)
+                content_available = False
+            
             item = {
                 "title": title,
-                "url": link,
-                "extra": {"section": section_name},
+                "url": final_url,
+                "id": news_id,
+                "extra": {
+                    "section": section_name,
+                    "content_available": content_available,
+                    "original_url": original_link,
+                },
             }
+            
+            # 保存内容到缓存（用于阅读器）
+            if full_content:
+                self._save_content_to_cache(news_id, {
+                    "title": title,
+                    "content": full_content,
+                    "section": section_name,
+                    "source": source or "Plasway",
+                    "timestamp": published_at.isoformat() if published_at else None,
+                    "original_url": original_link,
+                })
+            
             if published_at:
                 item["timestamp"] = published_at.isoformat()
             if summary:
@@ -353,3 +386,72 @@ class PlaswaySectionScraper(BaseScraper):
         except Exception:
             return False
         return (datetime.now() - dt).days > self.date_cutoff_days
+
+    def _extract_article_content(self, elem, summary_sel: Optional[str] = None) -> Optional[str]:
+        """提取文章的主要内容"""
+        try:
+            content_parts = []
+            
+            # 尝试多种选择器提取内容
+            content_selectors = [
+                summary_sel,
+                '.item-content',
+                '.article-body',
+                '.content',
+                '.news-content',
+                'p',
+            ]
+            
+            for sel in content_selectors:
+                if not sel:
+                    continue
+                content_elem = elem.select_one(sel)
+                if content_elem:
+                    text = content_elem.get_text(strip=True)
+                    if text and len(text) > 20:  # 至少20字符
+                        content_parts.append(text)
+                        break
+            
+            if content_parts:
+                return "\n\n".join(content_parts)
+            return None
+        except Exception as e:
+            logger.warning(f"提取内容失败: {e}")
+            return None
+
+    def _save_content_to_cache(self, news_id: str, data: dict):
+        """保存文章内容到 Redis 缓存"""
+        try:
+            import redis
+            import json
+            import os
+            
+            redis_host = os.environ.get("REDIS_HOST", "localhost")
+            redis_port = int(os.environ.get("REDIS_PORT", "49907"))
+            
+            client = redis.Redis(host=redis_host, port=redis_port, decode_responses=True)
+            key = f"trendradar:reader:{news_id}"
+            
+            # 保存7天
+            client.setex(key, 7 * 24 * 3600, json.dumps(data, ensure_ascii=False))
+            logger.debug(f"✅ 保存文章内容: {news_id}")
+        except Exception as e:
+            logger.warning(f"保存内容到缓存失败: {e}")
+
+    def _normalize_url(self, url: str, section_name: str = "") -> str:
+        """
+        规范化 Plasway URL
+        
+        由于 Plasway 文章页面需要登录，将 URL 改为对应分类的列表页
+        """
+        # Plasway 文章需要登录，改为链接到分类页面（需要 ?web=new 参数）
+        section_urls = {
+            "market": "https://www.plasway.com/news/market?web=new",
+            "innovation": "https://www.plasway.com/news/innovation?web=new", 
+            "policy": "https://www.plasway.com/news/policy?web=new",
+            "viewpoint": "https://www.plasway.com/news/viewpoint?web=new",
+            "industry": "https://www.plasway.com/news/industry?web=new",
+        }
+        
+        # 返回对应分类页面，如果没有匹配则返回主页
+        return section_urls.get(section_name, "https://www.plasway.com/news?web=new")

@@ -628,3 +628,161 @@ async def get_tariff_news_stats():
         "total_news": matched_total,
         "stats": stats
     }
+
+
+@router.get("/api/reader/{news_id}")
+async def read_news_article(news_id: str):
+    """
+    新闻阅读器 - 显示保存的文章内容
+    
+    用于需要登录的外部网站（如 Plasway），直接显示已爬取的内容
+    """
+    import json
+    import redis
+    import os
+    from fastapi.responses import HTMLResponse
+    
+    try:
+        redis_host = os.environ.get("REDIS_HOST", "localhost")
+        redis_port = int(os.environ.get("REDIS_PORT", "49907"))
+        
+        client = redis.Redis(host=redis_host, port=redis_port, decode_responses=True)
+        key = f"trendradar:reader:{news_id}"
+        
+        data = client.get(key)
+        if not data:
+            raise HTTPException(status_code=404, detail="文章内容不可用或已过期")
+        
+        news = json.loads(data)
+        
+        # 返回美化的 HTML 页面
+        html_template = f"""
+        <!DOCTYPE html>
+        <html lang="zh-CN">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>{news.get('title', '文章阅读')}</title>
+            <style>
+                * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+                body {{ 
+                    max-width: 800px; 
+                    margin: 0 auto; 
+                    padding: 40px 20px;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                    line-height: 1.8;
+                    background: #f9fafb;
+                    color: #1f2937;
+                }}
+                .container {{
+                    background: white;
+                    border-radius: 12px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                    padding: 40px;
+                }}
+                .header {{
+                    border-bottom: 2px solid #e5e7eb;
+                    padding-bottom: 24px;
+                    margin-bottom: 32px;
+                }}
+                h1 {{ 
+                    font-size: 28px; 
+                    font-weight: 700;
+                    margin-bottom: 16px;
+                    color: #111827;
+                    line-height: 1.4;
+                }}
+                .meta {{ 
+                    color: #6b7280; 
+                    font-size: 14px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    flex-wrap: wrap;
+                }}
+                .source-badge {{
+                    display: inline-block;
+                    background: linear-gradient(135deg, #3b82f6, #2563eb);
+                    color: white;
+                    padding: 4px 12px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    font-weight: 500;
+                }}
+                .section-badge {{
+                    display: inline-block;
+                    background: #f3f4f6;
+                    color: #4b5563;
+                    padding: 4px 12px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                }}
+                .content {{
+                    font-size: 17px;
+                    color: #374151;
+                    white-space: pre-wrap;
+                }}
+                .content p {{
+                    margin-bottom: 16px;
+                }}
+                .footer {{
+                    margin-top: 40px;
+                    padding-top: 20px;
+                    border-top: 1px solid #e5e7eb;
+                    font-size: 13px;
+                    color: #9ca3af;
+                    text-align: center;
+                }}
+                .footer a {{
+                    color: #3b82f6;
+                    text-decoration: none;
+                }}
+                .footer a:hover {{
+                    text-decoration: underline;
+                }}
+                .back-btn {{
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    color: #3b82f6;
+                    text-decoration: none;
+                    font-size: 14px;
+                    margin-bottom: 20px;
+                }}
+                .back-btn:hover {{
+                    text-decoration: underline;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <a href="javascript:history.back()" class="back-btn">
+                    ← 返回列表
+                </a>
+                <div class="header">
+                    <h1>{news.get('title', '')}</h1>
+                    <div class="meta">
+                        <span class="source-badge">{news.get('source', 'Plasway')}</span>
+                        <span class="section-badge">{news.get('section', '行业资讯')}</span>
+                        <span>{news.get('timestamp', '')[:10] if news.get('timestamp') else ''}</span>
+                    </div>
+                </div>
+                <div class="content">
+                    {news.get('content', '内容加载中...')}
+                </div>
+                <div class="footer">
+                    内容来源：<a href="{news.get('original_url', '#')}" target="_blank" rel="noopener">原文链接</a>
+                    <br>
+                    由 TrendRadar 自动抓取并缓存
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        return HTMLResponse(content=html_template)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"读取文章失败: {str(e)}")

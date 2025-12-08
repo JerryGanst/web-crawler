@@ -57,41 +57,31 @@ const CommodityCard = ({
     const [showInGrams, setShowInGrams] = useState(false);
     const displayUnit = isOunceUnit ? (showInGrams ? 'g' : 'oz') : pureUnit;
 
-    // 货币转换函数
-    const applyCurrencyConversion = (val) => {
-        if (!val) return 0;
-        const numVal = parseFloat(val);
-        return currency === 'CNY' ? numVal * EXCHANGE_RATE : numVal;
-    };
-
+    // 货币转换函数 (注意: currentPrice应该已经是目标货币,不需要再转换)
     const convertPrice = (val) => {
         if (!val) return 0;
         let numVal = parseFloat(val);
-        // 先进行货币转换
-        numVal = applyCurrencyConversion(numVal);
-        // 再进行单位转换（盎司转克）
+        // 不再进行货币转换,因为currentPrice已经是正确货币
+        // 只进行单位转换（盎司转克）
         if (isOunceUnit && showInGrams) {
             numVal = numVal / GRAMS_PER_OUNCE;
         }
         return numVal;
     };
 
-    // 转换历史数据价格（货币 + 单位）
+    // 转换历史数据价格（只进行单位转换,货币转换由formatPrice处理）
     const convertedHistoryData = useMemo(() => {
         if (!historyData) return historyData;
         return historyData.map(item => {
             let price = parseFloat(item.price) || 0;
-            // 货币转换
-            if (currency === 'CNY') {
-                price = price * EXCHANGE_RATE;
-            }
-            // 单位转换（盎司转克）
+            // 不进行货币转换,因为会通过formatPrice统一处理
+            // 只进行单位转换（盎司转克）
             if (isOunceUnit && showInGrams) {
                 price = price / GRAMS_PER_OUNCE;
             }
             return { ...item, price };
         });
-    }, [historyData, showInGrams, isOunceUnit, currency]);
+    }, [historyData, showInGrams, isOunceUnit]);
 
     const convertedMultiSourceHistory = useMemo(() => {
         if (!multiSourceHistory) return multiSourceHistory;
@@ -99,18 +89,15 @@ const CommodityCard = ({
             ...source,
             data: source.data.map(item => {
                 let price = parseFloat(item.price) || 0;
-                // 货币转换
-                if (currency === 'CNY') {
-                    price = price * EXCHANGE_RATE;
-                }
-                // 单位转换
+                // 不进行货币转换,因为会通过formatPrice统一处理
+                // 只进行单位转换
                 if (isOunceUnit && showInGrams) {
                     price = price / GRAMS_PER_OUNCE;
                 }
                 return { ...item, price };
             })
         }));
-    }, [multiSourceHistory, showInGrams, isOunceUnit, currency]);
+    }, [multiSourceHistory, showInGrams, isOunceUnit]);
 
     const displayedPrice = convertPrice(currentPrice);
     const sources = multiSourceItems || (realItem ? [realItem] : []);

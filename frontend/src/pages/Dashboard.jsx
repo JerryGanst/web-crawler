@@ -110,6 +110,40 @@ const Dashboard = () => {
     const [tempSelectedWebsites, setTempSelectedWebsites] = useState(new Set());
     const sourceFilterRef = useRef(null);
 
+    // 新增：保存和恢复用户偏好
+    useEffect(() => {
+        // 恢复保存的设置
+        const savedSettings = localStorage.getItem('trendradar_dashboard_settings');
+        if (savedSettings) {
+            try {
+                const settings = JSON.parse(savedSettings);
+                if (settings.currency) setCurrency(settings.currency);
+                if (settings.timeRange) setTimeRange(settings.timeRange);
+                if (settings.selectedCommodities && Array.isArray(settings.selectedCommodities)) {
+                    setSelectedCommodities(new Set(settings.selectedCommodities));
+                }
+                if (settings.selectedCountry) setSelectedCountry(settings.selectedCountry);
+                if (settings.selectedWebsites && Array.isArray(settings.selectedWebsites)) {
+                    setSelectedWebsites(new Set(settings.selectedWebsites));
+                }
+            } catch (e) {
+                console.error('恢复设置失败:', e);
+            }
+        }
+    }, []);
+
+    // 保存设置到 localStorage
+    useEffect(() => {
+        const settings = {
+            currency,
+            timeRange,
+            selectedCommodities: Array.from(selectedCommodities),
+            selectedCountry,
+            selectedWebsites: Array.from(selectedWebsites)
+        };
+        localStorage.setItem('trendradar_dashboard_settings', JSON.stringify(settings));
+    }, [currency, timeRange, selectedCommodities, selectedCountry, selectedWebsites]);
+
     // Exchange rate (Mock)
     const EXCHANGE_RATE = 7.2;
 
@@ -363,16 +397,6 @@ const Dashboard = () => {
         return Array.from(commodityMap.values());
     }, [data]);
 
-    // 过滤商品列表（用于选择器搜索）
-    const filteredCommodities = useMemo(() => {
-        if (!commoditySearchTerm) return allCommodities;
-        const searchLower = commoditySearchTerm.toLowerCase();
-        return allCommodities.filter(c => 
-            c.name.toLowerCase().includes(searchLower) ||
-            (c.source && c.source.toLowerCase().includes(searchLower))
-        );
-    }, [allCommodities, commoditySearchTerm]);
-
     // URL统计
     const urlStats = useMemo(() => {
         const stats = {};
@@ -421,7 +445,18 @@ const Dashboard = () => {
 
     // 全选/全不选
     const selectAll = () => {
-        setSelectedCommodities(new Set(allCommodities.map(c => c.name)));
+        // 智能全选：只选择符合当前数据源过滤的商品
+        if (getSourceFilteredCommodities && getSourceFilteredCommodities.size > 0) {
+            const filteredCommodities = allCommodities.filter(c => {
+                const hasMatch = c.rawNames?.some(name => getSourceFilteredCommodities.has(name)) 
+                    || getSourceFilteredCommodities.has(c.name);
+                return hasMatch;
+            });
+            setSelectedCommodities(new Set(filteredCommodities.map(c => c.name)));
+        } else {
+            // 没有数据源过滤时，选择全部
+            setSelectedCommodities(new Set(allCommodities.map(c => c.name)));
+        }
     };
 
     const selectNone = () => {
@@ -457,6 +492,30 @@ const Dashboard = () => {
         
         return allowedCommodities;
     }, [dataSources, selectedCountry, selectedWebsites]);
+
+    // 根据选中国家过滤后的商品列表（用于商品选择器的级联）
+    const commoditiesForSelectedCountry = useMemo(() => {
+        if (selectedCountry === 'all' || !getSourceFilteredCommodities) {
+            return allCommodities; // 全部国家时显示所有商品
+        }
+        // 只显示当前国家有的商品
+        return allCommodities.filter(c => {
+            return c.rawNames?.some(name => getSourceFilteredCommodities.has(name)) 
+                || getSourceFilteredCommodities.has(c.name);
+        });
+    }, [allCommodities, selectedCountry, getSourceFilteredCommodities]);
+
+    // 过滤商品列表（用于选择器搜索）- 基于选中国家的商品列表
+    const filteredCommodities = useMemo(() => {
+        // 使用级联过滤后的商品列表
+        const baseCommodities = commoditiesForSelectedCountry || allCommodities;
+        if (!commoditySearchTerm) return baseCommodities;
+        const searchLower = commoditySearchTerm.toLowerCase();
+        return baseCommodities.filter(c => 
+            c.name.toLowerCase().includes(searchLower) ||
+            (c.source && c.source.toLowerCase().includes(searchLower))
+        );
+    }, [commoditiesForSelectedCountry, allCommodities, commoditySearchTerm]);
 
     // 获取选中商品的显示数据（使用合并后的商品数据）
     const displayCommodities = useMemo(() => {
@@ -598,7 +657,103 @@ const Dashboard = () => {
                         )}
                     </div>
 
-                    {/* 商品选择器 - 新增带搜索和滚动的可勾选框 */}
+                    {/* 1️⃣ 国家/来源选择器 - 放在最前面 */}
+                    <div ref={sourceFilterRef} style={{ position: 'relative' }}>
+                        <button
+                            onClick={() => setShowSourceFilter(!showSourceFilter)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                background: selectedCountry !== 'all' ? '#dbeafe' : '#fff',
+                                border: '1px solid #e5e7eb',
+                                padding: '7px 12px',
+                                borderRadius: '8px',
+                                color: selectedCountry !== 'all' ? '#1e40af' : '#374151',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                fontWeight: '500'
+                            }}
+                        >
+                            <Globe size={14} />
+                            {selectedCountry === 'all' ? '🌍 全部国家' : `${dataSources?.sources?.[selectedCountry]?.flag || ''} ${dataSources?.sources?.[selectedCountry]?.name || selectedCountry}`}
+                            <ChevronDown size={14} />
+                        </button>
+                        
+                        {showSourceFilter && dataSources && (
+                            <div style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: 0,
+                                marginTop: '6px',
+                                background: '#fff',
+                                borderRadius: '12px',
+                                boxShadow: '0 10px 40px -5px rgba(0, 0, 0, 0.15)',
+                                border: '1px solid #e5e7eb',
+                                width: '260px',
+                                zIndex: 200,
+                                overflow: 'hidden'
+                            }}>
+                                <div style={{ padding: '8px' }}>
+                                    <div 
+                                        onClick={() => { setSelectedCountry('all'); setSelectedWebsites(new Set()); setShowSourceFilter(false); }}
+                                        style={{
+                                            padding: '10px 12px',
+                                            cursor: 'pointer',
+                                            borderRadius: '8px',
+                                            background: selectedCountry === 'all' ? '#eff6ff' : 'transparent',
+                                            marginBottom: '4px',
+                                            fontSize: '13px',
+                                            fontWeight: selectedCountry === 'all' ? '600' : '400'
+                                        }}
+                                    >
+                                        🌍 全部国家 ({allCommodities.length} 商品)
+                                    </div>
+                                    {dataSources.cascade?.map(country => (
+                                        <div 
+                                            key={country.code}
+                                            onClick={() => { 
+                                                setSelectedCountry(country.code); 
+                                                setSelectedWebsites(new Set()); 
+                                                setShowSourceFilter(false);
+                                                // 自动选择该国家的商品
+                                                setTimeout(() => {
+                                                    const countryInfo = dataSources.sources?.[country.code];
+                                                    if (countryInfo) {
+                                                        const countryCommodities = new Set();
+                                                        countryInfo.websites?.forEach(w => w.commodities?.forEach(c => countryCommodities.add(c)));
+                                                        const matchedCommodities = allCommodities.filter(c => 
+                                                            c.rawNames?.some(name => countryCommodities.has(name)) || countryCommodities.has(c.name)
+                                                        );
+                                                        if (matchedCommodities.length > 0) {
+                                                            setSelectedCommodities(new Set(matchedCommodities.slice(0, 6).map(c => c.name)));
+                                                        }
+                                                    }
+                                                }, 50);
+                                            }}
+                                            style={{
+                                                padding: '10px 12px',
+                                                cursor: 'pointer',
+                                                borderRadius: '8px',
+                                                background: selectedCountry === country.code ? '#eff6ff' : 'transparent',
+                                                marginBottom: '4px',
+                                                fontSize: '13px',
+                                                fontWeight: selectedCountry === country.code ? '600' : '400',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center'
+                                            }}
+                                        >
+                                            <span>{country.flag} {country.name}</span>
+                                            <span style={{ color: '#9ca3af', fontSize: '12px' }}>{country.commodity_count} 商品</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 2️⃣ 商品选择器 - 基于选中国家过滤 */}
                     <div ref={commoditySelectorRef} style={{ position: 'relative' }}>
                         <button
                             onClick={() => setShowCommoditySelector(!showCommoditySelector)}
@@ -617,7 +772,7 @@ const Dashboard = () => {
                             }}
                         >
                             <Filter size={14} />
-                            商品 ({selectedCommodities.size}/{allCommodities.length})
+                            商品 ({selectedCommodities.size}/{(commoditiesForSelectedCountry || allCommodities).length})
                             <ChevronDown size={14} />
                         </button>
                         
@@ -691,7 +846,9 @@ const Dashboard = () => {
                                                 fontSize: '12px'
                                             }}
                                         >
-                                            全选
+                                            {getSourceFilteredCommodities && getSourceFilteredCommodities.size > 0 
+                                                ? '选择当前源' 
+                                                : '全选'}
                                         </button>
                                         <button
                                             onClick={selectNone}
@@ -713,6 +870,17 @@ const Dashboard = () => {
                                             alignSelf: 'center'
                                         }}>
                                             已选 {selectedCommodities.size} 项
+                                            {getSourceFilteredCommodities && getSourceFilteredCommodities.size > 0 && (
+                                                <span style={{ color: '#f59e0b', marginLeft: '4px' }}>
+                                                    · {filteredCommodities.filter(c => {
+                                                        const willBeFiltered = !(
+                                                            c.rawNames?.some(name => getSourceFilteredCommodities.has(name)) 
+                                                            || getSourceFilteredCommodities.has(c.name)
+                                                        );
+                                                        return selectedCommodities.has(c.name) && willBeFiltered;
+                                                    }).length} 被过滤
+                                                </span>
+                                            )}
                                         </span>
                                     </div>
                                 </div>
@@ -736,6 +904,13 @@ const Dashboard = () => {
                                         filteredCommodities.map((comm, idx) => {
                                             const isSelected = selectedCommodities.has(comm.name);
                                             const isUp = (comm.change || 0) >= 0;
+                                            
+                                            // 检查是否会被数据源过滤
+                                            const willBeFiltered = getSourceFilteredCommodities && getSourceFilteredCommodities.size > 0 && !(
+                                                comm.rawNames?.some(name => getSourceFilteredCommodities.has(name)) 
+                                                || getSourceFilteredCommodities.has(comm.name)
+                                            );
+                                            
                                             return (
                                                 <div
                                                     key={idx}
@@ -750,7 +925,9 @@ const Dashboard = () => {
                                                         marginBottom: '4px',
                                                         background: isSelected ? '#eff6ff' : 'transparent',
                                                         border: isSelected ? '1px solid #bfdbfe' : '1px solid transparent',
-                                                        transition: 'all 0.15s ease'
+                                                        transition: 'all 0.15s ease',
+                                                        opacity: willBeFiltered ? 0.4 : 1,  // 被过滤的商品变灰
+                                                        position: 'relative'
                                                     }}
                                                     onMouseEnter={e => {
                                                         if (!isSelected) e.currentTarget.style.background = '#f9fafb';
@@ -783,9 +960,25 @@ const Dashboard = () => {
                                                             color: '#111827',
                                                             whiteSpace: 'nowrap',
                                                             overflow: 'hidden',
-                                                            textOverflow: 'ellipsis'
+                                                            textOverflow: 'ellipsis',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '6px'
                                                         }}>
-                                                            {comm.name}
+                                                            <span>{comm.name}</span>
+                                                            {willBeFiltered && (
+                                                                <span style={{
+                                                                    fontSize: '10px',
+                                                                    color: '#f59e0b',
+                                                                    background: '#fef3c7',
+                                                                    padding: '2px 6px',
+                                                                    borderRadius: '4px',
+                                                                    fontWeight: '600',
+                                                                    whiteSpace: 'nowrap'
+                                                                }}>
+                                                                    被过滤
+                                                                </span>
+                                                            )}
                                                         </div>
                                                         <div style={{ 
                                                             fontSize: '11px', 
@@ -817,164 +1010,6 @@ const Dashboard = () => {
                                             );
                                         })
                                     )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* 数据来源筛选器 */}
-                    <div ref={sourceFilterRef} style={{ position: 'relative' }}>
-                        <button
-                            onClick={() => setShowSourceFilter(!showSourceFilter)}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                background: (selectedCountry !== 'all' || selectedWebsites.size > 0) ? '#dbeafe' : '#fff',
-                                border: '1px solid #e5e7eb',
-                                padding: '7px 12px',
-                                borderRadius: '8px',
-                                color: '#374151',
-                                cursor: 'pointer',
-                                fontSize: '13px',
-                                fontWeight: '500'
-                            }}
-                        >
-                            <Globe size={14} />
-                            {selectedCountry === 'all' ? '全部来源' : dataSources?.sources?.[selectedCountry]?.flag + ' ' + dataSources?.sources?.[selectedCountry]?.name}
-                            <ChevronDown size={14} />
-                        </button>
-                        
-                        {showSourceFilter && dataSources && (
-                            <div style={{
-                                position: 'absolute',
-                                top: '100%',
-                                left: 0,
-                                marginTop: '6px',
-                                background: '#fff',
-                                borderRadius: '12px',
-                                boxShadow: '0 10px 40px -5px rgba(0, 0, 0, 0.15)',
-                                border: '1px solid #e5e7eb',
-                                width: '300px',
-                                zIndex: 200,
-                                overflow: 'hidden'
-                            }}>
-                                <div style={{ padding: '12px', borderBottom: '1px solid #f3f4f6', background: '#fafafa' }}>
-                                    <div style={{ fontSize: '12px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
-                                        按国家/地区筛选
-                                    </div>
-                                    <select
-                                        value={selectedCountry}
-                                        onChange={(e) => {
-                                            setSelectedCountry(e.target.value);
-                                            setSelectedWebsites(new Set());
-                                        }}
-                                        style={{
-                                            width: '100%',
-                                            padding: '8px 12px',
-                                            borderRadius: '8px',
-                                            border: '1px solid #e5e7eb',
-                                            fontSize: '13px',
-                                            background: '#fff',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        <option value="all">🌍 全部国家/地区</option>
-                                        {dataSources.cascade?.map(country => (
-                                            <option key={country.code} value={country.code}>
-                                                {country.flag} {country.name} ({country.commodity_count} 商品)
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                
-                                {selectedCountry !== 'all' && (
-                                    <div style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                                        <div style={{ fontSize: '12px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
-                                            按网站筛选
-                                        </div>
-                                        <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                                            {dataSources.sources?.[selectedCountry]?.websites?.map(website => {
-                                                const isChecked = selectedWebsites.has(website.id);
-                                                return (
-                                                    <div
-                                                        key={website.id}
-                                                        onClick={() => {
-                                                            setSelectedWebsites(prev => {
-                                                                const newSet = new Set(prev);
-                                                                if (newSet.has(website.id)) {
-                                                                    newSet.delete(website.id);
-                                                                } else {
-                                                                    newSet.add(website.id);
-                                                                }
-                                                                return newSet;
-                                                            });
-                                                        }}
-                                                        style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: '8px',
-                                                            padding: '8px 10px',
-                                                            cursor: 'pointer',
-                                                            borderRadius: '6px',
-                                                            background: isChecked ? '#eff6ff' : 'transparent',
-                                                            marginBottom: '4px'
-                                                        }}
-                                                    >
-                                                        <div style={{
-                                                            width: '16px',
-                                                            height: '16px',
-                                                            border: isChecked ? 'none' : '2px solid #d1d5db',
-                                                            borderRadius: '4px',
-                                                            background: isChecked ? '#3b82f6' : '#fff',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center'
-                                                        }}>
-                                                            {isChecked && <Check size={10} color="#fff" strokeWidth={3} />}
-                                                        </div>
-                                                        <span style={{ fontSize: '13px', color: '#374151' }}>
-                                                            {website.name} ({website.commodities.length})
-                                                        </span>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-                                
-                                <div style={{ padding: '12px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                                    <button
-                                        onClick={() => {
-                                            setSelectedCountry('all');
-                                            setSelectedWebsites(new Set());
-                                        }}
-                                        style={{
-                                            padding: '6px 12px',
-                                            borderRadius: '6px',
-                                            border: '1px solid #e5e7eb',
-                                            background: '#fff',
-                                            color: '#374151',
-                                            fontSize: '12px',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        清除筛选
-                                    </button>
-                                    <button
-                                        onClick={() => setShowSourceFilter(false)}
-                                        style={{
-                                            padding: '6px 12px',
-                                            borderRadius: '6px',
-                                            border: 'none',
-                                            background: '#3b82f6',
-                                            color: '#fff',
-                                            fontSize: '12px',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        确定
-                                    </button>
                                 </div>
                             </div>
                         )}
@@ -1237,10 +1272,61 @@ const Dashboard = () => {
                                 color: '#6b7280'
                             }}>
                                 <Filter size={48} style={{ marginBottom: '16px', opacity: 0.3 }} />
-                                <p style={{ fontSize: '15px', marginBottom: '8px' }}>未选择任何商品</p>
-                                <p style={{ fontSize: '13px', color: '#9ca3af' }}>
-                                    点击上方"商品"按钮选择要显示的商品
-                                </p>
+                                {selectedCommodities.size === 0 ? (
+                                    // 真的没选择商品
+                                    <>
+                                        <p style={{ fontSize: '15px', marginBottom: '8px', fontWeight: '600' }}>未选择任何商品</p>
+                                        <p style={{ fontSize: '13px', color: '#9ca3af' }}>
+                                            点击上方"商品"按钮选择要显示的商品
+                                        </p>
+                                    </>
+                                ) : (
+                                    // 选择了商品但被数据来源过滤掉了
+                                    <>
+                                        <p style={{ fontSize: '15px', marginBottom: '8px', fontWeight: '600', color: '#f59e0b' }}>
+                                            已选择 {selectedCommodities.size} 个商品，但都被数据来源筛选器过滤
+                                        </p>
+                                        <p style={{ fontSize: '13px', color: '#9ca3af', marginBottom: '16px' }}>
+                                            当前数据来源: {selectedCountry === 'all' ? '全部来源' : dataSources?.sources?.[selectedCountry]?.name}
+                                            {selectedWebsites.size > 0 && ` · ${selectedWebsites.size} 个网站`}
+                                        </p>
+                                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedCountry('all');
+                                                    setSelectedWebsites(new Set());
+                                                }}
+                                                style={{
+                                                    padding: '8px 16px',
+                                                    borderRadius: '8px',
+                                                    border: '1px solid #e5e7eb',
+                                                    background: '#fff',
+                                                    color: '#374151',
+                                                    fontSize: '13px',
+                                                    cursor: 'pointer',
+                                                    fontWeight: '500'
+                                                }}
+                                            >
+                                                清除数据来源筛选
+                                            </button>
+                                            <button
+                                                onClick={() => setShowCommoditySelector(true)}
+                                                style={{
+                                                    padding: '8px 16px',
+                                                    borderRadius: '8px',
+                                                    border: 'none',
+                                                    background: '#3b82f6',
+                                                    color: '#fff',
+                                                    fontSize: '13px',
+                                                    cursor: 'pointer',
+                                                    fontWeight: '500'
+                                                }}
+                                            >
+                                                重新选择商品
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         ) : (
                             displayCommodities.map((comm, index) => {
