@@ -60,14 +60,30 @@ class UnifiedDataSource:
                     time.sleep(random.uniform(0.5, 1.5))
         return []
     
-    def crawl_custom(self, scraper_name: str, scraper_config: Dict) -> List[Dict]:
-        """使用自定义爬虫爬取"""
+    def crawl_custom(self, scraper_name: str, scraper_config: Dict = None) -> List[Dict]:
+        """使用自定义爬虫爬取，自动从 YAML 加载配置"""
         from .factory import ScraperFactory
+        
+        # 如果没传配置，从 YAML 加载
+        if not scraper_config:
+            scraper_config = self._load_scraper_config(scraper_name)
         
         scraper = ScraperFactory.create(scraper_name, scraper_config)
         if scraper:
             return scraper.scrape()
         return []
+    
+    def _load_scraper_config(self, scraper_name: str) -> Dict:
+        """从 scrapers.yaml 加载指定爬虫的配置"""
+        try:
+            yaml_path = "config/scrapers.yaml"
+            with open(yaml_path, 'r', encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+            custom_scrapers = config.get("custom_scrapers", {})
+            return custom_scrapers.get(scraper_name, {})
+        except Exception as e:
+            print(f"⚠️ 加载爬虫配置失败 {scraper_name}: {e}")
+            return {}
     
     def crawl_category(self, category: str, include_custom: bool = True) -> List[Dict]:
         """
@@ -181,6 +197,20 @@ class UnifiedDataSource:
                     item["category"] = "commodity"
                 all_data.extend(smm_data)
                 print(f"✅ {len(smm_data)} 条")
+            else:
+                print("❌ 失败")
+
+            # Plasway 行业消息（塑料/大宗）
+            print(f"  🔄 Plasway行业消息...", end=" ")
+            plasway_data = self.crawl_custom("plasway_industry")
+            if plasway_data:
+                for item in plasway_data:
+                    item["source"] = "custom"
+                    item["platform"] = "plasway"
+                    item["platform_name"] = "Plasway"
+                    item["category"] = "commodity"
+                all_data.extend(plasway_data)
+                print(f"✅ {len(plasway_data)} 条")
             else:
                 print("❌ 失败")
         

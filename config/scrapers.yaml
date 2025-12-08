@@ -184,6 +184,59 @@ custom_scrapers:
       - "trade war"
     description: "关税政策相关新闻聚合"
 
+  # Plasway 行业消息（多分区，分页）
+  plasway_industry:
+    enabled: true
+    display_name: "Plasway行业消息"
+    category: "commodity"
+    max_pages: 3            # 每次前3页，避免打爆
+    date_cutoff_days: 7     # 超过7天的跳过
+    headers:
+      Referer: "https://plasway.com/"
+      Accept-Language: "zh-CN,zh;q=0.9,en;q=0.8"
+    sections:
+      - name: "market"
+        url_template: "https://www.plasway.com/news/market?web=new&page={page}"
+        container: ".tabs-news-box .news-item-content"
+        fields:
+          title: "h1 a"
+          url: "h1 a"
+          time: ".item-bottom span:nth-of-type(1)"
+          summary: ".item-content"
+      - name: "innovation"
+        url_template: "https://www.plasway.com/news/innovation?web=new&page={page}"
+        container: ".tabs-news-box .news-item-content"
+        fields:
+          title: "h1 a"
+          url: "h1 a"
+          time: ".item-bottom span:nth-of-type(1)"
+          summary: ".item-content"
+      - name: "industry"
+        url_template: "https://www.plasway.com/news/industry?web=new&page={page}"
+        container: ".tabs-news-box .news-item-content"
+        fields:
+          title: "h1 a"
+          url: "h1 a"
+          time: ".item-bottom span:nth-of-type(1)"
+          summary: ".item-content"
+      - name: "factory"
+        url_template: "https://www.plasway.com/news/factory?web=new&page={page}"
+        container: ".tabs-news-box .news-item-content"
+        fields:
+          title: "h1 a"
+          url: "h1 a"
+          time: ".item-bottom span:nth-of-type(1)"
+          summary: ".item-content"
+      - name: "policy"
+        url_template: "https://www.plasway.com/news/policy?web=new&page={page}"
+        container: ".tabs-news-box .news-item-content"
+        fields:
+          title: "h1 a"
+          url: "h1 a"
+          time: ".item-bottom span:nth-of-type(1)"
+          summary: ".item-content"
+    description: "Plasway 各分区行业新闻（market/innovation/industry/factory/policy）"
+
 # 爬虫全局配置
 scraper_settings:
   max_retries: 3
