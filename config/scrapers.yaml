@@ -193,14 +193,15 @@ custom_scrapers:
     date_cutoff_days: 7     # 超过7天的跳过
     
     # 爬取模式：auto（默认）/ applescript / requests
-    scrape_mode: "auto"
+    # 注意：Plasway WAF 会拦截 AppleScript 控制的 Chrome，暂用 requests
+    scrape_mode: "requests"
     
     # 反检测优化参数
-    max_requests_per_run: 20   # 单次运行最大请求数（兜底保护）
-    shuffle_sections: true     # 随机化 section 顺序（打破固定模式）
-    skip_probability: 0.1      # 10% 概率随机跳过某页（模拟人类）
-    min_delay: 2.0             # 最小延迟（秒）
-    max_delay: 5.0             # 最大延迟（秒）
+    max_requests_per_run: 10   # 降低请求数，避免触发 WAF
+    shuffle_sections: true     # 随机化 section 顺序
+    skip_probability: 0.15     # 15% 概率随机跳过
+    min_delay: 3.0             # 增加最小延迟
+    max_delay: 8.0             # 增加最大延迟
     
     headers:
       Referer: "https://plasway.com/"
