@@ -192,22 +192,17 @@ const TrendRadar = () => {
 
     const updateChart = useCallback((sources) => {
         if (!chartRef.current) return;
-        
-        // 处理空数据
-        if (!sources || Object.keys(sources).length === 0) {
-            console.log('图表数据为空，跳过渲染');
-            return;
-        }
 
         if (!chartInstance.current) {
             chartInstance.current = echarts.init(chartRef.current);
         }
 
-        const pieData = Object.entries(sources)
-            .map(([name, count]) => ({ name, value: count }))
-            .sort((a, b) => b.value - a.value);
-
-        console.log('更新图表数据:', pieData.length, '条');
+        // 处理空数据：显示空图表而不是保留旧数据
+        const pieData = (!sources || Object.keys(sources).length === 0)
+            ? []
+            : Object.entries(sources)
+                .map(([name, count]) => ({ name, value: count }))
+                .sort((a, b) => b.value - a.value);
         
         chartInstance.current.setOption({
             ...chartOptions,
@@ -215,7 +210,7 @@ const TrendRadar = () => {
                 ...chartOptions.series[0],
                 data: pieData
             }]
-        });
+        }, true);  // true = notMerge, ensures old data is cleared
     }, [chartOptions]);
 
     // 触发爬取并推送
