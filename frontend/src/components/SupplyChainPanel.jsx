@@ -239,6 +239,26 @@ const SupplyChainPanel = () => {
     const [expandedPartners, setExpandedPartners] = useState({});
     const hasFetchedPartnerStats = useRef(false);
     
+    // 客户新闻统计
+    const [customerStats, setCustomerStats] = useState(null);
+    const [loadingCustomerStats, setLoadingCustomerStats] = useState(true);
+    const hasFetchedCustomerStats = useRef(false);
+    
+    // 供应商新闻统计
+    const [supplierStats, setSupplierStats] = useState(null);
+    const [loadingSupplierStats, setLoadingSupplierStats] = useState(true);
+    const hasFetchedSupplierStats = useRef(false);
+    
+    // 物料新闻统计
+    const [materialStats, setMaterialStats] = useState(null);
+    const [loadingMaterialStats, setLoadingMaterialStats] = useState(true);
+    const hasFetchedMaterialStats = useRef(false);
+    
+    // 关税新闻统计
+    const [tariffStats, setTariffStats] = useState(null);
+    const [loadingTariffStats, setLoadingTariffStats] = useState(true);
+    const hasFetchedTariffStats = useRef(false);
+    
     // 根据关键词分类新闻
     const categorizeNews = (news, category) => {
         if (!news || !news.length) return [];
@@ -332,7 +352,79 @@ const SupplyChainPanel = () => {
         fetchPartnerStats();
     }, []);
 
-    // 切换友商新闻展开状态
+    // 获取客户新闻统计
+    useEffect(() => {
+        if (hasFetchedCustomerStats.current) return;
+        hasFetchedCustomerStats.current = true;
+        const fetch = async () => {
+            setLoadingCustomerStats(true);
+            try {
+                const response = await api.getCustomerNewsStats();
+                setCustomerStats(response.data || response);
+            } catch (e) {
+                console.error('获取客户新闻统计失败:', e);
+            } finally {
+                setLoadingCustomerStats(false);
+            }
+        };
+        fetch();
+    }, []);
+
+    // 获取供应商新闻统计
+    useEffect(() => {
+        if (hasFetchedSupplierStats.current) return;
+        hasFetchedSupplierStats.current = true;
+        const fetch = async () => {
+            setLoadingSupplierStats(true);
+            try {
+                const response = await api.getSupplierNewsStats();
+                setSupplierStats(response.data || response);
+            } catch (e) {
+                console.error('获取供应商新闻统计失败:', e);
+            } finally {
+                setLoadingSupplierStats(false);
+            }
+        };
+        fetch();
+    }, []);
+
+    // 获取物料新闻统计
+    useEffect(() => {
+        if (hasFetchedMaterialStats.current) return;
+        hasFetchedMaterialStats.current = true;
+        const fetch = async () => {
+            setLoadingMaterialStats(true);
+            try {
+                const response = await api.getMaterialNewsStats();
+                setMaterialStats(response.data || response);
+            } catch (e) {
+                console.error('获取物料新闻统计失败:', e);
+            } finally {
+                setLoadingMaterialStats(false);
+            }
+        };
+        fetch();
+    }, []);
+
+    // 获取关税新闻统计
+    useEffect(() => {
+        if (hasFetchedTariffStats.current) return;
+        hasFetchedTariffStats.current = true;
+        const fetch = async () => {
+            setLoadingTariffStats(true);
+            try {
+                const response = await api.getTariffNewsStats();
+                setTariffStats(response.data || response);
+            } catch (e) {
+                console.error('获取关税新闻统计失败:', e);
+            } finally {
+                setLoadingTariffStats(false);
+            }
+        };
+        fetch();
+    }, []);
+
+    // 切换新闻展开状态（通用）
     const togglePartnerExpand = (partnerName) => {
         setExpandedPartners(prev => ({
             ...prev,
@@ -979,101 +1071,166 @@ const SupplyChainPanel = () => {
                             );
                         }
                         
-                        // 其他Tab：普通新闻列表
-                        if (currentNews.length === 0) {
+                        // 客户Tab：按客户分类展示
+                        if (activeNewsTab === 'customers' && customerStats?.stats) {
                             return (
-                                <div style={{ 
-                                    textAlign: 'center', 
-                                    padding: '40px', 
-                                    color: '#94a3b8',
-                                    background: currentTab?.bgColor || '#f8fafc',
-                                    borderRadius: '12px'
-                                }}>
-                                    <div style={{ marginBottom: '8px' }}>
-                                        {getTabIcon(currentTab?.icon)}
-                                    </div>
-                                    暂无{currentTab?.name}相关新闻
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '400px', overflowY: 'auto' }}>
+                                    {Object.entries(customerStats.stats).map(([name, data]) => {
+                                        const isExpanded = expandedPartners[name];
+                                        const hasNews = data.news_count > 0;
+                                        return (
+                                            <div key={name} style={{
+                                                background: hasNews ? '#fffbeb' : '#f8fafc',
+                                                borderRadius: '8px',
+                                                border: hasNews ? '1px solid #fcd34d' : '1px solid #e2e8f0'
+                                            }}>
+                                                <button onClick={() => hasNews && togglePartnerExpand(name)} style={{
+                                                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                    padding: '10px 12px', background: 'transparent', border: 'none', cursor: hasNews ? 'pointer' : 'default'
+                                                }}>
+                                                    <span style={{ fontWeight: '500', color: hasNews ? '#1e293b' : '#94a3b8', fontSize: '14px' }}>{name}</span>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <span style={{ background: hasNews ? '#f59e0b' : '#e2e8f0', color: hasNews ? '#fff' : '#94a3b8', fontSize: '12px', padding: '2px 8px', borderRadius: '10px', fontWeight: '600' }}>{data.news_count}</span>
+                                                        {hasNews && (isExpanded ? <ChevronUp size={14} color="#64748b" /> : <ChevronDown size={14} color="#64748b" />)}
+                                                    </div>
+                                                </button>
+                                                {isExpanded && hasNews && (
+                                                    <div style={{ padding: '0 12px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                        {data.news.map((news, idx) => (
+                                                            <a key={idx} href={news.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '8px 10px', background: '#fff', borderRadius: '6px', fontSize: '12px', color: '#334155', textDecoration: 'none', lineHeight: '1.4', borderLeft: '3px solid #f59e0b' }}>
+                                                                <div style={{ marginBottom: '4px' }}>{news.title}</div>
+                                                                <div style={{ fontSize: '10px', color: '#94a3b8' }}>{news.source} <ExternalLink size={10} style={{ display: 'inline' }} /></div>
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             );
                         }
                         
-                        return (
-                            <div style={{ 
-                                display: 'flex', 
-                                flexDirection: 'column',
-                                gap: '10px',
-                                maxHeight: '350px',
-                                overflowY: 'auto'
-                            }}>
-                                {currentNews.map((news, idx) => (
-                                    <a
-                                        key={idx}
-                                        href={news.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'flex-start',
-                                            gap: '12px',
-                                            padding: '14px',
-                                            background: currentTab?.bgColor || '#f8fafc',
-                                            borderRadius: '10px',
-                                            textDecoration: 'none',
-                                            transition: 'all 0.2s',
-                                            borderLeft: `4px solid ${currentTab?.color || '#3b82f6'}`
-                                        }}
-                                        onMouseEnter={e => {
-                                            e.currentTarget.style.transform = 'translateX(4px)';
-                                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-                                        }}
-                                        onMouseLeave={e => {
-                                            e.currentTarget.style.transform = 'translateX(0)';
-                                            e.currentTarget.style.boxShadow = 'none';
-                                        }}
-                                    >
-                                        <span style={{
-                                            minWidth: '24px',
-                                            height: '24px',
-                                            borderRadius: '6px',
-                                            background: currentTab?.color || '#3b82f6',
-                                            color: '#fff',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '12px',
-                                            fontWeight: '600'
-                                        }}>
-                                            {idx + 1}
-                                        </span>
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ 
-                                                fontSize: '14px', 
-                                                color: '#1e293b',
-                                                lineHeight: '1.5',
-                                                marginBottom: '6px'
-                                            }}>
-                                                {news.title}
-                                            </div>
-                                            <div style={{ 
-                                                display: 'flex', 
-                                                alignItems: 'center', 
-                                                gap: '8px',
-                                                fontSize: '12px',
-                                                color: '#94a3b8'
-                                            }}>
-                                                <span style={{
-                                                    background: '#fff',
-                                                    padding: '2px 8px',
-                                                    borderRadius: '4px',
-                                                    border: '1px solid #e2e8f0'
-                                                }}>
-                                                    {news.source || news.platform_name || '新闻'}
-                                                </span>
+                        // 供应商Tab：按分类展示
+                        if (activeNewsTab === 'suppliers' && supplierStats?.stats) {
+                            return (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
+                                    {Object.entries(supplierStats.stats).map(([category, suppliers]) => (
+                                        <div key={category}>
+                                            <div style={{ fontSize: '12px', fontWeight: '600', color: '#64748b', marginBottom: '8px', padding: '4px 8px', background: '#eff6ff', borderRadius: '4px', display: 'inline-flex' }}>🏭 {category}</div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                {Object.entries(suppliers).map(([name, data]) => {
+                                                    const isExpanded = expandedPartners[name];
+                                                    const hasNews = data.news_count > 0;
+                                                    return (
+                                                        <div key={name} style={{ background: hasNews ? '#eff6ff' : '#f8fafc', borderRadius: '8px', border: hasNews ? '1px solid #93c5fd' : '1px solid #e2e8f0' }}>
+                                                            <button onClick={() => hasNews && togglePartnerExpand(name)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: 'transparent', border: 'none', cursor: hasNews ? 'pointer' : 'default' }}>
+                                                                <span style={{ fontWeight: '500', color: hasNews ? '#1e293b' : '#94a3b8', fontSize: '14px' }}>{name}</span>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <span style={{ background: hasNews ? '#3b82f6' : '#e2e8f0', color: hasNews ? '#fff' : '#94a3b8', fontSize: '12px', padding: '2px 8px', borderRadius: '10px', fontWeight: '600' }}>{data.news_count}</span>
+                                                                    {hasNews && (isExpanded ? <ChevronUp size={14} color="#64748b" /> : <ChevronDown size={14} color="#64748b" />)}
+                                                                </div>
+                                                            </button>
+                                                            {isExpanded && hasNews && (
+                                                                <div style={{ padding: '0 12px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                                    {data.news.map((news, idx) => (
+                                                                        <a key={idx} href={news.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '8px 10px', background: '#fff', borderRadius: '6px', fontSize: '12px', color: '#334155', textDecoration: 'none', lineHeight: '1.4', borderLeft: '3px solid #3b82f6' }}>
+                                                                            <div style={{ marginBottom: '4px' }}>{news.title}</div>
+                                                                            <div style={{ fontSize: '10px', color: '#94a3b8' }}>{news.source} <ExternalLink size={10} style={{ display: 'inline' }} /></div>
+                                                                        </a>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
-                                        <ExternalLink size={16} color={currentTab?.color || '#94a3b8'} style={{ flexShrink: 0 }} />
-                                    </a>
-                                ))}
+                                    ))}
+                                </div>
+                            );
+                        }
+                        
+                        // 物料品类Tab
+                        if (activeNewsTab === 'materials' && materialStats?.stats) {
+                            return (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '400px', overflowY: 'auto' }}>
+                                    {Object.entries(materialStats.stats).map(([name, data]) => {
+                                        const isExpanded = expandedPartners[name];
+                                        const hasNews = data.news_count > 0;
+                                        return (
+                                            <div key={name} style={{ background: hasNews ? '#ecfdf5' : '#f8fafc', borderRadius: '8px', border: hasNews ? '1px solid #6ee7b7' : '1px solid #e2e8f0' }}>
+                                                <button onClick={() => hasNews && togglePartnerExpand(name)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: 'transparent', border: 'none', cursor: hasNews ? 'pointer' : 'default' }}>
+                                                    <span style={{ fontWeight: '500', color: hasNews ? '#1e293b' : '#94a3b8', fontSize: '14px' }}>📦 {name}</span>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <span style={{ background: hasNews ? '#10b981' : '#e2e8f0', color: hasNews ? '#fff' : '#94a3b8', fontSize: '12px', padding: '2px 8px', borderRadius: '10px', fontWeight: '600' }}>{data.news_count}</span>
+                                                        {hasNews && (isExpanded ? <ChevronUp size={14} color="#64748b" /> : <ChevronDown size={14} color="#64748b" />)}
+                                                    </div>
+                                                </button>
+                                                {isExpanded && hasNews && (
+                                                    <div style={{ padding: '0 12px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                        {data.news.map((news, idx) => (
+                                                            <a key={idx} href={news.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '8px 10px', background: '#fff', borderRadius: '6px', fontSize: '12px', color: '#334155', textDecoration: 'none', lineHeight: '1.4', borderLeft: '3px solid #10b981' }}>
+                                                                <div style={{ marginBottom: '4px' }}>{news.title}</div>
+                                                                <div style={{ fontSize: '10px', color: '#94a3b8' }}>{news.source} <ExternalLink size={10} style={{ display: 'inline' }} /></div>
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        }
+                        
+                        // 关税政策Tab（AI智能分类）
+                        if (activeNewsTab === 'tariff' && tariffStats?.stats) {
+                            return (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
+                                    {Object.entries(tariffStats.stats).map(([category, data]) => {
+                                        const isExpanded = expandedPartners[`tariff-${category}`];
+                                        const hasNews = data.news_count > 0;
+                                        const icons = { '中美关税': '🇺🇸', '欧盟政策': '🇪🇺', '出口管制': '🚫', '进口关税': '📥', '自贸协定': '🤝', '其他政策': '📋' };
+                                        return (
+                                            <div key={category} style={{ background: hasNews ? '#f5f3ff' : '#f8fafc', borderRadius: '8px', border: hasNews ? '1px solid #c4b5fd' : '1px solid #e2e8f0' }}>
+                                                <button onClick={() => hasNews && togglePartnerExpand(`tariff-${category}`)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'transparent', border: 'none', cursor: hasNews ? 'pointer' : 'default' }}>
+                                                    <span style={{ fontWeight: '600', color: hasNews ? '#1e293b' : '#94a3b8', fontSize: '14px' }}>{icons[category] || '📋'} {category}</span>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <span style={{ background: hasNews ? '#8b5cf6' : '#e2e8f0', color: hasNews ? '#fff' : '#94a3b8', fontSize: '12px', padding: '2px 8px', borderRadius: '10px', fontWeight: '600' }}>{data.news_count}</span>
+                                                        {hasNews && (isExpanded ? <ChevronUp size={14} color="#64748b" /> : <ChevronDown size={14} color="#64748b" />)}
+                                                    </div>
+                                                </button>
+                                                {isExpanded && hasNews && (
+                                                    <div style={{ padding: '0 12px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                        {data.news.map((news, idx) => (
+                                                            <a key={idx} href={news.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '8px 10px', background: '#fff', borderRadius: '6px', fontSize: '12px', color: '#334155', textDecoration: 'none', lineHeight: '1.4', borderLeft: '3px solid #8b5cf6' }}>
+                                                                <div style={{ marginBottom: '4px' }}>{news.title}</div>
+                                                                <div style={{ fontSize: '10px', color: '#94a3b8' }}>{news.source} <ExternalLink size={10} style={{ display: 'inline' }} /></div>
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        }
+                        
+                        // 其他Tab：暂无数据
+                        return (
+                            <div style={{ 
+                                textAlign: 'center', 
+                                padding: '40px', 
+                                color: '#94a3b8',
+                                background: currentTab?.bgColor || '#f8fafc',
+                                borderRadius: '12px'
+                            }}>
+                                <div style={{ marginBottom: '8px' }}>
+                                    {getTabIcon(currentTab?.icon)}
+                                </div>
+                                暂无{currentTab?.name}相关新闻
                             </div>
                         );
                     })()}
@@ -1101,6 +1258,7 @@ const SupplyChainPanel = () => {
                         borderRadius: '20px',
                         width: '100%',
                         maxWidth: '900px',
+                        minHeight: '500px',
                         maxHeight: '85vh',
                         display: 'flex',
                         flexDirection: 'column',
@@ -1195,8 +1353,10 @@ const SupplyChainPanel = () => {
                         {/* 弹窗内容 */}
                         <div style={{
                             flex: 1,
+                            minHeight: '400px',
                             overflowY: 'auto',
-                            padding: '24px'
+                            padding: '24px',
+                            background: '#fafafa'
                         }}>
                             {generatingReport ? (
                                 <div style={{

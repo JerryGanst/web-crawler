@@ -197,6 +197,172 @@ def fetch_realtime_news(keywords: list) -> list:
         except Exception as e:
             pass  # 静默失败
     
+    # 6. 财联社搜索（覆盖海外和非上市公司）
+    company_keywords = [kw for kw in keywords if not kw.isdigit()][:25]
+    for kw in company_keywords:
+        try:
+            url = "https://www.cls.cn/api/sw?app=cls-pc&os=web&sv=7.7.5"
+            data = {"type": "telegram", "keyword": kw, "page": 1, "rn": 10}
+            resp = req.post(url, json=data, headers=headers, timeout=5)
+            result = resp.json()
+            for item in result.get("data", {}).get("telegram", {}).get("data", [])[:5]:
+                title = item.get("title", "") or item.get("descr", "")[:100]
+                if title and len(title) > 8:
+                    all_news.append({
+                        "title": title,
+                        "url": f"https://www.cls.cn/detail/{item.get('id', '')}",
+                        "source": "财联社",
+                        "matched_keyword": kw
+                    })
+        except:
+            pass
+    
+    # 7. 财联社深度文章搜索
+    for kw in company_keywords[:15]:
+        try:
+            url = "https://www.cls.cn/api/sw?app=cls-pc&os=web&sv=7.7.5"
+            data = {"type": "article", "keyword": kw, "page": 1, "rn": 10}
+            resp = req.post(url, json=data, headers=headers, timeout=5)
+            result = resp.json()
+            for item in result.get("data", {}).get("article", {}).get("data", [])[:3]:
+                title = item.get("title", "")
+                if title and len(title) > 8:
+                    all_news.append({
+                        "title": title,
+                        "url": f"https://www.cls.cn/detail/{item.get('id', '')}",
+                        "source": "财联社深度",
+                        "matched_keyword": kw
+                    })
+        except:
+            pass
+    
+    # 8. 巨潮资讯（官方公告源）
+    for code in stock_codes[:6]:
+        try:
+            url = f"http://www.cninfo.com.cn/new/disclosure/stock?stockCode={code}&pageNum=1&pageSize=10"
+            resp = req.get(url, headers=headers, timeout=5)
+            data = resp.json()
+            for item in data.get("classifiedAnnouncements", [])[:5]:
+                for ann in item if isinstance(item, list) else [item]:
+                    title = ann.get("announcementTitle", "")
+                    if title:
+                        all_news.append({
+                            "title": title,
+                            "url": f"http://www.cninfo.com.cn/new/disclosure/detail?announcementId={ann.get('announcementId', '')}",
+                            "source": "巨潮资讯",
+                            "stock_code": code
+                        })
+        except:
+            pass
+    
+    # 9. 同花顺研报搜索
+    for kw in keywords[:10]:
+        try:
+            url = f"https://data.10jqka.com.cn/ajax/report/search?keyword={kw}&page=1&pagesize=10"
+            resp = req.get(url, headers=headers, timeout=5)
+            data = resp.json()
+            for item in data.get("data", {}).get("list", [])[:3]:
+                title = item.get("title", "")
+                if title:
+                    all_news.append({
+                        "title": title,
+                        "url": item.get("url", ""),
+                        "source": "同花顺研报",
+                        "matched_keyword": kw
+                    })
+        except:
+            pass
+    
+    # 10. OFweek 光通讯/电子
+    try:
+        ofweek_keywords = [kw for kw in keywords if any(k in kw for k in ['光', '通信', '旭创', '新易盛', '天孚', '光迅', 'Credo'])]
+        for kw in ofweek_keywords[:5]:
+            url = f"https://search.ofweek.com/search/?q={kw}&type=news"
+            resp = req.get(url, headers=headers, timeout=5)
+            # 简单解析
+            import re
+            titles = re.findall(r'<a[^>]*class="search-title"[^>]*>([^<]+)</a>', resp.text)
+            links = re.findall(r'<a[^>]*class="search-title"[^>]*href="([^"]+)"', resp.text)
+            for title, link in zip(titles[:3], links[:3]):
+                all_news.append({
+                    "title": title.strip(),
+                    "url": link,
+                    "source": "OFweek",
+                    "matched_keyword": kw
+                })
+    except:
+        pass
+    
+    # 11. 哔哥哔特（连接器、电源）
+    try:
+        bigbit_keywords = [kw for kw in keywords if any(k in kw for k in ['连接器', '电源', '安费诺', '莫仕', 'TE', '奥海', '台达', '航嘉'])]
+        for kw in bigbit_keywords[:5]:
+            url = f"https://www.big-bit.com/search/?q={kw}"
+            resp = req.get(url, headers=headers, timeout=5)
+            import re
+            results = re.findall(r'<h3[^>]*><a[^>]*href="([^"]+)"[^>]*>([^<]+)</a>', resp.text)
+            for link, title in results[:3]:
+                all_news.append({
+                    "title": title.strip(),
+                    "url": f"https://www.big-bit.com{link}" if not link.startswith('http') else link,
+                    "source": "哔哥哔特",
+                    "matched_keyword": kw
+                })
+    except:
+        pass
+    
+    # 12. 腾讯财经（聚合搜索）
+    try:
+        for kw in keywords[:8]:
+            url = f"https://news.qq.com/zt2020/page/feiyan.htm#/search?keyword={kw}&type=finance"
+            # 腾讯新闻需要特殊处理，使用备用API
+            api_url = f"https://i.news.qq.com/trpc.qqnews_web.kv_srv.kv_srv_http_proxy/list?sub_srv_id=24&srv_id=pc&offset=0&limit=10&strategy=1&ext={kw}"
+            resp = req.get(api_url, headers=headers, timeout=5)
+            data = resp.json()
+            for item in data.get("data", {}).get("list", [])[:5]:
+                title = item.get("title", "")
+                if title and any(k in title for k in keywords):
+                    all_news.append({
+                        "title": title,
+                        "url": item.get("url", ""),
+                        "source": "腾讯财经",
+                        "matched_keyword": kw
+                    })
+    except:
+        pass
+    
+    # 13. 和讯财经
+    try:
+        url = "https://api.hexun.com/api/article/list?channelId=101&pageSize=30"
+        resp = req.get(url, headers=headers, timeout=5)
+        data = resp.json()
+        for item in data.get("data", []):
+            title = item.get("title", "")
+            if any(kw in title for kw in keywords):
+                all_news.append({
+                    "title": title,
+                    "url": item.get("url", ""),
+                    "source": "和讯财经"
+                })
+    except:
+        pass
+    
+    # 14. 证券时报
+    try:
+        url = "https://api.stcn.com/api/article/getlist?channelId=16&pageSize=30"
+        resp = req.get(url, headers=headers, timeout=5)
+        data = resp.json()
+        for item in data.get("data", {}).get("list", []):
+            title = item.get("title", "")
+            if any(kw in title for kw in keywords):
+                all_news.append({
+                    "title": title,
+                    "url": item.get("url", f"https://www.stcn.com/article/detail/{item.get('id', '')}"),
+                    "source": "证券时报"
+                })
+    except:
+        pass
+    
     # 去重
     seen = set()
     unique_news = []
@@ -206,7 +372,7 @@ def fetch_realtime_news(keywords: list) -> list:
             seen.add(title)
             unique_news.append(n)
     
-    return unique_news[:50]
+    return unique_news  # 返回所有匹配的新闻，不做数量限制
 
 
 @router.get("/api/market-analysis")

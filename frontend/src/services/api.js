@@ -300,7 +300,35 @@ const api = {
     getPartnerNewsStats: () => cachedRequest(
         'api:partner-news-stats',
         (signal) => axios.get(`${API_BASE}/api/partner-news-stats`, { signal }),
-        { ttl: 300000 }  // 5分钟缓存
+        { ttl: 300000 }
+    ),
+
+    // 获取客户新闻统计
+    getCustomerNewsStats: () => cachedRequest(
+        'api:customer-news-stats',
+        (signal) => axios.get(`${API_BASE}/api/customer-news-stats`, { signal }),
+        { ttl: 300000 }
+    ),
+
+    // 获取供应商新闻统计
+    getSupplierNewsStats: () => cachedRequest(
+        'api:supplier-news-stats',
+        (signal) => axios.get(`${API_BASE}/api/supplier-news-stats`, { signal }),
+        { ttl: 300000 }
+    ),
+
+    // 获取物料新闻统计
+    getMaterialNewsStats: () => cachedRequest(
+        'api:material-news-stats',
+        (signal) => axios.get(`${API_BASE}/api/material-news-stats`, { signal }),
+        { ttl: 300000 }
+    ),
+
+    // 获取关税新闻统计
+    getTariffNewsStats: () => cachedRequest(
+        'api:tariff-news-stats',
+        (signal) => axios.get(`${API_BASE}/api/tariff-news-stats`, { signal }),
+        { ttl: 300000 }
     ),
 
     // 获取 Redis 缓存状态
