@@ -98,6 +98,14 @@ TARIFF_KEYWORDS = [
     "关税清单", "豁免", "制裁清单", "出口禁令", "进口限制"
 ]
 
+# 塑料相关关键词
+PLASTICS_KEYWORDS = [
+    "塑料", "PA66", "PBT", "PC", "ABS", "PP", "PE", "PVC", "HDPE", "LDPE",
+    "聚丙烯", "聚乙烯", "聚氯乙烯", "尼龙", "树脂", "改性塑料", "工程塑料",
+    "注塑", "塑胶", "聚酯", "聚碳酸酯", "塑料价格", "塑料原料",
+    "石化", "乙烯", "丙烯", "苯乙烯", "塑料制品"
+]
+
 
 def _crawl_news(category: str, include_custom: bool = True) -> Dict:
     """执行新闻爬取"""
@@ -106,12 +114,19 @@ def _crawl_news(category: str, include_custom: bool = True) -> Dict:
     unified = UnifiedDataSource()
     data = unified.crawl_category(category, include_custom=include_custom)
     
+    # 统计数据来源分布
+    sources = {}
+    for item in data:
+        source_name = item.get('platform_name') or item.get('platform') or item.get('source') or '未知'
+        sources[source_name] = sources.get(source_name, 0) + 1
+    
     return {
         "status": "success",
         "category": category,
         "data": data,
         "timestamp": datetime.now().isoformat(),
-        "total": len(data)
+        "total": len(data),
+        "sources": sources  # 添加来源统计
     }
 
 
@@ -136,11 +151,19 @@ def _background_fetch_realtime(cache_key: str, keywords: list, category: str = N
         from .analysis import fetch_realtime_news
         print(f"🔄 [后台] 开始拓取 {cache_key}...")
         news = fetch_realtime_news(keywords)
+        
+        # 统计数据来源分布
+        sources = {}
+        for item in news:
+            source_name = item.get('source') or item.get('platform_name') or item.get('platform') or '未知'
+            sources[source_name] = sources.get(source_name, 0) + 1
+        
         result = {
             "status": "success",
             "data": news,
             "timestamp": datetime.now().isoformat(),
             "total": len(news),
+            "sources": sources,  # 添加来源统计
             "cached": False,
             "background_refresh": True
         }
@@ -309,6 +332,54 @@ async def get_tariff_news(refresh: bool = False):
     }
 
 
+@router.get("/api/news/plastics")
+async def get_plastics_news(refresh: bool = False):
+    """
+    获取塑料相关新闻
+    
+    优化策略：缓存优先 + 后台异步刷新
+    """
+    cache_key = "news:plastics"
+    cached = cache.get(cache_key)
+    
+    if refresh:
+        triggered = _trigger_background_refresh(cache_key, _background_fetch_realtime, PLASTICS_KEYWORDS, "plastics")
+        
+        if cached:
+            cached["cached"] = True
+            cached["refreshing"] = triggered
+            cached["message"] = "数据正在后台刷新" if triggered else "刷新任务已在进行中"
+            return cached
+        
+        return {
+            "status": "success",
+            "category": "plastics",
+            "data": [],
+            "sources": {},
+            "timestamp": None,
+            "cached": False,
+            "total": 0,
+            "refreshing": triggered,
+            "message": "数据正在后台加载"
+        }
+    
+    if cached:
+        cached["cached"] = True
+        cached["cache_ttl"] = cache.get_ttl(cache_key)
+        return cached
+    
+    return {
+        "status": "success",
+        "category": "plastics",
+        "data": [],
+        "sources": {},
+        "timestamp": None,
+        "cached": False,
+        "total": 0,
+        "message": "暂无塑料相关缓存数据，请点击刷新按钮获取最新数据"
+    }
+
+
 @router.get("/api/news/{category}")
 async def get_news(category: str, include_custom: bool = True, refresh: bool = False):
     """
@@ -366,6 +437,12 @@ async def trigger_crawl(request: CrawlRequest, background_tasks: BackgroundTasks
     if request.category in ["supply-chain", "supply_chain"]:
         cache_key = "news:supply-chain"
         triggered = _trigger_background_refresh(cache_key, _background_fetch_realtime, SUPPLY_CHAIN_KEYWORDS, None)
+    elif request.category == "tariff":
+        cache_key = "news:tariff"
+        triggered = _trigger_background_refresh(cache_key, _background_fetch_realtime, TARIFF_KEYWORDS, "tariff")
+    elif request.category == "plastics":
+        cache_key = "news:plastics"
+        triggered = _trigger_background_refresh(cache_key, _background_fetch_realtime, PLASTICS_KEYWORDS, "plastics")
     else:
         cache_key = f"news:{request.category}"
         triggered = _trigger_background_refresh(cache_key, _background_crawl_news, request.category, request.include_custom)

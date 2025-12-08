@@ -44,12 +44,12 @@ const COMMODITY_TABS = [
         keywords: ['原油', 'Oil', 'Crude', 'WTI', 'Brent', '天然气', 'Natural Gas', '汽油', 'Gasoline', '柴油', 'Diesel']
     },
     { 
-        id: 'agriculture', 
-        name: '农产品', 
-        icon: '🌾', 
+        id: 'plastics', 
+        name: '塑料', 
+        icon: '🧪', 
         color: '#10b981', 
         bgColor: '#ecfdf5',
-        keywords: ['玉米', 'Corn', '大豆', 'Soybean', '小麦', 'Wheat', '棉花', 'Cotton', '咖啡', 'Coffee', '糖', 'Sugar', '可可', 'Cocoa', '橙汁', 'Orange']
+        keywords: ['塑料', 'Plastic', 'PA66', 'PBT', 'PC', 'ABS', 'PP', 'PE', 'PVC', 'HDPE', 'LDPE', '聚丙烯', '聚乙烯', '聚氯乙烯', '尼龙', 'Nylon', '树脂', 'Resin']
     },
     { 
         id: 'all', 

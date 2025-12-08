@@ -21,16 +21,15 @@ const CATEGORY_CONFIG = {
     tech: { icon: Cpu, color: '#8b5cf6', name: '科技' },
     supply_chain: { icon: Link2, color: '#ec4899', name: '供应链分析' },
     commodity: { icon: Gem, color: '#f97316', name: '大宗商品' },
-    tariff: { icon: Scale, color: '#dc2626', name: '关税政策' }
+    tariff: { icon: Scale, color: '#dc2626', name: '关税政策' },
+    plastics: { icon: Gem, color: '#10b981', name: '塑料' }  // 新增塑料分类
 };
 
 // 默认分类
 const DEFAULT_CATEGORIES = [
     { id: 'finance', name: '财经' },
-    { id: 'news', name: '新闻' },
-    { id: 'social', name: '社交' },
-    { id: 'tech', name: '科技' },
     { id: 'commodity', name: '大宗商品' },
+    { id: 'plastics', name: '塑料' },  // 新增塑料分类
     { id: 'tariff', name: '关税政策' },
     { id: 'supply_chain', name: '供应链分析' }
 ];
@@ -193,6 +192,12 @@ const TrendRadar = () => {
 
     const updateChart = useCallback((sources) => {
         if (!chartRef.current) return;
+        
+        // 处理空数据
+        if (!sources || Object.keys(sources).length === 0) {
+            console.log('图表数据为空，跳过渲染');
+            return;
+        }
 
         if (!chartInstance.current) {
             chartInstance.current = echarts.init(chartRef.current);
@@ -202,6 +207,8 @@ const TrendRadar = () => {
             .map(([name, count]) => ({ name, value: count }))
             .sort((a, b) => b.value - a.value);
 
+        console.log('更新图表数据:', pieData.length, '条');
+        
         chartInstance.current.setOption({
             ...chartOptions,
             series: [{
@@ -238,6 +245,23 @@ const TrendRadar = () => {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    // 当分类切换回非supply_chain时，确保图表正确初始化
+    useEffect(() => {
+        if (selectedCategory !== 'supply_chain' && chartRef.current && Object.keys(stats.sources).length > 0) {
+            // 延迟初始化以确保DOM已渲染
+            const timer = setTimeout(() => {
+                if (chartRef.current) {
+                    if (chartInstance.current) {
+                        chartInstance.current.dispose();
+                    }
+                    chartInstance.current = echarts.init(chartRef.current);
+                    updateChart(stats.sources);
+                }
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [selectedCategory, stats.sources, updateChart]);
 
     // 渲染分类按钮
     const renderCategoryButton = useCallback((cat) => {
