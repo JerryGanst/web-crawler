@@ -267,12 +267,20 @@ class PlaswaySectionScraper(BaseScraper):
             link = anchor.get("href", "")
             title = anchor.get_text(strip=True)
 
-            # 有些页面中 <a> 文本为空，标题实际在摘要区域，做降级回退
+            # 有些页面中 <a> 文本为空，标题实际在摘要区域的第一行，做降级回退
             if not title:
                 fallback_sel = fields.get("title_fallback") or ".item-content span"
                 fb_el = elem.select_one(fallback_sel)
                 if fb_el:
-                    title = fb_el.get_text(strip=True)
+                    full_text = fb_el.get_text(strip=True)
+                    # 标题通常是第一行，用换行或多空格分隔
+                    # 取第一行作为标题（限制长度避免拿到整个summary）
+                    first_line = full_text.split('\n')[0].strip()
+                    # 如果第一行仍然太长（超过100字符），可能是用空格分隔
+                    if len(first_line) > 100:
+                        parts = first_line.split('   ')  # Plasway用多空格分隔
+                        first_line = parts[0].strip() if parts else first_line[:100]
+                    title = first_line if len(first_line) <= 100 else first_line[:100]
 
             if not title or not link or title in seen_titles:
                 continue
