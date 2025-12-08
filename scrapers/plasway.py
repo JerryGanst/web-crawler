@@ -1,15 +1,20 @@
 """
 Plasway 行业消息多分区爬虫
 支持多分区、分页、简单的时间解析（相对/绝对）
+优先使用 AppleScript 控制 Chrome 获取页面，回退到 requests
 """
 import time
 import random
+import platform
+import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set
 
 from bs4 import BeautifulSoup
 
 from .base import BaseScraper
+
+logger = logging.getLogger(__name__)
 
 
 class PlaswaySectionScraper(BaseScraper):
@@ -37,25 +42,177 @@ class PlaswaySectionScraper(BaseScraper):
         self.sections: List[Dict[str, Any]] = config.get("sections", [])
         self.max_pages: int = config.get("max_pages", 3)
         self.date_cutoff_days: Optional[int] = config.get("date_cutoff_days", 7)
+        
+        # 爬取模式：applescript / requests / auto
+        # auto = macOS 上优先 AppleScript，其他系统用 requests
+        self.scrape_mode: str = config.get("scrape_mode", "auto")
+        self._applescript_available: Optional[bool] = None
+        
+        # 反检测优化参数
+        self.max_requests_per_run: int = config.get("max_requests_per_run", 20)  # 单次运行最大请求数
+        self.shuffle_sections: bool = config.get("shuffle_sections", True)  # 随机化 section 顺序
+        self.skip_probability: float = config.get("skip_probability", 0.1)  # 10% 概率跳过某页（模拟人类）
+        self.min_delay: float = config.get("min_delay", 2.0)  # 最小延迟
+        self.max_delay: float = config.get("max_delay", 5.0)  # 最大延迟
+        self._request_count: int = 0  # 请求计数器
+
+    def _load_applescript_module(self):
+        """动态加载 applescript 模块（绕过 __init__.py 的 selenium 依赖）"""
+        import importlib.util
+        import os
+        
+        module_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "pacong", "browser", "applescript.py"
+        )
+        spec = importlib.util.spec_from_file_location("applescript", module_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def _check_applescript_available(self) -> bool:
+        """检查 AppleScript 是否可用（macOS + Chrome 运行中）"""
+        if self._applescript_available is not None:
+            return self._applescript_available
+        
+        if platform.system() != "Darwin":
+            self._applescript_available = False
+            return False
+        
+        try:
+            applescript = self._load_applescript_module()
+            if not applescript.chrome_check_running():
+                logger.info("🌍 Chrome 未运行，尝试启动...")
+                if not applescript.chrome_start_if_needed():
+                    logger.warning("⚠️ Chrome 启动失败，回退到 requests")
+                    self._applescript_available = False
+                    return False
+            self._applescript_available = True
+            return True
+        except Exception as e:
+            logger.warning(f"⚠️ AppleScript 不可用: {e}，回退到 requests")
+            self._applescript_available = False
+            return False
+
+    def _fetch_with_applescript(self, url: str, wait_seconds: int = 8) -> Optional[str]:
+        """使用 AppleScript 控制 Chrome 获取页面 HTML"""
+        try:
+            applescript = self._load_applescript_module()
+            
+            # 导航到 URL（复用当前 Tab，避免打开太多窗口）
+            navigate_script = f'''
+            tell application "Google Chrome"
+                if not (exists window 1) then
+                    make new window
+                end if
+                set URL of active tab of front window to "{url}"
+            end tell
+            '''
+            applescript.execute_applescript(navigate_script)
+            
+            # 等待页面加载
+            time.sleep(wait_seconds)
+            
+            # 获取 HTML
+            get_html_script = '''
+            tell application "Google Chrome"
+                execute active tab of front window javascript "document.documentElement.outerHTML"
+            end tell
+            '''
+            html_content = applescript.execute_applescript(get_html_script)
+            
+            if html_content:
+                logger.debug(f"✅ AppleScript 获取 {len(html_content)} 字节")
+                return html_content
+            return None
+            
+        except Exception as e:
+            logger.warning(f"⚠️ AppleScript 请求失败: {e}")
+            return None
+
+    def _should_use_applescript(self) -> bool:
+        """决定是否使用 AppleScript"""
+        if self.scrape_mode == "requests":
+            return False
+        if self.scrape_mode == "applescript":
+            return self._check_applescript_available()
+        # auto 模式：macOS 上优先 AppleScript
+        return self._check_applescript_available()
+
+    def _human_like_delay(self, base_min: float = None, base_max: float = None):
+        """模拟人类行为的随机延迟，偶尔有较长停顿"""
+        min_d = base_min or self.min_delay
+        max_d = base_max or self.max_delay
+        
+        # 5% 概率有较长停顿（模拟人类阅读/分心）
+        if random.random() < 0.05:
+            delay = random.uniform(8.0, 15.0)
+            logger.debug(f"💤 模拟人类较长停顿: {delay:.1f}s")
+        else:
+            delay = random.uniform(min_d, max_d)
+        
+        time.sleep(delay)
 
     def scrape(self) -> List[Dict[str, Any]]:
         items: List[Dict[str, Any]] = []
         seen_titles: Set[str] = set()
+        self._request_count = 0  # 重置计数器
+        
+        use_applescript = self._should_use_applescript()
+        if use_applescript:
+            print(f"  🍎 使用 AppleScript 模式爬取 Plasway")
+        else:
+            print(f"  📡 使用 Requests 模式爬取 Plasway")
+        
+        # 随机化 section 顺序，打破固定访问模式
+        sections_to_scrape = list(self.sections)
+        if self.shuffle_sections:
+            random.shuffle(sections_to_scrape)
+            logger.debug(f"🔀 Section 顺序已随机化")
 
-        for rule in self.sections:
+        for rule in sections_to_scrape:
+            # 检查是否达到请求上限
+            if self._request_count >= self.max_requests_per_run:
+                logger.info(f"⚠️ 达到请求上限 ({self.max_requests_per_run})，提前结束")
+                break
+            
             section_name = rule.get("name", "")
             url_tmpl = rule.get("url_template")
             if not url_tmpl:
                 continue
 
             for page in range(1, self.max_pages + 1):
-                # 注意：fetch() 内部已有 rate_limit_delay，这里不再重复 sleep
+                # 检查请求上限
+                if self._request_count >= self.max_requests_per_run:
+                    break
+                
+                # 随机跳过某些页面（模拟人类不会看完每一页）
+                if page > 1 and random.random() < self.skip_probability:
+                    logger.debug(f"⏩ 随机跳过 {section_name} 第 {page} 页")
+                    continue
+                
                 url = url_tmpl.format(page=page)
-                resp = self.fetch(url)
-                if not resp:
+                html_content: Optional[str] = None
+                
+                if use_applescript:
+                    # AppleScript 模式
+                    html_content = self._fetch_with_applescript(url, wait_seconds=8)
+                    if not html_content:
+                        # AppleScript 失败，回退到 requests
+                        logger.warning(f"⚠️ AppleScript 失败，回退 requests: {url}")
+                        resp = self.fetch(url)
+                        html_content = resp.text if resp else None
+                else:
+                    # Requests 模式
+                    resp = self.fetch(url)
+                    html_content = resp.text if resp else None
+                
+                self._request_count += 1
+                
+                if not html_content:
                     break
 
-                batch = self._parse_page(resp.text, rule, section_name, seen_titles)
+                batch = self._parse_page(html_content, rule, section_name, seen_titles)
                 if not batch:
                     break
 
@@ -69,10 +226,17 @@ class PlaswaySectionScraper(BaseScraper):
                         break
 
                 items.extend(batch)
+                
+                # 人类化延迟（AppleScript 模式略短，因为已有页面加载等待）
+                if use_applescript:
+                    self._human_like_delay(1.0, 3.0)
+                else:
+                    self._human_like_delay()
 
-            # Section 之间额外等待，降低连续请求的 pattern 识别风险
-            time.sleep(random.uniform(2.0, 4.0))
-
+            # Section 之间额外等待（更长）
+            self._human_like_delay(3.0, 6.0)
+        
+        logger.info(f"✅ 完成 {self._request_count} 个请求，获取 {len(items)} 条数据")
         return [self.standardize_item(it) for it in items]
 
     def _parse_page(

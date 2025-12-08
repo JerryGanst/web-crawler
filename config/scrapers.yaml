@@ -191,6 +191,17 @@ custom_scrapers:
     category: "commodity"
     max_pages: 3            # 每次前3页，避免打爆
     date_cutoff_days: 7     # 超过7天的跳过
+    
+    # 爬取模式：auto（默认）/ applescript / requests
+    scrape_mode: "auto"
+    
+    # 反检测优化参数
+    max_requests_per_run: 20   # 单次运行最大请求数（兜底保护）
+    shuffle_sections: true     # 随机化 section 顺序（打破固定模式）
+    skip_probability: 0.1      # 10% 概率随机跳过某页（模拟人类）
+    min_delay: 2.0             # 最小延迟（秒）
+    max_delay: 5.0             # 最大延迟（秒）
+    
     headers:
       Referer: "https://plasway.com/"
       Accept-Language: "zh-CN,zh;q=0.9,en;q=0.8"
