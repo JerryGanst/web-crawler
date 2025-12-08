@@ -24,6 +24,66 @@ const safeGetHostname = (url) => {
     }
 };
 
+// ==================== 商品分类 TAB 配置 ====================
+// 可配置的商品分类TAB（参考供应商展示形式）
+const COMMODITY_TABS = [
+    { 
+        id: 'metals', 
+        name: '金属', 
+        icon: '🪙', 
+        color: '#f59e0b', 
+        bgColor: '#fffbeb',
+        keywords: ['黄金', 'Gold', '白银', 'Silver', '铜', 'Copper', '铝', 'Aluminum', '铂金', 'Platinum', '钯金', 'Palladium', '镍', 'Nickel', '锌', 'Zinc', '铅', 'Lead', '锡', 'Tin']
+    },
+    { 
+        id: 'energy', 
+        name: '能源', 
+        icon: '⛽', 
+        color: '#3b82f6', 
+        bgColor: '#eff6ff',
+        keywords: ['原油', 'Oil', 'Crude', 'WTI', 'Brent', '天然气', 'Natural Gas', '汽油', 'Gasoline', '柴油', 'Diesel']
+    },
+    { 
+        id: 'agriculture', 
+        name: '农产品', 
+        icon: '🌾', 
+        color: '#10b981', 
+        bgColor: '#ecfdf5',
+        keywords: ['玉米', 'Corn', '大豆', 'Soybean', '小麦', 'Wheat', '棉花', 'Cotton', '咖啡', 'Coffee', '糖', 'Sugar', '可可', 'Cocoa', '橙汁', 'Orange']
+    },
+    { 
+        id: 'all', 
+        name: '全部', 
+        icon: '📊', 
+        color: '#6b7280', 
+        bgColor: '#f3f4f6',
+        keywords: []
+    }
+];
+
+// 可配置的表头列定义
+const TABLE_COLUMNS_CONFIG = [
+    { id: 'name', label: '商品名称', width: '25%', visible: true },
+    { id: 'price', label: '当前价格', width: '20%', visible: true },
+    { id: 'change', label: '涨跌幅', width: '15%', visible: true },
+    { id: 'source', label: '数据来源', width: '20%', visible: true },
+    { id: 'unit', label: '单位', width: '10%', visible: true },
+    { id: 'update', label: '更新时间', width: '10%', visible: false }
+];
+
+// 判断商品属于哪个分类
+const getCommodityCategory = (name) => {
+    if (!name) return 'all';
+    const normalizedName = name.toLowerCase();
+    for (const tab of COMMODITY_TABS) {
+        if (tab.id === 'all') continue;
+        if (tab.keywords.some(kw => normalizedName.includes(kw.toLowerCase()))) {
+            return tab.id;
+        }
+    }
+    return 'all';
+};
+
 // 商品名称归一化映射（将不同来源的相同商品合并）
 const COMMODITY_ALIASES = {
     // 黄金
@@ -102,6 +162,12 @@ const Dashboard = () => {
     // 新增：数据来源筛选状态
     const [dataSources, setDataSources] = useState(null);
     const [showSourceFilter, setShowSourceFilter] = useState(false);
+    // 新增：商品分类TAB状态
+    const [activeCommodityTab, setActiveCommodityTab] = useState('metals');
+    // 新增：表头配置状态
+    const [tableColumns, setTableColumns] = useState(TABLE_COLUMNS_CONFIG);
+    const [showColumnSettings, setShowColumnSettings] = useState(false);
+    const columnSettingsRef = useRef(null);
     const [selectedCountry, setSelectedCountry] = useState('all');
     // 改为多选：使用Set存储选中的网站ID
     const [selectedWebsites, setSelectedWebsites] = useState(new Set());
@@ -247,6 +313,9 @@ const Dashboard = () => {
             }
             if (sourceFilterRef.current && !sourceFilterRef.current.contains(event.target)) {
                 setShowSourceFilter(false);
+            }
+            if (columnSettingsRef.current && !columnSettingsRef.current.contains(event.target)) {
+                setShowColumnSettings(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -517,13 +586,26 @@ const Dashboard = () => {
         );
     }, [commoditiesForSelectedCountry, allCommodities, commoditySearchTerm]);
 
+    // 根据当前TAB获取对应分类的商品数量
+    const getCommodityCountByTab = useCallback((tabId) => {
+        return allCommodities.filter(commodity => {
+            if (tabId === 'all') return true;
+            return getCommodityCategory(commodity.name) === tabId;
+        }).length;
+    }, [allCommodities]);
+
     // 获取选中商品的显示数据（使用合并后的商品数据）
     const displayCommodities = useMemo(() => {
         const colors = ['#f59e0b', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#6366f1', '#14b8a6', '#a855f7'];
         
         return allCommodities
             .filter(commodity => {
-                // 先检查是否选中
+                // 先检查TAB分类过滤
+                if (activeCommodityTab !== 'all') {
+                    const category = getCommodityCategory(commodity.name);
+                    if (category !== activeCommodityTab && category !== 'all') return false;
+                }
+                // 再检查是否选中
                 if (!selectedCommodities.has(commodity.name)) return false;
                 // 再检查来源过滤
                 if (getSourceFilteredCommodities) {
@@ -560,7 +642,7 @@ const Dashboard = () => {
                     dataItem: commodity
                 };
             });
-    }, [allCommodities, selectedCommodities, getHistoryData, timeRange]);
+    }, [allCommodities, selectedCommodities, getHistoryData, timeRange, activeCommodityTab, getSourceFilteredCommodities]);
 
     if (loading) return (
         <div style={{ 
@@ -1253,6 +1335,272 @@ const Dashboard = () => {
                                 </div>
                             );
                         })}
+                    </div>
+
+                    {/* ==================== 商品分类 TAB 区域 ==================== */}
+                    <div style={{ 
+                        background: '#fff', 
+                        borderRadius: '16px', 
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                        marginBottom: '24px',
+                        overflow: 'hidden'
+                    }}>
+                        {/* Tab栏标题 */}
+                        <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'space-between',
+                            padding: '16px 20px',
+                            borderBottom: '1px solid #e2e8f0'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '8px',
+                                    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}>
+                                    <DollarSign size={16} color="#fff" />
+                                </div>
+                                <div>
+                                    <div style={{ fontWeight: '600', fontSize: '15px', color: '#1e293b' }}>
+                                        数据仪表盘
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: '#64748b' }}>
+                                        按分类查看商品行情
+                                    </div>
+                                </div>
+                            </div>
+                            {/* 表头配置按钮 */}
+                            <div ref={columnSettingsRef} style={{ position: 'relative' }}>
+                                <button
+                                    onClick={() => setShowColumnSettings(!showColumnSettings)}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        padding: '8px 14px',
+                                        background: showColumnSettings ? '#eff6ff' : '#f8fafc',
+                                        border: '1px solid #e2e8f0',
+                                        borderRadius: '8px',
+                                        color: '#374151',
+                                        cursor: 'pointer',
+                                        fontSize: '13px',
+                                        fontWeight: '500'
+                                    }}
+                                >
+                                    <Settings size={14} />
+                                    表头配置
+                                </button>
+                                
+                                {/* 表头配置弹窗 */}
+                                {showColumnSettings && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '100%',
+                                        right: 0,
+                                        marginTop: '6px',
+                                        background: '#fff',
+                                        borderRadius: '12px',
+                                        boxShadow: '0 10px 40px -5px rgba(0, 0, 0, 0.15)',
+                                        border: '1px solid #e5e7eb',
+                                        width: '220px',
+                                        zIndex: 200,
+                                        padding: '12px'
+                                    }}>
+                                        <div style={{ fontSize: '12px', fontWeight: '600', color: '#374151', marginBottom: '10px' }}>
+                                            选择显示的列
+                                        </div>
+                                        {tableColumns.map((col, idx) => (
+                                            <div
+                                                key={col.id}
+                                                onClick={() => {
+                                                    const newColumns = [...tableColumns];
+                                                    newColumns[idx] = { ...col, visible: !col.visible };
+                                                    setTableColumns(newColumns);
+                                                }}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px',
+                                                    padding: '8px 10px',
+                                                    cursor: 'pointer',
+                                                    borderRadius: '6px',
+                                                    background: col.visible ? '#eff6ff' : 'transparent',
+                                                    marginBottom: '4px'
+                                                }}
+                                            >
+                                                <div style={{
+                                                    width: '16px',
+                                                    height: '16px',
+                                                    border: col.visible ? 'none' : '2px solid #d1d5db',
+                                                    borderRadius: '4px',
+                                                    background: col.visible ? '#3b82f6' : '#fff',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}>
+                                                    {col.visible && <Check size={10} color="#fff" strokeWidth={3} />}
+                                                </div>
+                                                <span style={{ fontSize: '13px', color: '#374151' }}>{col.label}</span>
+                                            </div>
+                                        ))}
+                                        <button
+                                            onClick={() => setShowColumnSettings(false)}
+                                            style={{
+                                                width: '100%',
+                                                marginTop: '8px',
+                                                padding: '8px',
+                                                background: '#3b82f6',
+                                                color: '#fff',
+                                                border: 'none',
+                                                borderRadius: '6px',
+                                                fontSize: '12px',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            确定
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        
+                        {/* Tab栏 - 参考供应商展示形式 */}
+                        <div style={{ 
+                            display: 'flex', 
+                            borderBottom: '1px solid #e2e8f0',
+                            background: '#f8fafc'
+                        }}>
+                            {COMMODITY_TABS.map(tab => {
+                                const count = getCommodityCountByTab(tab.id);
+                                const isActive = activeCommodityTab === tab.id;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveCommodityTab(tab.id)}
+                                        style={{
+                                            flex: 1,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px',
+                                            padding: '14px 16px',
+                                            background: isActive ? '#fff' : 'transparent',
+                                            border: 'none',
+                                            borderBottom: isActive ? `3px solid ${tab.color}` : '3px solid transparent',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            color: isActive ? tab.color : '#64748b',
+                                            fontWeight: isActive ? '600' : '400',
+                                            fontSize: '14px'
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '16px' }}>{tab.icon}</span>
+                                        {tab.name}
+                                        <span style={{
+                                            fontSize: '11px',
+                                            background: isActive ? tab.color : '#e2e8f0',
+                                            color: isActive ? '#fff' : '#64748b',
+                                            padding: '2px 8px',
+                                            borderRadius: '10px',
+                                            fontWeight: '600'
+                                        }}>
+                                            {count}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        
+                        {/* 可配置表头的数据表格 */}
+                        <div style={{ padding: '16px 20px', overflowX: 'auto' }}>
+                            {displayCommodities.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '32px', color: '#9ca3af' }}>
+                                    当前分类暂无商品数据
+                                </div>
+                            ) : (
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                    <thead>
+                                        <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
+                                            {tableColumns.filter(col => col.visible).map(col => (
+                                                <th key={col.id} style={{ 
+                                                    padding: '10px 12px', 
+                                                    textAlign: 'left', 
+                                                    fontWeight: '600', 
+                                                    color: '#374151',
+                                                    width: col.width,
+                                                    whiteSpace: 'nowrap'
+                                                }}>
+                                                    {col.label}
+                                                </th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {displayCommodities.slice(0, 10).map((comm, idx) => {
+                                            const isUp = (comm.change || 0) >= 0;
+                                            return (
+                                                <tr key={comm.id || idx} style={{ 
+                                                    borderBottom: '1px solid #f3f4f6',
+                                                    transition: 'background 0.15s'
+                                                }}
+                                                onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+                                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                >
+                                                    {tableColumns.filter(col => col.visible).map(col => (
+                                                        <td key={col.id} style={{ padding: '12px', color: '#374151' }}>
+                                                            {col.id === 'name' && (
+                                                                <div style={{ fontWeight: '500' }}>{comm.name}</div>
+                                                            )}
+                                                            {col.id === 'price' && (
+                                                                <span style={{ fontWeight: '600', color: '#111827' }}>
+                                                                    {getCurrencySymbol()}{formatPrice(comm.currentPrice)}
+                                                                </span>
+                                                            )}
+                                                            {col.id === 'change' && (
+                                                                <span style={{
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '4px',
+                                                                    fontSize: '12px',
+                                                                    fontWeight: '600',
+                                                                    color: isUp ? '#10b981' : '#ef4444',
+                                                                    background: isUp ? '#d1fae5' : '#fee2e2',
+                                                                    padding: '2px 8px',
+                                                                    borderRadius: '999px'
+                                                                }}>
+                                                                    {isUp ? <ArrowUp size={10} /> : <ArrowDown size={10} />}
+                                                                    {Math.abs(comm.change || 0).toFixed(2)}%
+                                                                </span>
+                                                            )}
+                                                            {col.id === 'source' && (
+                                                                <span style={{ color: '#6b7280', fontSize: '12px' }}>
+                                                                    {comm.source || '-'}
+                                                                </span>
+                                                            )}
+                                                            {col.id === 'unit' && (
+                                                                <span style={{ color: '#9ca3af', fontSize: '12px' }}>
+                                                                    {comm.unit?.replace(/USD|CNY|RMB|美元|人民币|\$|¥|\//gi, '').trim() || '-'}
+                                                                </span>
+                                                            )}
+                                                            {col.id === 'update' && (
+                                                                <span style={{ color: '#9ca3af', fontSize: '12px' }}>
+                                                                    {lastUpdate ? new Date(lastUpdate).toLocaleTimeString() : '-'}
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                    ))}
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
                     </div>
 
                     {/* Charts Grid */}
