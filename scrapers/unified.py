@@ -80,7 +80,10 @@ class UnifiedDataSource:
             with open(yaml_path, 'r', encoding='utf-8') as f:
                 config = yaml.safe_load(f)
             custom_scrapers = config.get("custom_scrapers", {})
-            return custom_scrapers.get(scraper_name, {})
+            scraper_settings = config.get("scraper_settings", {})
+            # 全局 scraper_settings 作为默认值，具体爬虫配置可覆盖
+            scraper_config = custom_scrapers.get(scraper_name, {})
+            return {**scraper_settings, **scraper_config}
         except Exception as e:
             print(f"⚠️ 加载爬虫配置失败 {scraper_name}: {e}")
             return {}

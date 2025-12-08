@@ -2,6 +2,8 @@
 Plasway 行业消息多分区爬虫
 支持多分区、分页、简单的时间解析（相对/绝对）
 """
+import time
+import random
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set
 
@@ -47,6 +49,11 @@ class PlaswaySectionScraper(BaseScraper):
                 continue
 
             for page in range(1, self.max_pages + 1):
+                # 速率限制：分页请求之间等待（含抖动），降低被限流风险
+                if self.rate_limit_delay:
+                    jitter = random.uniform(0, 0.3)
+                    time.sleep(self.rate_limit_delay + jitter)
+
                 url = url_tmpl.format(page=page)
                 resp = self.fetch(url)
                 if not resp:

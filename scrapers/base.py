@@ -16,6 +16,7 @@ class BaseScraper(ABC):
     def __init__(self, name: str, config: Dict[str, Any] = None):
         self.name = name
         self.config = config or {}
+        self.rate_limit_delay = self.config.get("rate_limit_delay", 0)
         self.session = requests.Session()
         self._setup_session()
     
@@ -40,6 +41,11 @@ class BaseScraper(ABC):
         
         for retry in range(max_retries):
             try:
+                # 轻量级速率限制：每次请求前等待配置的延迟（含抖动）
+                if self.rate_limit_delay > 0:
+                    jitter = random.uniform(0, 0.3)
+                    time.sleep(self.rate_limit_delay + jitter)
+
                 if method.upper() == "GET":
                     resp = self.session.get(url, timeout=timeout, **kwargs)
                 else:
