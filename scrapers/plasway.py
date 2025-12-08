@@ -49,11 +49,7 @@ class PlaswaySectionScraper(BaseScraper):
                 continue
 
             for page in range(1, self.max_pages + 1):
-                # 速率限制：分页请求之间等待（含抖动），降低被限流风险
-                if self.rate_limit_delay:
-                    jitter = random.uniform(0, 0.3)
-                    time.sleep(self.rate_limit_delay + jitter)
-
+                # 注意：fetch() 内部已有 rate_limit_delay，这里不再重复 sleep
                 url = url_tmpl.format(page=page)
                 resp = self.fetch(url)
                 if not resp:
@@ -73,6 +69,9 @@ class PlaswaySectionScraper(BaseScraper):
                         break
 
                 items.extend(batch)
+
+            # Section 之间额外等待，降低连续请求的 pattern 识别风险
+            time.sleep(random.uniform(2.0, 4.0))
 
         return [self.standardize_item(it) for it in items]
 
