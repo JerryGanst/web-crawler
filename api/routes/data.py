@@ -92,7 +92,7 @@ def _background_fetch_commodity_data(cache_key: str):
         try:
             from core.price_history import PriceHistoryManager
             history_manager = PriceHistoryManager()
-            history_manager.save_prices(data)
+            history_manager.save_current_prices(data)
         except Exception as e:
             print(f"⚠️ 保存价格历史失败: {e}")
         
@@ -176,7 +176,7 @@ async def get_price_history(commodity: Optional[str] = None, days: int = 7):
         history_manager = PriceHistoryManager()
         
         if commodity:
-            history = history_manager.get_commodity_history(commodity, days)
+            history = history_manager.get_history(commodity, days)
             result = {
                 "status": "success",
                 "commodity": commodity,
@@ -185,7 +185,7 @@ async def get_price_history(commodity: Optional[str] = None, days: int = 7):
                 "cached": False
             }
         else:
-            all_history = history_manager.get_all_history(days)
+            all_history = history_manager.get_all_commodities_history(days)
             result = {
                 "status": "success",
                 "days": days,

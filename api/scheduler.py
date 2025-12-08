@@ -77,6 +77,15 @@ class BackgroundScheduler:
                 "categories": list(set(item.get('category', '其他') for item in data))
             }
             cache.set("data:commodity", result, ttl=CACHE_TTL)
+            
+            # 保存价格历史
+            try:
+                from core.price_history import PriceHistoryManager
+                history_manager = PriceHistoryManager()
+                history_manager.save_current_prices(data)
+            except Exception as e:
+                print(f"⚠️ [定时] 保存价格历史失败: {e}")
+            
             print(f"⏰ [定时] 大宗商品数据完成: {len(data)} 条")
         except Exception as e:
             print(f"⏰ [定时] 大宗商品数据失败: {e}")
