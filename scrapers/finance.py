@@ -258,9 +258,11 @@ def register_finance_scrapers():
     """注册所有财经爬虫到工厂"""
     from .factory import ScraperFactory
     from .smm import SMMScraper
+    from .plasway import PlaswaySectionScraper
     
     ScraperFactory.register("sina_forex", SinaForexScraper)
     ScraperFactory.register("coingecko", CoinGeckoScraper)
     ScraperFactory.register("hackernews", HackerNewsScraper)
     ScraperFactory.register("eastmoney_supply_chain", SupplyChainNewsScraper)
     ScraperFactory.register("smm_news", SMMScraper)
+    ScraperFactory.register("plasway_industry", PlaswaySectionScraper)
