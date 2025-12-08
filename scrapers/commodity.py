@@ -135,76 +135,63 @@ class CommodityScraper:
         return commodities
     
     def _extract_from_row(self, cells) -> Dict[str, Any]:
-        """
-        从表格行提取数据
-        Business Insider 表格结构: [Name, Price, %, +/-, Unit, Date]
-        """
+        """从表格行提取数据"""
         try:
             cell_texts = [c.get_text(strip=True) for c in cells]
-            
-            if len(cell_texts) < 3:
-                return None
-            
             name = cell_texts[0]
             
-            # 过滤无效数据（表头、空行）
+            # 过滤无效数据
             if not name or len(name) <= 2 or name.isdigit():
                 return None
-            if any(kw in name.lower() for kw in ['commodity', 'price', 'precious', 'energy', 'industrial', 'agriculture']):
+            if 'commodity' in name.lower() or 'price' in name.lower():
                 return None
             
-            # 按固定列顺序提取：列1=价格，列2=涨跌幅%
+            # 提取价格
             price = None
-            change_percent = 0
-            unit_text = ''
+            change = None
             
-            # 列 1: 价格（可能有逗号分隔符）
-            if len(cell_texts) > 1:
-                price_text = cell_texts[1].replace(',', '')
-                match = re.search(r'^(\d+\.?\d*)$', price_text)
-                if match:
-                    price = float(match.group(1))
+            # 先提取变化百分比，避免混淆
+            for text in cell_texts[1:]:
+                if change is None and '%' in text:
+                    change = text
             
-            # 列 2: 涨跌幅%
-            if len(cell_texts) > 2 and '%' in cell_texts[2]:
-                match = re.search(r'([+-]?\d+\.?\d*)%', cell_texts[2])
-                if match:
-                    change_percent = float(match.group(1))
+            # 然后提取价格（排除已识别的变化百分比）
+            for text in cell_texts[1:]:
+                if text == change:
+                    continue
+                if price is None and re.search(r'\d+\.?\d*', text):
+                    # 排除纯百分比数字（小于10的浮点数可能是百分比）
+                    match = re.search(r'(\d+[\d,]*\.?\d*)', text.replace(',', ''))
+                    if match:
+                        try:
+                            val = float(match.group(1))
+                            # 价格通常大于10，过滤掉百分比
+                            if val > 10:
+                                price = val
+                                break
+                        except ValueError:
+                            continue
             
-            # 列 4: 单位（如果有）
-            if len(cell_texts) > 4:
-                unit_text = cell_texts[4]
-            
-            if price is None:
+            if not name or price is None:
                 return None
             
             chinese_name = COMMODITY_TRANSLATIONS.get(name, name)
             
-            # 根据单位判断是否需要转换（USc = 美分）
-            display_unit = COMMODITY_UNITS.get(chinese_name, 'USD')
-            if 'USc' in unit_text:
-                # 美分单位，标注清楚
-                display_unit = unit_text.replace('USc', '美分').replace('per', '/').replace('lb.', '磅').replace('Bushel', '蒲式耳')
-            elif 'per Ton' in unit_text:
-                display_unit = 'USD/吨'
-            elif 'per Barrel' in unit_text:
-                display_unit = 'USD/桶'
-            elif 'per Troy Ounce' in unit_text:
-                display_unit = 'USD/盎司'
-            elif 'per Gallone' in unit_text:
-                display_unit = 'USD/加仑'
-            elif 'per MMBtu' in unit_text:
-                display_unit = 'USD/MMBtu'
-            elif 'GBP' in unit_text:
-                display_unit = 'GBP/吨'
+            # 提取变化百分比
+            change_percent = 0
+            if change and '%' in change:
+                match = re.search(r'([+-]?\d+\.?\d*)%', change)
+                if match:
+                    change_percent = float(match.group(1))
             
             return {
                 'name': name,
                 'chinese_name': chinese_name,
                 'price': price,
                 'current_price': price,
+                'change': change,
                 'change_percent': change_percent,
-                'unit': display_unit,
+                'unit': COMMODITY_UNITS.get(chinese_name, 'USD'),
                 'source': 'Business Insider',
                 'category': self._categorize(name),
                 'url': f'https://markets.businessinsider.com/commodities/{name.lower().replace(" ", "-")}'
