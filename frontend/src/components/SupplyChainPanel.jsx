@@ -268,9 +268,21 @@ const SupplyChainPanel = () => {
         );
     };
     
-    // 获取当前Tab的新闻
+    // 获取当前Tab的新闻列表（用于内容显示）
     const getNewsForTab = (tabId) => {
         return categorizeNews(supplyChainNews, tabId);
+    };
+    
+    // 获取当前Tab的新闻数量（使用各API统计数据）
+    const getNewsCountForTab = (tabId) => {
+        switch(tabId) {
+            case 'competitors': return partnerStats?.total_news || 0;
+            case 'customers': return customerStats?.total_news || 0;
+            case 'suppliers': return supplierStats?.total_news || 0;
+            case 'materials': return materialStats?.total_news || 0;
+            case 'tariff': return tariffStats?.total_news || 0;
+            default: return 0;
+        }
     };
     
     // Tab图标映射
@@ -896,7 +908,7 @@ const SupplyChainPanel = () => {
                     background: '#f8fafc'
                 }}>
                     {NEWS_TABS.map(tab => {
-                        const newsCount = getNewsForTab(tab.id).length;
+                        const newsCount = getNewsCountForTab(tab.id);
                         const isActive = activeNewsTab === tab.id;
                         return (
                             <button

@@ -492,9 +492,14 @@ async def get_partner_news_stats():
         if p["news_count"] > 0
     )
     
+    # 计算匹配的新闻总数
+    matched_total = sum(
+        p["news_count"] for cat in stats.values() for p in cat.values()
+    )
+    
     return {
         "status": "success",
-        "total_news": len(news_list),
+        "total_news": matched_total,
         "total_partners": total_partners,
         "partners_with_news": partners_with_news,
         "stats": stats
@@ -510,10 +515,11 @@ async def get_customer_news_stats():
     stats = _match_news(news_list, CUSTOMERS)
     
     customers_with_news = sum(1 for c in stats.values() if c["news_count"] > 0)
+    matched_total = sum(c["news_count"] for c in stats.values())
     
     return {
         "status": "success",
-        "total_news": len(news_list),
+        "total_news": matched_total,
         "total_customers": len(CUSTOMERS),
         "customers_with_news": customers_with_news,
         "stats": stats
@@ -536,10 +542,13 @@ async def get_supplier_news_stats():
         for s in cat.values()
         if s["news_count"] > 0
     )
+    matched_total = sum(
+        s["news_count"] for cat in stats.values() for s in cat.values()
+    )
     
     return {
         "status": "success",
-        "total_news": len(news_list),
+        "total_news": matched_total,
         "total_suppliers": total_suppliers,
         "suppliers_with_news": suppliers_with_news,
         "stats": stats
@@ -555,10 +564,11 @@ async def get_material_news_stats():
     stats = _match_news(news_list, MATERIALS)
     
     materials_with_news = sum(1 for m in stats.values() if m["news_count"] > 0)
+    matched_total = sum(m["news_count"] for m in stats.values())
     
     return {
         "status": "success",
-        "total_news": len(news_list),
+        "total_news": matched_total,
         "total_materials": len(MATERIALS),
         "materials_with_news": materials_with_news,
         "stats": stats
@@ -611,8 +621,10 @@ async def get_tariff_news_stats():
             "news": matched_news[:10]
         }
     
+    matched_total = sum(s["news_count"] for s in stats.values())
+    
     return {
         "status": "success",
-        "total_news": len(news_list),
+        "total_news": matched_total,
         "stats": stats
     }
