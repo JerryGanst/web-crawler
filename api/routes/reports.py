@@ -37,13 +37,20 @@ async def push_report(request: ReportPushRequest):
     config = load_config()
     webhook_urls = config.get("notification", {}).get("webhooks", {}).get("wework_url", "")
     
+    print(f"📤 推送报告: {request.title[:30]}...")
+    print(f"🔗 Webhook配置: {type(webhook_urls)} = {webhook_urls[:50] if isinstance(webhook_urls, str) else webhook_urls}")
+    
     if isinstance(webhook_urls, str):
         webhook_urls = [webhook_urls] if webhook_urls else []
     elif not webhook_urls:
         webhook_urls = []
     
+    # 过滤掉空字符串
+    webhook_urls = [url for url in webhook_urls if url and url.strip()]
+    
     if not webhook_urls:
-        return {"status": "error", "message": "未配置企业微信 Webhook"}
+        print("❌ 未配置有效的企业微信 Webhook")
+        return {"status": "error", "message": "未配置企业微信 Webhook，请在 config/config.yaml 中配置 notification.webhooks.wework_url"}
     
     try:
         # 生成报告文件
@@ -138,7 +145,13 @@ async def render_report_to_image(title: str, content: str, timestamp: str) -> by
     """使用 Playwright 将报告渲染为图片"""
     try:
         from playwright.async_api import async_playwright
-        
+        print(f"🎨 开始渲染报告图片...")
+    except ImportError as e:
+        print(f"⚠️ Playwright 未安装: {e}")
+        print("💡 请运行: pip install playwright && playwright install chromium")
+        return None
+    
+    try:
         max_content_length = 8000
         if len(content) > max_content_length:
             content = content[:max_content_length] + "\n\n... *(报告内容较长，已截断)*"
@@ -182,9 +195,12 @@ async def render_report_to_image(title: str, content: str, timestamp: str) -> by
             screenshot = await page.screenshot(full_page=True, type='jpeg', quality=85)
             await browser.close()
             
+            print(f"✅ 图片渲染成功: {len(screenshot)} bytes")
             return screenshot
     except Exception as e:
+        import traceback
         print(f"⚠️ 图片渲染失败: {e}")
+        print(f"📋 详细错误: {traceback.format_exc()}")
         return None
 
 

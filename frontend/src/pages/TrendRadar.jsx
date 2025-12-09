@@ -21,16 +21,15 @@ const CATEGORY_CONFIG = {
     tech: { icon: Cpu, color: '#8b5cf6', name: '科技' },
     supply_chain: { icon: Link2, color: '#ec4899', name: '供应链分析' },
     commodity: { icon: Gem, color: '#f97316', name: '大宗商品' },
-    tariff: { icon: Scale, color: '#dc2626', name: '关税政策' }
+    tariff: { icon: Scale, color: '#dc2626', name: '关税政策' },
+    plastics: { icon: Gem, color: '#10b981', name: '塑料' }  // 新增塑料分类
 };
 
 // 默认分类
 const DEFAULT_CATEGORIES = [
     { id: 'finance', name: '财经' },
-    { id: 'news', name: '新闻' },
-    { id: 'social', name: '社交' },
-    { id: 'tech', name: '科技' },
     { id: 'commodity', name: '大宗商品' },
+    { id: 'plastics', name: '塑料' },  // 新增塑料分类
     { id: 'tariff', name: '关税政策' },
     { id: 'supply_chain', name: '供应链分析' }
 ];
@@ -121,10 +120,11 @@ const TrendRadar = () => {
             
             const data = response.data || response;
             
-            // 如果缓存为空且不是强制刷新，自动触发一次刷新
-            if (!data.data?.length && !forceRefresh) {
-                console.log('缓存为空，自动爬取...');
-                return loadNews(category, true);
+            // 如果缓存为空且不是强制刷新，自动触发一次后台刷新（不阻塞UI）
+            if (!data.data?.length && !forceRefresh && !data.refreshing) {
+                console.log('缓存为空，触发后台爬取...');
+                // 异步触发刷新，不等待结果
+                api.getNews(category, true, true).catch(e => console.warn('后台刷新失败:', e));
             }
             
             if (isMountedRef.current) {
@@ -198,17 +198,20 @@ const TrendRadar = () => {
             chartInstance.current = echarts.init(chartRef.current);
         }
 
-        const pieData = Object.entries(sources)
-            .map(([name, count]) => ({ name, value: count }))
-            .sort((a, b) => b.value - a.value);
-
+        // 处理空数据：显示空图表而不是保留旧数据
+        const pieData = (!sources || Object.keys(sources).length === 0)
+            ? []
+            : Object.entries(sources)
+                .map(([name, count]) => ({ name, value: count }))
+                .sort((a, b) => b.value - a.value);
+        
         chartInstance.current.setOption({
             ...chartOptions,
             series: [{
                 ...chartOptions.series[0],
                 data: pieData
             }]
-        });
+        }, true);  // true = notMerge, ensures old data is cleared
     }, [chartOptions]);
 
     // 触发爬取并推送
@@ -238,6 +241,23 @@ const TrendRadar = () => {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    // 当分类切换回非supply_chain时，确保图表正确初始化
+    useEffect(() => {
+        if (selectedCategory !== 'supply_chain' && chartRef.current) {
+            // 延迟初始化以确保DOM已渲染
+            const timer = setTimeout(() => {
+                if (chartRef.current) {
+                    // 只有当图表实例不存在时才重新创建
+                    if (!chartInstance.current) {
+                        chartInstance.current = echarts.init(chartRef.current);
+                    }
+                    updateChart(stats.sources);
+                }
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [selectedCategory]); // 移除 stats.sources 依赖，避免重复更新
 
     // 渲染分类按钮
     const renderCategoryButton = useCallback((cat) => {

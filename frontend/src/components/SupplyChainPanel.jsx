@@ -477,7 +477,7 @@ const SupplyChainPanel = () => {
             }
             
             const result = await response.json();
-            setReportContent(result.report);
+            setReportContent(result.content || result.report);
         } catch (e) {
             console.error('生成报告失败:', e);
             setReportError(e.message || '生成报告失败，请检查API配置');
