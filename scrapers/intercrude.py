@@ -141,6 +141,8 @@ class InterCrudePriceScraper:
                 high_price = r.get("quotedPriceMax")
                 low_price = r.get("quotedPriceMin")
                 
+                version_ts = datetime.strptime(price_date + " 23:59:59", "%Y-%m-%d %H:%M:%S")
+                
                 normalized.append({
                     "name": product_name,
                     "chinese_name": product_name,
@@ -153,7 +155,7 @@ class InterCrudePriceScraper:
                     "source": "中塑在线",
                     "category": "能源",
                     "price_date": price_date,
-                    "version_ts": datetime.strptime(price_date, "%Y-%m-%d"),
+                    "version_ts": version_ts,
                     "extra_data": {
                         "product_sid": r.get("productSid"),
                         "price_range": r.get("priceRange"),

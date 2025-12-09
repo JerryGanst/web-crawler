@@ -89,11 +89,19 @@ def _background_fetch_commodity_data(cache_key: str):
         }
         cache.set(cache_key, result, ttl=CACHE_TTL)
         
-        # 写入 MySQL（如果已启用）
+        # 写入 MySQL（如果已启用），按来源分组以保留真实来源
         try:
-            db_stats = db_manager.write_commodity(data, source="中塑在线")
-            if db_stats:
-                print(f"✅ [后台] MySQL 入库完成: {db_stats}")
+            stats_by_source = {}
+            sources = set(item.get("source", "unknown") for item in data)
+            for src in sources:
+                src_records = [item for item in data if item.get("source", "unknown") == src]
+                if not src_records:
+                    continue
+                db_stats = db_manager.write_commodity(src_records, source=src)
+                if db_stats:
+                    stats_by_source[src] = db_stats
+            if stats_by_source:
+                print(f"✅ [后台] MySQL 入库完成（按来源）: {stats_by_source}")
         except Exception as e:
             print(f"⚠️ MySQL 入库失败: {e}")
         
