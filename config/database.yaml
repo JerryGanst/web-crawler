@@ -1,0 +1,70 @@
+# =============================================================
+# TrendRadar 双数据库架构配置
+# =============================================================
+# 
+# 设计原则:
+#   - SQLite: 非结构化数据 (新闻、爬取日志、推送记录)
+#   - MySQL:  结构化数据 (大宗商品行情、变更日志)
+#
+# =============================================================
+
+# SQLite 配置 (非结构化数据)
+sqlite:
+  enabled: true
+  path: "data/trendradar.db"
+  
+  # 存储内容
+  tables:
+    - news              # 新闻数据 (动态字段)
+    - platforms         # 平台配置
+    - keyword_matches   # 关键词匹配
+    - crawl_logs        # 爬取日志
+    - push_records      # 推送记录
+    - analytics_cache   # 分析缓存
+
+# MySQL 配置 (结构化数据)
+mysql:
+  enabled: true
+  
+  # 连接配置
+  host: "localhost"
+  port: 3306
+  database: "trendradar"
+  user: "root"
+  password: "trendradar123"  # 生产环境请使用环境变量
+  charset: "utf8mb4"
+  
+  # 连接池配置
+  pool:
+    min_connections: 2
+    max_connections: 10
+    connection_timeout: 30
+  
+  # 存储内容
+  tables:
+    - commodity_latest   # 商品最新快照
+    - commodity_history  # 商品历史存档
+    - change_log         # 变更日志 (供LLM消费)
+    - crawl_batch        # 采集批次记录
+
+# 数据分层策略
+data_routing:
+  # 新闻类数据 → SQLite
+  news:
+    storage: sqlite
+    reason: "字段动态，schema 不固定"
+  
+  # 大宗商品数据 → MySQL  
+  commodity:
+    storage: mysql
+    reason: "结构固定，需要事务、历史追溯、变更日志"
+  
+  # 爬取日志 → SQLite
+  crawl_logs:
+    storage: sqlite
+    reason: "日志类数据，查询简单"
+  
+  # 变更日志 → MySQL
+  change_logs:
+    storage: mysql
+    reason: "供LLM消费，需要精确查询"

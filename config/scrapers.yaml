@@ -115,6 +115,140 @@ custom_scrapers:
     parser: "custom"  # 需要额外请求获取详情
     description: "Hacker News 热门"
 
+  # ========== 大宗商品数据源 ==========
+  
+  # 上海有色金属网 - 有色金属行业资讯
+  smm_news:
+    enabled: true
+    display_name: "上海有色网"
+    category: "commodity"
+    urls: "https://news.smm.cn/"
+    method: "requests"
+    parser: "custom"
+    description: "上海有色金属网新闻资讯 - 铜铝锌铅镍锡稀土等"
+
+  # ========== 关税政策数据源 ==========
+  
+  # 海关总署 - 关税政策
+  customs_policy:
+    enabled: true
+    display_name: "海关总署政策"
+    category: "tariff"
+    urls: "http://www.customs.gov.cn/customs/302249/302266/index.html"
+    method: "requests"
+    parser: "custom"
+    keywords:
+      - "关税"
+      - "进口"
+      - "出口"
+      - "税率"
+      - "贸易"
+      - "清关"
+    description: "中国海关总署政策公告"
+  
+  # 商务部 - 贸易政策
+  mofcom_trade:
+    enabled: true
+    display_name: "商务部贸易"
+    category: "tariff"
+    urls: "http://www.mofcom.gov.cn/article/ae/"
+    method: "requests"
+    parser: "custom"
+    keywords:
+      - "关税"
+      - "反倾销"
+      - "反补贴"
+      - "贸易摩擦"
+      - "进出口"
+    description: "商务部贸易政策"
+  
+  # 财经媒体关税新闻
+  tariff_news_keywords:
+    enabled: true
+    display_name: "关税政策新闻"
+    category: "tariff"
+    keywords:
+      - "关税"
+      - "贸易战"
+      - "中美贸易"
+      - "进口税"
+      - "出口管制"
+      - "实体清单"
+      - "制裁"
+      - "加征关税"
+      - "关税豁免"
+      - "贸易摩擦"
+      - "对华关税"
+      - "301条款"
+      - "tariff"
+      - "trade war"
+    description: "关税政策相关新闻聚合"
+
+  # Plasway 行业消息（多分区，分页）
+  plasway_industry:
+    enabled: true
+    display_name: "Plasway行业消息"
+    category: "commodity"
+    max_pages: 3            # 每次前3页，避免打爆
+    date_cutoff_days: 7     # 超过7天的跳过
+    
+    # 爬取模式：auto（默认）/ applescript / requests
+    # 注意：Plasway WAF 会拦截 AppleScript 控制的 Chrome，暂用 requests
+    scrape_mode: "requests"
+    
+    # 反检测优化参数
+    max_requests_per_run: 10   # 降低请求数，避免触发 WAF
+    shuffle_sections: true     # 随机化 section 顺序
+    skip_probability: 0.15     # 15% 概率随机跳过
+    min_delay: 3.0             # 增加最小延迟
+    max_delay: 8.0             # 增加最大延迟
+    
+    headers:
+      Referer: "https://plasway.com/"
+      Accept-Language: "zh-CN,zh;q=0.9,en;q=0.8"
+    sections:
+      - name: "market"
+        url_template: "https://www.plasway.com/news/market?web=new&page={page}"
+        container: ".tabs-news-box .news-item-content"
+        fields:
+          title: "h1 a"
+          url: "h1 a"
+          time: ".item-bottom span:nth-of-type(1)"
+          summary: ".item-content"
+      - name: "innovation"
+        url_template: "https://www.plasway.com/news/innovation?web=new&page={page}"
+        container: ".tabs-news-box .news-item-content"
+        fields:
+          title: "h1 a"
+          url: "h1 a"
+          time: ".item-bottom span:nth-of-type(1)"
+          summary: ".item-content"
+      - name: "industry"
+        url_template: "https://www.plasway.com/news/industry?web=new&page={page}"
+        container: ".tabs-news-box .news-item-content"
+        fields:
+          title: "h1 a"
+          url: "h1 a"
+          time: ".item-bottom span:nth-of-type(1)"
+          summary: ".item-content"
+      - name: "factory"
+        url_template: "https://www.plasway.com/news/factory?web=new&page={page}"
+        container: ".tabs-news-box .news-item-content"
+        fields:
+          title: "h1 a"
+          url: "h1 a"
+          time: ".item-bottom span:nth-of-type(1)"
+          summary: ".item-content"
+      - name: "policy"
+        url_template: "https://www.plasway.com/news/policy?web=new&page={page}"
+        container: ".tabs-news-box .news-item-content"
+        fields:
+          title: "h1 a"
+          url: "h1 a"
+          time: ".item-bottom span:nth-of-type(1)"
+          summary: ".item-content"
+    description: "Plasway 各分区行业新闻（market/innovation/industry/factory/policy）"
+
 # 爬虫全局配置
 scraper_settings:
   max_retries: 3

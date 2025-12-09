@@ -1,0 +1,7 @@
+[run]
+omit =
+    tests/*
+    pacong/tests/*
+    server_backup.py
+    server_old.py
+    main.py

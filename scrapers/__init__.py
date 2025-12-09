@@ -4,5 +4,6 @@ TrendRadar 爬虫模块
 """
 from .base import BaseScraper
 from .factory import ScraperFactory
+from .smm import SMMScraper
 
-__all__ = ['BaseScraper', 'ScraperFactory']
+__all__ = ['BaseScraper', 'ScraperFactory', 'SMMScraper']

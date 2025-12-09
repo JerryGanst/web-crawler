@@ -9,9 +9,20 @@ import random
 import time
 from typing import Dict, List, Optional, Tuple, Union
 
-import requests
+import requests as _requests
 
 from .config import CONFIG
+
+
+class _RequestsAdapter:
+    """隔离 requests 以便测试时定向打补丁而不影响全局 requests 模块"""
+
+    def get(self, *args, **kwargs):
+        return _requests.get(*args, **kwargs)
+
+
+# 供内部使用和单测打补丁的请求对象
+requests = _RequestsAdapter()
 
 
 class DataFetcher:

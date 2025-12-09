@@ -44,13 +44,21 @@ class CommodityScraper:
         """爬取大宗商品数据"""
         commodities = []
         
-        # 从 Business Insider 获取数据
+        # 从新浪期货获取数据（更可靠）
+        sina_data = self._scrape_sina_commodities()
+        commodities.extend(sina_data)
+        
+        # 从上海有色网获取金属价格
+        smm_data = self._scrape_smm_prices()
+        commodities.extend(smm_data)
+        
+        # 从 Business Insider 获取补充数据
         bi_data = self._scrape_business_insider()
         commodities.extend(bi_data)
         
-        # 从新浪获取补充数据
-        sina_data = self._scrape_sina_commodities()
-        commodities.extend(sina_data)
+        # 从中塑在线获取 WTI 原油数据（增量）
+        wti_21cp = self._scrape_21cp_wti()
+        commodities.extend(wti_21cp)
         
         return commodities
     
@@ -103,20 +111,22 @@ class CommodityScraper:
                 
                 if resp.status_code == 200:
                     text = resp.text
-                    # 解析新浪数据格式: var hq_str_hf_GC="1234.5,..."
+                    # 解析新浪数据格式: var hq_str_hf_GC="当前价,空,开盘价,最高价,昨收盘,最低价,时间,..."
                     match = re.search(r'"([^"]+)"', text)
                     if match:
                         parts = match.group(1).split(',')
-                        if len(parts) >= 1 and parts[0]:
+                        if len(parts) >= 5 and parts[0]:
                             price = float(parts[0])
-                            change_percent = float(parts[2]) if len(parts) > 2 and parts[2] else 0
+                            prev_close = float(parts[4]) if parts[4] else price
+                            # 计算涨跌幅
+                            change_percent = ((price - prev_close) / prev_close * 100) if prev_close > 0 else 0
                             
                             commodities.append({
                                 'name': full_name,
                                 'chinese_name': full_name,
                                 'price': price,
                                 'current_price': price,
-                                'change_percent': change_percent,
+                                'change_percent': round(change_percent, 2),
                                 'unit': COMMODITY_UNITS.get(cn_name, 'USD'),
                                 'source': '新浪期货',
                                 'category': self._categorize(cn_name),
@@ -129,59 +139,157 @@ class CommodityScraper:
         return commodities
     
     def _extract_from_row(self, cells) -> Dict[str, Any]:
-        """从表格行提取数据"""
+        """
+        从表格行提取数据
+        Business Insider 表格结构: [Name, Price, %, +/-, Unit, Date]
+        """
         try:
             cell_texts = [c.get_text(strip=True) for c in cells]
+            
+            if len(cell_texts) < 3:
+                return None
+            
             name = cell_texts[0]
             
-            # 过滤无效数据
+            # 过滤无效数据（表头、空行）
             if not name or len(name) <= 2 or name.isdigit():
                 return None
-            if 'commodity' in name.lower() or 'price' in name.lower():
+            if any(kw in name.lower() for kw in ['commodity', 'price', 'precious', 'energy', 'industrial', 'agriculture']):
                 return None
             
-            # 提取价格
+            # 按固定列顺序提取：列1=价格，列2=涨跌幅%
             price = None
-            change = None
+            change_percent = 0
+            unit_text = ''
             
-            for text in cell_texts[1:]:
-                if price is None and re.search(r'\d+\.?\d*', text):
-                    match = re.search(r'(\d+,?\d*\.?\d*)', text.replace(',', ''))
-                    if match:
-                        try:
-                            price = float(match.group(1))
-                        except ValueError:
-                            continue
-                
-                if change is None and ('%' in text or '+' in text or '-' in text):
-                    change = text
+            # 列 1: 价格（可能有逗号分隔符）
+            if len(cell_texts) > 1:
+                price_text = cell_texts[1].replace(',', '')
+                match = re.search(r'^(\d+\.?\d*)$', price_text)
+                if match:
+                    price = float(match.group(1))
             
-            if not name or price is None:
+            # 列 2: 涨跌幅%
+            if len(cell_texts) > 2 and '%' in cell_texts[2]:
+                match = re.search(r'([+-]?\d+\.?\d*)%', cell_texts[2])
+                if match:
+                    change_percent = float(match.group(1))
+            
+            # 列 4: 单位（如果有）
+            if len(cell_texts) > 4:
+                unit_text = cell_texts[4]
+            
+            if price is None:
                 return None
             
             chinese_name = COMMODITY_TRANSLATIONS.get(name, name)
             
-            # 提取变化百分比
-            change_percent = 0
-            if change and '%' in change:
-                match = re.search(r'([+-]?\d+\.?\d*)%', change)
-                if match:
-                    change_percent = float(match.group(1))
+            # 根据单位判断是否需要转换（USc = 美分）
+            display_unit = COMMODITY_UNITS.get(chinese_name, 'USD')
+            if 'USc' in unit_text:
+                # 美分单位，标注清楚
+                display_unit = unit_text.replace('USc', '美分').replace('per', '/').replace('lb.', '磅').replace('Bushel', '蒲式耳')
+            elif 'per Ton' in unit_text:
+                display_unit = 'USD/吨'
+            elif 'per Barrel' in unit_text:
+                display_unit = 'USD/桶'
+            elif 'per Troy Ounce' in unit_text:
+                display_unit = 'USD/盎司'
+            elif 'per Gallone' in unit_text:
+                display_unit = 'USD/加仑'
+            elif 'per MMBtu' in unit_text:
+                display_unit = 'USD/MMBtu'
+            elif 'GBP' in unit_text:
+                display_unit = 'GBP/吨'
             
             return {
                 'name': name,
                 'chinese_name': chinese_name,
                 'price': price,
                 'current_price': price,
-                'change': change,
                 'change_percent': change_percent,
-                'unit': COMMODITY_UNITS.get(chinese_name, 'USD'),
+                'unit': display_unit,
                 'source': 'Business Insider',
                 'category': self._categorize(name),
                 'url': f'https://markets.businessinsider.com/commodities/{name.lower().replace(" ", "-")}'
             }
         except Exception:
             return None
+    
+    def _scrape_smm_prices(self) -> List[Dict[str, Any]]:
+        """从上海有色网获取金属价格"""
+        prices = []
+        
+        # SMM 有色金属价格页面
+        metals = [
+            ('copper', '铜', 'SMM铜'),
+            ('aluminum', '铝', 'SMM铝'),
+            ('zinc', '锌', 'SMM锌'),
+            ('lead', '铅', 'SMM铅'),
+            ('nickel', '镍', 'SMM镍'),
+            ('tin', '锡', 'SMM锡'),
+        ]
+        
+        for metal_en, metal_cn, full_name in metals:
+            try:
+                url = f'https://hq.smm.cn/{metal_en}'
+                resp = requests.get(url, headers=self.headers, timeout=10)
+                
+                if resp.status_code == 200:
+                    soup = BeautifulSoup(resp.text, 'html.parser')
+                    
+                    # 查找价格表格
+                    tables = soup.find_all('table')
+                    for table in tables[:3]:
+                        rows = table.find_all('tr')
+                        for row in rows[1:5]:  # 跳过表头
+                            cells = row.find_all(['td', 'th'])
+                            if len(cells) >= 2:
+                                name_cell = cells[0].get_text(strip=True)
+                                price_cell = cells[1].get_text(strip=True) if len(cells) > 1 else ''
+                                
+                                # 检查是否需要登录
+                                if '未登录' in price_cell or not price_cell:
+                                    continue
+                                
+                                # 提取价格范围
+                                price_match = re.search(r'(\d+[\d,]*)', price_cell.replace(',', ''))
+                                if price_match:
+                                    try:
+                                        price = float(price_match.group(1))
+                                        if price > 100:  # 过滤无效价格
+                                            prices.append({
+                                                'name': name_cell or full_name,
+                                                'chinese_name': name_cell or full_name,
+                                                'price': price,
+                                                'current_price': price,
+                                                'change_percent': 0,
+                                                'unit': '元/吨',
+                                                'source': '上海有色网',
+                                                'category': '工业金属',
+                                                'url': url
+                                            })
+                                            break
+                                    except ValueError:
+                                        continue
+                        if any(p.get('chinese_name', '').startswith(metal_cn) for p in prices):
+                            break
+                            
+            except Exception as e:
+                print(f"SMM {metal_cn}获取失败: {e}")
+        
+        print(f"✅ 上海有色网: 获取 {len(prices)} 条价格数据")
+        return prices
+    
+    def _scrape_21cp_wti(self) -> List[Dict[str, Any]]:
+        """从中塑在线获取 WTI 原油增量数据"""
+        try:
+            from .intercrude import InterCrudePriceScraper
+            scraper = InterCrudePriceScraper()
+            return scraper.fetch_incremental()
+        except Exception as e:
+            print(f"❌ 中塑在线 WTI 获取失败: {e}")
+            return []
     
     def _categorize(self, name: str) -> str:
         """商品分类"""
