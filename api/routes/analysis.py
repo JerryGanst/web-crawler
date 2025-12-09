@@ -417,9 +417,10 @@ async def get_market_analysis(refresh: bool = False):
     
     try:
         print(f"🔄 市场分析: 尝试内网 API...")
+        # 内网超时设为10秒，市场分析内容较短
         response = call_ai_api(
             internal["api_base"], internal["api_key"], internal["model"],
-            MARKET_SYSTEM_PROMPT, prompt, timeout=30, max_tokens=1000
+            MARKET_SYSTEM_PROMPT, prompt, timeout=10, max_tokens=1000
         )
         
         if response.status_code == 200:
@@ -567,9 +568,10 @@ async def generate_analysis(request: AnalysisRequest):
     
     try:
         print(f"🔄 尝试内网 API: {internal['api_base']}")
+        # 内网超时设为15秒，避免长时间等待
         response = call_ai_api(
             internal["api_base"], internal["api_key"], internal["model"],
-            ANALYSIS_SYSTEM_PROMPT, prompt, timeout=60, max_tokens=8000
+            ANALYSIS_SYSTEM_PROMPT, prompt, timeout=15, max_tokens=8000
         )
         
         if response.status_code == 200:

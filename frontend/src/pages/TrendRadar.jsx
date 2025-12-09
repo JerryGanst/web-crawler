@@ -120,10 +120,11 @@ const TrendRadar = () => {
             
             const data = response.data || response;
             
-            // 如果缓存为空且不是强制刷新，自动触发一次刷新
-            if (!data.data?.length && !forceRefresh) {
-                console.log('缓存为空，自动爬取...');
-                return loadNews(category, true);
+            // 如果缓存为空且不是强制刷新，自动触发一次后台刷新（不阻塞UI）
+            if (!data.data?.length && !forceRefresh && !data.refreshing) {
+                console.log('缓存为空，触发后台爬取...');
+                // 异步触发刷新，不等待结果
+                api.getNews(category, true, true).catch(e => console.warn('后台刷新失败:', e));
             }
             
             if (isMountedRef.current) {
@@ -243,20 +244,20 @@ const TrendRadar = () => {
 
     // 当分类切换回非supply_chain时，确保图表正确初始化
     useEffect(() => {
-        if (selectedCategory !== 'supply_chain' && chartRef.current && Object.keys(stats.sources).length > 0) {
+        if (selectedCategory !== 'supply_chain' && chartRef.current) {
             // 延迟初始化以确保DOM已渲染
             const timer = setTimeout(() => {
                 if (chartRef.current) {
-                    if (chartInstance.current) {
-                        chartInstance.current.dispose();
+                    // 只有当图表实例不存在时才重新创建
+                    if (!chartInstance.current) {
+                        chartInstance.current = echarts.init(chartRef.current);
                     }
-                    chartInstance.current = echarts.init(chartRef.current);
                     updateChart(stats.sources);
                 }
             }, 100);
             return () => clearTimeout(timer);
         }
-    }, [selectedCategory, stats.sources, updateChart]);
+    }, [selectedCategory]); // 移除 stats.sources 依赖，避免重复更新
 
     // 渲染分类按钮
     const renderCategoryButton = useCallback((cat) => {

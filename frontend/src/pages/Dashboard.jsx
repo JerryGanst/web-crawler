@@ -188,27 +188,23 @@ const Dashboard = () => {
                 if (settings.selectedCommodities && Array.isArray(settings.selectedCommodities)) {
                     setSelectedCommodities(new Set(settings.selectedCommodities));
                 }
-                if (settings.selectedCountry) setSelectedCountry(settings.selectedCountry);
-                if (settings.selectedWebsites && Array.isArray(settings.selectedWebsites)) {
-                    setSelectedWebsites(new Set(settings.selectedWebsites));
-                }
+                // 不恢复 selectedCountry 和 selectedWebsites，每次默认显示全部数据
             } catch (e) {
                 console.error('恢复设置失败:', e);
             }
         }
     }, []);
 
-    // 保存设置到 localStorage
+    // 保存设置到 localStorage（不保存网站筛选，避免混淆）
     useEffect(() => {
         const settings = {
             currency,
             timeRange,
             selectedCommodities: Array.from(selectedCommodities),
-            selectedCountry,
-            selectedWebsites: Array.from(selectedWebsites)
+            // 不保存 selectedCountry 和 selectedWebsites，每次刷新默认显示全部
         };
         localStorage.setItem('trendradar_dashboard_settings', JSON.stringify(settings));
-    }, [currency, timeRange, selectedCommodities, selectedCountry, selectedWebsites]);
+    }, [currency, timeRange, selectedCommodities]);
 
     // Exchange rate (Mock)
     const EXCHANGE_RATE = 7.2;

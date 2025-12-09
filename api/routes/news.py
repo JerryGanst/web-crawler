@@ -218,6 +218,7 @@ async def get_commodity_news(refresh: bool = False):
             "status": "success",
             "category": "commodity",
             "data": [],
+            "sources": {},
             "timestamp": None,
             "cached": False,
             "total": 0,
@@ -235,6 +236,7 @@ async def get_commodity_news(refresh: bool = False):
         "status": "success",
         "category": "commodity",
         "data": [],
+        "sources": {},
         "timestamp": None,
         "cached": False,
         "total": 0,
@@ -264,6 +266,7 @@ async def get_supply_chain_news(refresh: bool = False):
         return {
             "status": "success",
             "data": [],
+            "sources": {},
             "timestamp": None,
             "cached": False,
             "total": 0,
@@ -279,6 +282,7 @@ async def get_supply_chain_news(refresh: bool = False):
     return {
         "status": "success",
         "data": [],
+        "sources": {},
         "timestamp": None,
         "cached": False,
         "total": 0,
@@ -309,6 +313,7 @@ async def get_tariff_news(refresh: bool = False):
             "status": "success",
             "category": "tariff",
             "data": [],
+            "sources": {},
             "timestamp": None,
             "cached": False,
             "total": 0,
@@ -325,6 +330,7 @@ async def get_tariff_news(refresh: bool = False):
         "status": "success",
         "category": "tariff",
         "data": [],
+        "sources": {},
         "timestamp": None,
         "cached": False,
         "total": 0,
@@ -404,6 +410,7 @@ async def get_news(category: str, include_custom: bool = True, refresh: bool = F
             "status": "success",
             "category": category,
             "data": [],
+            "sources": {},  # 添加空sources字段
             "timestamp": None,
             "cached": False,
             "total": 0,
@@ -414,12 +421,16 @@ async def get_news(category: str, include_custom: bool = True, refresh: bool = F
     if cached:
         cached["cached"] = True
         cached["cache_ttl"] = cache.get_ttl(cache_key)
+        # 确保 sources 字段存在
+        if "sources" not in cached:
+            cached["sources"] = {}
         return cached
     
     return {
         "status": "success",
         "category": category,
         "data": [],
+        "sources": {},  # 添加空sources字段
         "timestamp": None,
         "cached": False,
         "total": 0,
