@@ -10,6 +10,7 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
 from ..cache import cache, CACHE_TTL
+from database.manager import db_manager
 
 router = APIRouter()
 
@@ -87,6 +88,14 @@ def _background_fetch_commodity_data(cache_key: str):
             "categories": list(set(item.get('category', '其他') for item in data))
         }
         cache.set(cache_key, result, ttl=CACHE_TTL)
+        
+        # 写入 MySQL（如果已启用）
+        try:
+            db_stats = db_manager.write_commodity(data, source="中塑在线")
+            if db_stats:
+                print(f"✅ [后台] MySQL 入库完成: {db_stats}")
+        except Exception as e:
+            print(f"⚠️ MySQL 入库失败: {e}")
         
         # 保存价格历史
         try:
