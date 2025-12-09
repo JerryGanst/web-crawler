@@ -56,6 +56,10 @@ class CommodityScraper:
         bi_data = self._scrape_business_insider()
         commodities.extend(bi_data)
         
+        # 从中塑在线获取 WTI 原油数据（增量）
+        wti_21cp = self._scrape_21cp_wti()
+        commodities.extend(wti_21cp)
+        
         return commodities
     
     def _scrape_business_insider(self) -> List[Dict[str, Any]]:
@@ -276,6 +280,16 @@ class CommodityScraper:
         
         print(f"✅ 上海有色网: 获取 {len(prices)} 条价格数据")
         return prices
+    
+    def _scrape_21cp_wti(self) -> List[Dict[str, Any]]:
+        """从中塑在线获取 WTI 原油增量数据"""
+        try:
+            from .intercrude import InterCrudePriceScraper
+            scraper = InterCrudePriceScraper()
+            return scraper.fetch_incremental()
+        except Exception as e:
+            print(f"❌ 中塑在线 WTI 获取失败: {e}")
+            return []
     
     def _categorize(self, name: str) -> str:
         """商品分类"""

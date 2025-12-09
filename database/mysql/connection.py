@@ -4,22 +4,73 @@ MySQL 数据库连接管理
 import os
 from typing import Optional
 from contextlib import contextmanager
+from pathlib import Path
 
+import yaml
 import pymysql
 from pymysql.cursors import DictCursor
 from dbutils.pooled_db import PooledDB
 
-# 数据库配置 (可通过环境变量覆盖)
-MYSQL_CONFIG = {
-    'host': os.getenv('MYSQL_HOST', 'localhost'),
-    'port': int(os.getenv('MYSQL_PORT', 3306)),
-    'user': os.getenv('MYSQL_USER', 'root'),
-    'password': os.getenv('MYSQL_PASSWORD', ''),
-    'database': os.getenv('MYSQL_DATABASE', 'trendradar'),
-    'charset': 'utf8mb4',
-    'cursorclass': DictCursor,
-    'autocommit': False,  # 手动控制事务
-}
+
+def _load_mysql_config() -> dict:
+    """
+    载入 MySQL 配置，优先级：
+    1) config/database.yaml 的 mysql 节点
+    2) 环境变量 MYSQL_HOST/PORT/USER/PASSWORD/DATABASE
+    3) 默认值
+    """
+    # 默认值
+    cfg = {
+        'host': 'localhost',
+        'port': 3306,
+        'user': 'root',
+        'password': 'trendradar123',
+        'database': 'trendradar',
+        'charset': 'utf8mb4',
+        'cursorclass': DictCursor,
+        'autocommit': False,
+    }
+
+    # config/database.yaml
+    try:
+        config_path = Path(__file__).resolve().parent.parent.parent / "config" / "database.yaml"
+        if config_path.exists():
+            with open(config_path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f) or {}
+            mysql_cfg = data.get("mysql", {}) or {}
+            cfg.update({
+                'host': mysql_cfg.get('host', cfg['host']),
+                'port': mysql_cfg.get('port', cfg['port']),
+                'user': mysql_cfg.get('user', cfg['user']),
+                'password': mysql_cfg.get('password', cfg['password']),
+                'database': mysql_cfg.get('database', cfg['database']),
+            })
+    except Exception as e:
+        print(f"⚠️ 加载 database.yaml 失败: {e}")
+
+    # 环境变量覆盖
+    env_host = os.getenv('MYSQL_HOST')
+    env_port = os.getenv('MYSQL_PORT')
+    env_user = os.getenv('MYSQL_USER')
+    env_pwd = os.getenv('MYSQL_PASSWORD')
+    env_db = os.getenv('MYSQL_DATABASE')
+
+    if env_host:
+        cfg['host'] = env_host
+    if env_port:
+        cfg['port'] = int(env_port)
+    if env_user:
+        cfg['user'] = env_user
+    if env_pwd:
+        cfg['password'] = env_pwd
+    if env_db:
+        cfg['database'] = env_db
+
+    return cfg
+
+
+# 数据库配置
+MYSQL_CONFIG = _load_mysql_config()
 
 # 连接池配置
 POOL_CONFIG = {
