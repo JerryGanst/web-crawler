@@ -337,6 +337,13 @@ const api = {
     // 清除 Redis 缓存
     clearRedisCache: () => axios.post(`${API_BASE}/api/cache/clear`),
 
+    // 获取实时汇率（带缓存，10分钟）
+    getExchangeRate: () => cachedRequest(
+        'api:exchange-rate',
+        (signal) => axios.get(`${API_BASE}/api/exchange-rate`, { signal }),
+        { ttl: 600000 }  // 10分钟缓存
+    ),
+
     // 工具方法
     clearCache,
     preloadCache,

@@ -6,6 +6,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
+from contextlib import asynccontextmanager
 
 # 导入 API 模块
 from api.cache import cache, CACHE_TTL, REDIS_HOST, REDIS_PORT
@@ -17,10 +18,37 @@ from api.scheduler import scheduler
 
 BASE_DIR = Path(__file__).parent
 
+
+# ==================== 生命周期管理 ====================
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """应用生命周期管理 (替代 deprecated on_event)"""
+    # 启动
+    print("🚀 TrendRadar API 启动中...")
+    print(f"📦 Redis: {REDIS_HOST}:{REDIS_PORT}")
+    print(f"⏰ 缓存 TTL: {CACHE_TTL}秒 ({CACHE_TTL // 60}分钟)")
+    
+    # 启动后台调度器：预热缓存 + 定时刷新
+    print("🔥 启动缓存预热和定时任务...")
+    scheduler.warmup_cache()
+    scheduler.start_scheduled_tasks()
+    
+    print("✅ 服务就绪！")
+    
+    yield
+    
+    # 关闭
+    print("🛑 TrendRadar API 关闭中...")
+    scheduler.stop()
+    print("✅ 服务已关闭")
+
+
 app = FastAPI(
     title="TrendRadar API",
     description="大宗商品市场监控与供应链分析平台",
-    version="2.0.0"
+    version="2.0.0",
+    lifespan=lifespan  # 使用新的 lifespan 管理
 )
 
 # CORS 配置
@@ -67,31 +95,6 @@ app.include_router(analysis.router, tags=["分析"])
 
 # 注册缓存管理路由
 app.include_router(cache_routes.router, tags=["缓存"])
-
-
-# ==================== 启动事件 ====================
-
-@app.on_event("startup")
-async def startup():
-    """应用启动事件"""
-    print("🚀 TrendRadar API 启动中...")
-    print(f"📦 Redis: {REDIS_HOST}:{REDIS_PORT}")
-    print(f"⏰ 缓存 TTL: {CACHE_TTL}秒 ({CACHE_TTL // 60}分钟)")
-    
-    # 启动后台调度器：预热缓存 + 定时刷新
-    print("🔥 启动缓存预热和定时任务...")
-    scheduler.warmup_cache()
-    scheduler.start_scheduled_tasks()
-    
-    print("✅ 服务就绪！")
-
-
-@app.on_event("shutdown")
-async def shutdown():
-    """应用关闭事件"""
-    print("🛑 TrendRadar API 关闭中...")
-    scheduler.stop()
-    print("✅ 服务已关闭")
 
 
 # ==================== 启动服务 ====================

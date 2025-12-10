@@ -68,8 +68,8 @@ class PriceHistoryManager:
         try:
             # 使用 HSET 存储，field 为日期
             self.client.hset(key, date, json.dumps(data, ensure_ascii=False))
-            # 保留最近30天数据
-            self._cleanup_old_data(key, days=30)
+            # 不再自动清理，保留全部历史数据
+            # self._cleanup_old_data(key, days=30)
             return True
         except Exception as e:
             print(f"保存价格历史失败: {e}")

@@ -363,14 +363,32 @@ def fetch_realtime_news(keywords: list) -> list:
     except:
         pass
     
-    # 去重
+    # 去重 + 清理 HTML 标签 + 添加时间
+    import re
     seen = set()
     unique_news = []
+    current_time = datetime.now()
+    
     for n in all_news:
-        title = n["title"]
+        title = n.get("title", "")
+        # 清理 HTML 标签（如 <br>）
+        title = re.sub(r'<[^>]+>', ' ', title)
+        title = re.sub(r'\s+', ' ', title).strip()
+        
         if title not in seen and len(title) > 5:
             seen.add(title)
-            unique_news.append(n)
+            # 添加抓取时间（如果原数据没有时间）
+            news_item = {
+                "title": title,
+                "url": n.get("url", ""),
+                "source": n.get("source", ""),
+                "publish_time": n.get("publish_time") or n.get("time") or current_time.strftime("%Y-%m-%d %H:%M"),
+                "matched_keyword": n.get("matched_keyword", "")
+            }
+            unique_news.append(news_item)
+    
+    # 按时间排序（最新在前）
+    unique_news.sort(key=lambda x: x.get("publish_time", ""), reverse=True)
     
     return unique_news  # 返回所有匹配的新闻，不做数量限制
 

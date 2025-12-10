@@ -60,6 +60,10 @@ class CommodityScraper:
         wti_21cp = self._scrape_21cp_wti()
         commodities.extend(wti_21cp)
         
+        # 从中塑在线获取塑料价格数据（增量）
+        plastics_21cp = self._scrape_21cp_plastics()
+        commodities.extend(plastics_21cp)
+        
         return commodities
     
     def _scrape_business_insider(self) -> List[Dict[str, Any]]:
@@ -289,6 +293,21 @@ class CommodityScraper:
             return scraper.fetch_incremental()
         except Exception as e:
             print(f"❌ 中塑在线 WTI 获取失败: {e}")
+            return []
+    
+    def _scrape_21cp_plastics(self) -> List[Dict[str, Any]]:
+        """从中塑在线获取塑料价格增量数据"""
+        try:
+            from .plastic21cp import Plastic21CPScraper
+            scraper = Plastic21CPScraper()
+            # 获取所有塑料产品的今日数据
+            all_data = []
+            for product in scraper.list_products():
+                data = scraper.fetch_incremental(product)
+                all_data.extend(data)
+            return all_data
+        except Exception as e:
+            print(f"❌ 中塑在线塑料获取失败: {e}")
             return []
     
     def _categorize(self, name: str) -> str:

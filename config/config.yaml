@@ -13,9 +13,9 @@ ai:
     model: "openai_gpt-oss-120b"
   # 外网 API（内网不可用时备用）
   external:
-    api_key: "sk-vvgwadmnkhvwipiunmfqrupdifxtrxvaquzssfrolnoybcyu"
-    api_base: "https://api.siliconflow.cn/v1"
-    model: "Pro/moonshotai/Kimi-K2-Thinking"
+    api_key: "AIzaSyA-iyfxyAachx0ZYS3M8kDj05CHxflbxhw"
+    api_base: "https://generativelanguage.googleapis.com/v1beta"
+    model: "gemini-2.0-flash"
 
 crawler:
   request_interval: 1000 # 请求间隔(毫秒)
@@ -119,9 +119,6 @@ categories:
   news:
     name: "新闻"
     keywords: ["新闻", "时事", "政治", "国际", "社会"]
-  social:
-    name: "社交"
-    keywords: ["热搜", "话题", "娱乐", "明星"]
   tech:
     name: "科技"
     keywords: ["科技", "互联网", "AI", "人工智能", "数码"]
@@ -172,20 +169,6 @@ platforms:
   - id: "ifeng"
     name: "凤凰网"
     category: "news"
-  
-  # ========== 社交类 ==========
-  - id: "weibo"
-    name: "微博"
-    category: "social"
-  - id: "douyin"
-    name: "抖音"
-    category: "social"
-  - id: "zhihu"
-    name: "知乎"
-    category: "social"
-  - id: "tieba"
-    name: "贴吧"
-    category: "social"
   
   # ========== 科技类 ==========
   - id: "bilibili-hot-search"

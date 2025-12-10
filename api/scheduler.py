@@ -121,9 +121,10 @@ class BackgroundScheduler:
         print("🔥 开始预热缓存...")
         
         # 从 news.py 导入统一的关键词配置
-        from .routes.news import SUPPLY_CHAIN_KEYWORDS, TARIFF_KEYWORDS
+        from .routes.news import SUPPLY_CHAIN_KEYWORDS, TARIFF_KEYWORDS, PLASTICS_KEYWORDS
         supply_chain_keywords = SUPPLY_CHAIN_KEYWORDS
         tariff_keywords = TARIFF_KEYWORDS
+        plastics_keywords = PLASTICS_KEYWORDS
         
         # 预热任务列表
         warmup_tasks = [
@@ -132,6 +133,8 @@ class BackgroundScheduler:
             ("科技新闻", lambda: self._crawl_category("tech")),
             ("供应链新闻", lambda: self._fetch_realtime_news("news:supply-chain", supply_chain_keywords)),
             ("关税新闻", lambda: self._fetch_realtime_news("news:tariff", tariff_keywords, "tariff")),
+            ("塑料新闻", lambda: self._fetch_realtime_news("news:plastics", plastics_keywords, "plastics")),
+            ("大宗商品新闻", lambda: self._crawl_category("commodity")),
         ]
         
         for name, task in warmup_tasks:

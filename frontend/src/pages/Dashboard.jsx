@@ -25,7 +25,7 @@ const safeGetHostname = (url) => {
 };
 
 // ==================== 商品分类 TAB 配置 ====================
-// 可配置的商品分类TAB（参考供应商展示形式）
+// 基于后端返回的 category 字段进行分类（贵金属/工业金属/能源/农产品/其他）
 const COMMODITY_TABS = [
     { 
         id: 'metals', 
@@ -33,6 +33,8 @@ const COMMODITY_TABS = [
         icon: '🪙', 
         color: '#f59e0b', 
         bgColor: '#fffbeb',
+        // 匹配后端 category: 贵金属、工业金属
+        categories: ['贵金属', '工业金属'],
         keywords: ['黄金', 'Gold', '白银', 'Silver', '铜', 'Copper', '铝', 'Aluminum', '铂金', 'Platinum', '钯金', 'Palladium', '镍', 'Nickel', '锌', 'Zinc', '铅', 'Lead', '锡', 'Tin']
     },
     { 
@@ -41,6 +43,7 @@ const COMMODITY_TABS = [
         icon: '⛽', 
         color: '#3b82f6', 
         bgColor: '#eff6ff',
+        categories: ['能源'],
         keywords: ['原油', 'Oil', 'Crude', 'WTI', 'Brent', '天然气', 'Natural Gas', '汽油', 'Gasoline', '柴油', 'Diesel']
     },
     { 
@@ -49,7 +52,20 @@ const COMMODITY_TABS = [
         icon: '🧪', 
         color: '#10b981', 
         bgColor: '#ecfdf5',
-        keywords: ['塑料', 'Plastic', 'PA66', 'PBT', 'PC', 'ABS', 'PP', 'PE', 'PVC', 'HDPE', 'LDPE', '聚丙烯', '聚乙烯', '聚氯乙烯', '尼龙', 'Nylon', '树脂', 'Resin']
+        categories: ['塑料', '化工'],
+        keywords: ['塑料', 'Plastic', 'PA66', 'PBT', 'PC', 'ABS', 'PP', 'PE', 'PVC', 'HDPE', 'LDPE', '聚丙烯', '聚乙烯', '聚氯乙烯', '尼龙', 'Nylon', '树脂', 'Resin', '改性塑料', '工程塑料'],
+        // 塑料子分类（大类）
+        subTabs: [
+            { id: 'all', name: '全部', color: '#6b7280' },
+            { id: 'ABS', name: 'ABS', color: '#3b82f6', desc: '丙烯腈-丁二烯-苯乙烯共聚物' },
+            { id: 'PP', name: 'PP', color: '#10b981', desc: '聚丙烯' },
+            { id: 'PE', name: 'PE', color: '#f59e0b', desc: '聚乙烯' },
+            { id: 'PS', name: 'PS', color: '#8b5cf6', desc: '聚苯乙烯' },
+            { id: 'PVC', name: 'PVC', color: '#ef4444', desc: '聚氯乙烯' },
+            { id: 'PA66', name: 'PA66', color: '#ec4899', desc: '尼龙66' },
+            { id: 'PC', name: 'PC', color: '#06b6d4', desc: '聚碳酸酯' },
+            { id: 'PET', name: 'PET', color: '#84cc16', desc: '聚对苯二甲酸乙二醇酯' },
+        ]
     },
     { 
         id: 'all', 
@@ -57,6 +73,7 @@ const COMMODITY_TABS = [
         icon: '📊', 
         color: '#6b7280', 
         bgColor: '#f3f4f6',
+        categories: [],
         keywords: []
     }
 ];
@@ -71,13 +88,33 @@ const TABLE_COLUMNS_CONFIG = [
     { id: 'update', label: '更新时间', width: '10%', visible: false }
 ];
 
-// 判断商品属于哪个分类
-const getCommodityCategory = (name) => {
+// 判断商品属于哪个分类（优先使用后端category，其次关键词匹配）
+const getCommodityCategory = (name, category) => {
     if (!name) return 'all';
+    // 优先使用后端返回的 category 字段
+    if (category) {
+        for (const tab of COMMODITY_TABS) {
+            if (tab.id === 'all') continue;
+            if (tab.categories && tab.categories.includes(category)) {
+                return tab.id;
+            }
+        }
+    }
+    // 备用：关键词匹配（使用单词边界避免误匹配）
     const normalizedName = name.toLowerCase();
     for (const tab of COMMODITY_TABS) {
         if (tab.id === 'all') continue;
-        if (tab.keywords.some(kw => normalizedName.includes(kw.toLowerCase()))) {
+        if (tab.keywords && tab.keywords.some(kw => {
+            const kwLower = kw.toLowerCase();
+            // 短关键词（<=3字符）使用精确匹配或单词边界
+            if (kwLower.length <= 3) {
+                // 使用正则表达式进行单词边界匹配
+                const regex = new RegExp(`(^|[^a-z])${kwLower}($|[^a-z])`, 'i');
+                return regex.test(normalizedName);
+            }
+            // 长关键词使用包含匹配
+            return normalizedName.includes(kwLower);
+        })) {
             return tab.id;
         }
     }
@@ -129,6 +166,21 @@ const getNormalizedName = (name) => {
     return COMMODITY_ALIASES[name] || name;
 };
 
+// 提取基础商品名称（去掉区域后缀）
+// 例如: "ABS(华南)" -> "ABS", "PP(华东区域)" -> "PP"
+const getBaseCommodityName = (name) => {
+    if (!name) return name;
+    // 匹配括号内的区域名称
+    const match = name.match(/^(.+?)\s*[\(（].*[\)）]$/);
+    return match ? match[1].trim() : name;
+};
+
+// 判断是否为区域商品（名称包含区域信息）
+const isRegionalCommodity = (name) => {
+    if (!name) return false;
+    return /[\(（].*(华东|华南|华北|华中|华西|东北|西南|西北|区域).*[\)）]/.test(name);
+};
+
 const Dashboard = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -164,6 +216,8 @@ const Dashboard = () => {
     const [showSourceFilter, setShowSourceFilter] = useState(false);
     // 新增：商品分类TAB状态
     const [activeCommodityTab, setActiveCommodityTab] = useState('metals');
+    // 新增：塑料子分类TAB状态
+    const [activePlasticSubTab, setActivePlasticSubTab] = useState('all');
     // 新增：表头配置状态
     const [tableColumns, setTableColumns] = useState(TABLE_COLUMNS_CONFIG);
     const [showColumnSettings, setShowColumnSettings] = useState(false);
@@ -206,8 +260,29 @@ const Dashboard = () => {
         localStorage.setItem('trendradar_dashboard_settings', JSON.stringify(settings));
     }, [currency, timeRange, selectedCommodities]);
 
-    // Exchange rate (Mock)
-    const EXCHANGE_RATE = 7.2;
+    // 汇率状态（从 API 获取）
+    const [exchangeRate, setExchangeRate] = useState(7.2);
+    
+    // 加载实时汇率
+    useEffect(() => {
+        const loadExchangeRate = async () => {
+            try {
+                const response = await api.getExchangeRate();
+                const rate = response.data?.rate || response.rate;
+                if (rate) {
+                    setExchangeRate(rate);
+                }
+            } catch (err) {
+                console.error('获取汇率失败:', err);
+            }
+        };
+        loadExchangeRate();
+        // 每10分钟刷新一次
+        const interval = setInterval(loadExchangeRate, 600000);
+        return () => clearInterval(interval);
+    }, []);
+    
+    const EXCHANGE_RATE = exchangeRate;
 
     // 防止 StrictMode 双重请求的标记
     const hasFetchedData = useRef(false);
@@ -399,12 +474,23 @@ const Dashboard = () => {
         return [];
     }, [priceHistory, timeRange]);
 
-    const formatPrice = (price) => {
+    const formatPrice = (price, unit = '') => {
         if (!price) return '0.00';
-        const val = parseFloat(price);
-        if (currency === 'CNY') {
-            return (val * EXCHANGE_RATE).toFixed(2);
+        let val = parseFloat(price);
+        // 判断原始价格是否为人民币（根据单位判断）
+        const isOriginalCNY = unit && (unit.includes('元') || unit.includes('CNY') || unit.includes('RMB'));
+        
+        // 货币转换逻辑:
+        // - 如果原始价格是USD，目标是CNY：乘以汇率
+        // - 如果原始价格是CNY（元），目标是USD：除以汇率
+        if (currency === 'CNY' && !isOriginalCNY) {
+            // 原价是USD，转换为CNY
+            val = val * EXCHANGE_RATE;
+        } else if (currency === 'USD' && isOriginalCNY) {
+            // 原价是CNY，转换为USD
+            val = val / EXCHANGE_RATE;
         }
+        
         return val.toFixed(2);
     };
 
@@ -416,18 +502,25 @@ const Dashboard = () => {
         return isNaN(num) ? defaultVal : num;
     };
 
-    // 从数据中提取所有唯一商品（合并相同商品的不同来源）
+    // 从数据中提取所有唯一商品（合并相同商品的不同来源和区域）
     const allCommodities = useMemo(() => {
         const commodityMap = new Map();
+        const regionalColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+        
         (data || []).forEach(item => {
             const rawName = item.name || item.chinese_name;
-            const normalizedName = getNormalizedName(rawName);
+            let normalizedName = getNormalizedName(rawName);
             
             if (!normalizedName) return;
             
-            if (!commodityMap.has(normalizedName)) {
-                commodityMap.set(normalizedName, {
-                    name: normalizedName,
+            // 检查是否为区域商品，如果是则使用基础名称作为 key
+            const isRegional = isRegionalCommodity(normalizedName);
+            const baseName = isRegional ? getBaseCommodityName(normalizedName) : normalizedName;
+            const regionName = isRegional ? normalizedName.match(/[\(（](.*)[\)）]/)?.[1] || '默认' : null;
+            
+            if (!commodityMap.has(baseName)) {
+                commodityMap.set(baseName, {
+                    name: baseName,
                     rawNames: [rawName],
                     sources: [{
                         name: rawName,
@@ -437,15 +530,25 @@ const Dashboard = () => {
                         url: item.url,
                         source: safeGetHostname(item.url)
                     }],
+                    // 区域数据（用于多折线图表）
+                    regions: isRegional ? [{
+                        name: regionName,
+                        fullName: normalizedName,
+                        price: safeNumber(item.price || item.current_price, 0),
+                        change: safeNumber(item.change || item.change_percent, 0),
+                        color: regionalColors[0]
+                    }] : [],
+                    isRegional: isRegional,
                     price: safeNumber(item.price || item.current_price, 0),
                     change: safeNumber(item.change || item.change_percent, 0),
                     unit: item.unit,
                     url: item.url,
-                    source: safeGetHostname(item.url)
+                    source: safeGetHostname(item.url),
+                    category: item.category
                 });
             } else {
-                // 合并多个来源
-                const existing = commodityMap.get(normalizedName);
+                // 合并多个来源/区域
+                const existing = commodityMap.get(baseName);
                 if (!existing.rawNames.includes(rawName)) {
                     existing.rawNames.push(rawName);
                     existing.sources.push({
@@ -456,11 +559,54 @@ const Dashboard = () => {
                         url: item.url,
                         source: safeGetHostname(item.url)
                     });
+                    
+                    // 如果是区域商品，添加到区域列表
+                    if (isRegional && regionName) {
+                        const colorIdx = existing.regions.length % regionalColors.length;
+                        existing.regions.push({
+                            name: regionName,
+                            fullName: normalizedName,
+                            price: safeNumber(item.price || item.current_price, 0),
+                            change: safeNumber(item.change || item.change_percent, 0),
+                            color: regionalColors[colorIdx]
+                        });
+                        existing.isRegional = true;
+                    }
                 }
             }
         });
         return Array.from(commodityMap.values());
     }, [data]);
+
+    // TAB 切换时联动更新选中的商品
+    useEffect(() => {
+        if (allCommodities.length === 0) return;
+        
+        // 获取当前 TAB 下的所有商品
+        let tabCommodities = allCommodities.filter(commodity => {
+            if (activeCommodityTab === 'all') return true;
+            return getCommodityCategory(commodity.name, commodity.category) === activeCommodityTab;
+        });
+        
+        // 如果是塑料分类且选中了子分类，进一步过滤
+        if (activeCommodityTab === 'plastics' && activePlasticSubTab !== 'all') {
+            tabCommodities = tabCommodities.filter(c => 
+                c.name.toUpperCase().startsWith(activePlasticSubTab)
+            );
+        }
+        
+        // 自动选中该分类下的所有商品（塑料子分类通常不多）
+        const newSelected = new Set();
+        const maxSelect = activeCommodityTab === 'plastics' ? tabCommodities.length : 6;
+        for (const commodity of tabCommodities.slice(0, maxSelect)) {
+            newSelected.add(commodity.name);
+        }
+        
+        // 只有当选中的商品发生变化时才更新
+        if (newSelected.size > 0) {
+            setSelectedCommodities(newSelected);
+        }
+    }, [activeCommodityTab, activePlasticSubTab, allCommodities]);
 
     // URL统计
     const urlStats = useMemo(() => {
@@ -570,23 +716,32 @@ const Dashboard = () => {
         });
     }, [allCommodities, selectedCountry, getSourceFilteredCommodities]);
 
-    // 过滤商品列表（用于选择器搜索）- 基于选中国家的商品列表
+    // 过滤商品列表（用于选择器搜索）- 基于当前TAB分类和选中国家
     const filteredCommodities = useMemo(() => {
         // 使用级联过滤后的商品列表
-        const baseCommodities = commoditiesForSelectedCountry || allCommodities;
+        let baseCommodities = commoditiesForSelectedCountry || allCommodities;
+        
+        // 先按 TAB 分类过滤
+        if (activeCommodityTab !== 'all') {
+            baseCommodities = baseCommodities.filter(c => 
+                getCommodityCategory(c.name, c.category) === activeCommodityTab
+            );
+        }
+        
+        // 再按搜索词过滤
         if (!commoditySearchTerm) return baseCommodities;
         const searchLower = commoditySearchTerm.toLowerCase();
         return baseCommodities.filter(c => 
             c.name.toLowerCase().includes(searchLower) ||
             (c.source && c.source.toLowerCase().includes(searchLower))
         );
-    }, [commoditiesForSelectedCountry, allCommodities, commoditySearchTerm]);
+    }, [commoditiesForSelectedCountry, allCommodities, commoditySearchTerm, activeCommodityTab]);
 
     // 根据当前TAB获取对应分类的商品数量
     const getCommodityCountByTab = useCallback((tabId) => {
         return allCommodities.filter(commodity => {
             if (tabId === 'all') return true;
-            return getCommodityCategory(commodity.name) === tabId;
+            return getCommodityCategory(commodity.name, commodity.category) === tabId;
         }).length;
     }, [allCommodities]);
 
@@ -598,8 +753,13 @@ const Dashboard = () => {
             .filter(commodity => {
                 // 先检查TAB分类过滤
                 if (activeCommodityTab !== 'all') {
-                    const category = getCommodityCategory(commodity.name);
-                    if (category !== activeCommodityTab && category !== 'all') return false;
+                    const commodityCategory = getCommodityCategory(commodity.name, commodity.category);
+                    if (commodityCategory !== activeCommodityTab && commodityCategory !== 'all') return false;
+                }
+                // 塑料子分类过滤
+                if (activeCommodityTab === 'plastics' && activePlasticSubTab !== 'all') {
+                    // 检查商品名称是否以子分类开头（如 ABS、PP、PE、PS）
+                    if (!commodity.name.toUpperCase().startsWith(activePlasticSubTab)) return false;
                 }
                 // 再检查是否选中
                 if (!selectedCommodities.has(commodity.name)) return false;
@@ -623,6 +783,20 @@ const Dashboard = () => {
                     historyData = getHistoryData(commodity.name, price, timeRange === 'day' ? 24 : 7);
                 }
                 
+                // 为区域商品获取多区域历史数据
+                let multiSourceHistory = null;
+                if (commodity.isRegional && commodity.regions && commodity.regions.length > 0) {
+                    multiSourceHistory = commodity.regions.map(region => {
+                        const regionHistory = getHistoryData(region.fullName, region.price, timeRange === 'day' ? 24 : 7);
+                        return {
+                            source: region.name,
+                            color: region.color,
+                            url: commodity.url,
+                            data: regionHistory || []
+                        };
+                    }).filter(s => s.data && s.data.length > 0);
+                }
+                
                 return {
                     id: commodity.name,
                     name: commodity.name,
@@ -634,11 +808,14 @@ const Dashboard = () => {
                     url: commodity.url,
                     source: commodity.source,
                     sources: commodity.sources || [],  // 多个来源
+                    regions: commodity.regions || [],  // 区域信息
+                    isRegional: commodity.isRegional,
                     historyData: historyData,
+                    multiSourceHistory: multiSourceHistory,  // 多区域历史数据
                     dataItem: commodity
                 };
             });
-    }, [allCommodities, selectedCommodities, getHistoryData, timeRange, activeCommodityTab, getSourceFilteredCommodities]);
+    }, [allCommodities, selectedCommodities, getHistoryData, timeRange, activeCommodityTab, activePlasticSubTab, getSourceFilteredCommodities]);
 
     if (loading) return (
         <div style={{ 
@@ -1199,10 +1376,18 @@ const Dashboard = () => {
                         onClick={async () => {
                             setRefreshing(true);
                             try {
-                                const response = await api.getData(true);
-                                const responseData = response.data || response;
+                                // 同时刷新商品数据和历史数据
+                                const [dataResponse, historyResponse] = await Promise.all([
+                                    api.getData(true),
+                                    api.getPriceHistory(null, { day: 1, week: 7, month: 30 }[timeRange] || 7)
+                                ]);
+                                const responseData = dataResponse.data || dataResponse;
                                 setData(responseData.data || []);
                                 setLastUpdate(responseData.timestamp || new Date().toISOString());
+                                // 更新历史数据并重置缓存标记
+                                const historyData = historyResponse.data?.data || historyResponse.data?.commodities || {};
+                                setPriceHistory(historyData);
+                                priceHistoryLoadingRef.current = null; // 重置缓存标记
                             } catch (err) {
                                 console.error("Refresh failed:", err);
                             } finally {
@@ -1321,7 +1506,7 @@ const Dashboard = () => {
                                         </span>
                                     </div>
                                     <div style={{ fontSize: '24px', fontWeight: '700', color: '#111827' }}>
-                                        {getCurrencySymbol()}{formatPrice(comm.currentPrice)}
+                                        {getCurrencySymbol()}{formatPrice(comm.currentPrice, comm.unit)}
                                         {comm.unit && (
                                             <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '4px', fontWeight: '500' }}>
                                                 /{comm.unit.replace(/USD|CNY|RMB|美元|人民币|\$|¥|\//gi, '').trim()}
@@ -1512,6 +1697,66 @@ const Dashboard = () => {
                             })}
                         </div>
                         
+                        {/* 塑料子分类TAB - 仅在塑料分类下显示 */}
+                        {activeCommodityTab === 'plastics' && COMMODITY_TABS.find(t => t.id === 'plastics')?.subTabs && (
+                            <div style={{ 
+                                display: 'flex', 
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '12px 20px',
+                                background: '#f0fdf4',
+                                borderBottom: '1px solid #bbf7d0',
+                                overflowX: 'auto'
+                            }}>
+                                <span style={{ fontSize: '12px', color: '#166534', fontWeight: '500', marginRight: '4px' }}>大类:</span>
+                                {COMMODITY_TABS.find(t => t.id === 'plastics').subTabs.map(subTab => {
+                                    const isActive = activePlasticSubTab === subTab.id;
+                                    // 计算该子分类的商品数量（基于所有塑料商品）
+                                    const plasticCommodities = allCommodities.filter(c => 
+                                        getCommodityCategory(c.name, c.category) === 'plastics'
+                                    );
+                                    const subCount = subTab.id === 'all' 
+                                        ? plasticCommodities.length 
+                                        : plasticCommodities.filter(c => c.name.toUpperCase().startsWith(subTab.id)).length;
+                                    return (
+                                        <button
+                                            key={subTab.id}
+                                            onClick={() => setActivePlasticSubTab(subTab.id)}
+                                            title={subTab.desc}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                padding: '6px 14px',
+                                                borderRadius: '20px',
+                                                border: isActive ? `2px solid ${subTab.color}` : '1px solid #d1d5db',
+                                                background: isActive ? subTab.color : '#fff',
+                                                color: isActive ? '#fff' : '#374151',
+                                                cursor: 'pointer',
+                                                fontSize: '13px',
+                                                fontWeight: isActive ? '600' : '500',
+                                                transition: 'all 0.15s ease',
+                                                whiteSpace: 'nowrap'
+                                            }}
+                                        >
+                                            {subTab.name}
+                                            {subCount > 0 && (
+                                                <span style={{
+                                                    fontSize: '10px',
+                                                    background: isActive ? 'rgba(255,255,255,0.3)' : '#e5e7eb',
+                                                    padding: '1px 6px',
+                                                    borderRadius: '10px',
+                                                    fontWeight: '600'
+                                                }}>
+                                                    {subCount}
+                                                </span>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+                        
                         {/* 可配置表头的数据表格 */}
                         <div style={{ padding: '16px 20px', overflowX: 'auto' }}>
                             {displayCommodities.length === 0 ? (
@@ -1554,7 +1799,7 @@ const Dashboard = () => {
                                                             )}
                                                             {col.id === 'price' && (
                                                                 <span style={{ fontWeight: '600', color: '#111827' }}>
-                                                                    {getCurrencySymbol()}{formatPrice(comm.currentPrice)}
+                                                                    {getCurrencySymbol()}{formatPrice(comm.currentPrice, comm.unit)}
                                                                 </span>
                                                             )}
                                                             {col.id === 'change' && (
@@ -1683,10 +1928,12 @@ const Dashboard = () => {
                                         currentPrice={comm.currentPrice}
                                         unit={comm.unit}
                                         historyData={comm.historyData}
+                                        multiSourceHistory={comm.multiSourceHistory}
                                         currencySymbol={getCurrencySymbol()}
                                         formatPrice={formatPrice}
                                         isLastOdd={isLastOdd}
                                         currency={currency}
+                                        exchangeRate={EXCHANGE_RATE}
                                     />
                                 );
                             })

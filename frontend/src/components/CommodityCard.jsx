@@ -36,8 +36,8 @@ const isOunceBasedUnit = (unitStr) => {
     return lower.includes('oz') || unitStr.includes('盎司') || lower.includes('ounce');
 };
 
-// 汇率常量
-const EXCHANGE_RATE = 7.2;
+// 默认汇率常量（会被props覆盖）
+const DEFAULT_EXCHANGE_RATE = 7.2;
 
 const CommodityCard = ({
     comm,
@@ -50,38 +50,60 @@ const CommodityCard = ({
     currencySymbol,
     formatPrice,
     isLastOdd,
-    currency = 'USD'
+    currency = 'USD',
+    exchangeRate = DEFAULT_EXCHANGE_RATE
 }) => {
     const pureUnit = extractWeightUnit(unit);
     const isOunceUnit = isOunceBasedUnit(unit);
     const [showInGrams, setShowInGrams] = useState(false);
     const displayUnit = isOunceUnit ? (showInGrams ? 'g' : 'oz') : pureUnit;
 
-    // 货币转换函数 (注意: currentPrice应该已经是目标货币,不需要再转换)
+    // 判断原始价格是否为人民币（根据单位判断）
+    const isOriginalCNY = unit && (unit.includes('元') || unit.includes('CNY') || unit.includes('RMB'));
+    
+    // 货币转换函数
     const convertPrice = (val) => {
         if (!val) return 0;
         let numVal = parseFloat(val);
-        // 不再进行货币转换,因为currentPrice已经是正确货币
-        // 只进行单位转换（盎司转克）
+        
+        // 货币转换逻辑:
+        // - 如果原始价格是CNY（元），目标是USD：除以汇率
+        // - 如果原始价格是USD，目标是CNY：乘以汇率
+        if (currency === 'CNY' && !isOriginalCNY) {
+            // 原价是USD，转换为CNY
+            numVal = numVal * exchangeRate;
+        } else if (currency === 'USD' && isOriginalCNY) {
+            // 原价是CNY，转换为USD
+            numVal = numVal / exchangeRate;
+        }
+        
+        // 单位转换（盎司转克）
         if (isOunceUnit && showInGrams) {
             numVal = numVal / GRAMS_PER_OUNCE;
         }
         return numVal;
     };
 
-    // 转换历史数据价格（只进行单位转换,货币转换由formatPrice处理）
+    // 转换历史数据价格（同时进行货币转换和单位转换）
     const convertedHistoryData = useMemo(() => {
         if (!historyData) return historyData;
         return historyData.map(item => {
             let price = parseFloat(item.price) || 0;
-            // 不进行货币转换,因为会通过formatPrice统一处理
-            // 只进行单位转换（盎司转克）
+            
+            // 货币转换
+            if (currency === 'CNY' && !isOriginalCNY) {
+                price = price * exchangeRate;
+            } else if (currency === 'USD' && isOriginalCNY) {
+                price = price / exchangeRate;
+            }
+            
+            // 单位转换（盎司转克）
             if (isOunceUnit && showInGrams) {
                 price = price / GRAMS_PER_OUNCE;
             }
             return { ...item, price };
         });
-    }, [historyData, showInGrams, isOunceUnit]);
+    }, [historyData, showInGrams, isOunceUnit, currency, exchangeRate, isOriginalCNY]);
 
     const convertedMultiSourceHistory = useMemo(() => {
         if (!multiSourceHistory) return multiSourceHistory;
@@ -89,15 +111,22 @@ const CommodityCard = ({
             ...source,
             data: source.data.map(item => {
                 let price = parseFloat(item.price) || 0;
-                // 不进行货币转换,因为会通过formatPrice统一处理
-                // 只进行单位转换
+                
+                // 货币转换
+                if (currency === 'CNY' && !isOriginalCNY) {
+                    price = price * exchangeRate;
+                } else if (currency === 'USD' && isOriginalCNY) {
+                    price = price / exchangeRate;
+                }
+                
+                // 单位转换
                 if (isOunceUnit && showInGrams) {
                     price = price / GRAMS_PER_OUNCE;
                 }
                 return { ...item, price };
             })
         }));
-    }, [multiSourceHistory, showInGrams, isOunceUnit]);
+    }, [multiSourceHistory, showInGrams, isOunceUnit, currency, exchangeRate, isOriginalCNY]);
 
     const displayedPrice = convertPrice(currentPrice);
     const sources = multiSourceItems || (realItem ? [realItem] : []);
@@ -217,7 +246,7 @@ const CommodityCard = ({
                         color: '#111827',
                         lineHeight: 1.2
                     }}>
-                        {currencySymbol}{formatPrice(displayedPrice)}
+                        {currencySymbol}{displayedPrice.toFixed(2)}
                         <span style={{ 
                             fontSize: '12px', 
                             color: '#6b7280', 

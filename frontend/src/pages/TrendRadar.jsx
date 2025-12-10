@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import { RefreshCw, Send, TrendingUp, DollarSign, Newspaper, Cpu, Users, ExternalLink, Link2, Gem, Scale } from 'lucide-react';
+import { RefreshCw, Send, TrendingUp, DollarSign, Newspaper, Cpu, ExternalLink, Link2, Gem, Scale } from 'lucide-react';
 import * as echarts from 'echarts/core';
 import { PieChart } from 'echarts/charts';
 import { TitleComponent, TooltipComponent, LegendComponent } from 'echarts/components';
@@ -17,12 +17,11 @@ const TRENDRADAR_API = 'http://localhost:8000';
 const CATEGORY_CONFIG = {
     finance: { icon: DollarSign, color: '#3b82f6', name: '财经' },
     news: { icon: Newspaper, color: '#10b981', name: '新闻' },
-    social: { icon: Users, color: '#f59e0b', name: '社交' },
     tech: { icon: Cpu, color: '#8b5cf6', name: '科技' },
     supply_chain: { icon: Link2, color: '#ec4899', name: '供应链分析' },
     commodity: { icon: Gem, color: '#f97316', name: '大宗商品' },
     tariff: { icon: Scale, color: '#dc2626', name: '关税政策' },
-    plastics: { icon: Gem, color: '#10b981', name: '塑料' }  // 新增塑料分类
+    plastics: { icon: Gem, color: '#10b981', name: '塑料' }
 };
 
 // 默认分类

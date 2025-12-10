@@ -1067,6 +1067,7 @@ const SupplyChainPanel = () => {
                                                                                 gap: '6px'
                                                                             }}>
                                                                                 <span>{news.source}</span>
+                                                                                {news.publish_time && <span>· {news.publish_time}</span>}
                                                                                 <ExternalLink size={10} />
                                                                             </div>
                                                                         </a>
@@ -1111,7 +1112,7 @@ const SupplyChainPanel = () => {
                                                         {data.news.map((news, idx) => (
                                                             <a key={idx} href={news.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '8px 10px', background: '#fff', borderRadius: '6px', fontSize: '12px', color: '#334155', textDecoration: 'none', lineHeight: '1.4', borderLeft: '3px solid #f59e0b' }}>
                                                                 <div style={{ marginBottom: '4px' }}>{news.title}</div>
-                                                                <div style={{ fontSize: '10px', color: '#94a3b8' }}>{news.source} <ExternalLink size={10} style={{ display: 'inline' }} /></div>
+                                                                <div style={{ fontSize: '10px', color: '#94a3b8' }}>{news.source} {news.publish_time && `· ${news.publish_time}`} <ExternalLink size={10} style={{ display: 'inline' }} /></div>
                                                             </a>
                                                         ))}
                                                     </div>

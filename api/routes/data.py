@@ -349,3 +349,45 @@ async def get_status():
         "cache": cache.get_status(),
         "version": "2.0.0"
     }
+
+
+@router.get("/api/exchange-rate")
+async def get_exchange_rate():
+    """获取实时汇率（USD/CNY）"""
+    import requests
+    
+    # 尝试多个汇率源
+    sources = [
+        # ExchangeRate-API (免费)
+        ("https://api.exchangerate-api.com/v4/latest/USD", lambda d: d.get("rates", {}).get("CNY")),
+        # Open Exchange Rates (备用)
+        ("https://open.er-api.com/v6/latest/USD", lambda d: d.get("rates", {}).get("CNY")),
+    ]
+    
+    for url, extractor in sources:
+        try:
+            resp = requests.get(url, timeout=5)
+            if resp.status_code == 200:
+                data = resp.json()
+                rate = extractor(data)
+                if rate:
+                    return {
+                        "status": "success",
+                        "base": "USD",
+                        "target": "CNY",
+                        "rate": round(float(rate), 4),
+                        "timestamp": datetime.now().isoformat(),
+                        "source": url.split("/")[2]
+                    }
+        except Exception:
+            continue
+    
+    # 默认备用汇率
+    return {
+        "status": "fallback",
+        "base": "USD",
+        "target": "CNY",
+        "rate": 7.2,
+        "timestamp": datetime.now().isoformat(),
+        "source": "default"
+    }
