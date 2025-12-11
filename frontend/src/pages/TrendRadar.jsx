@@ -5,13 +5,13 @@ import { PieChart } from 'echarts/charts';
 import { TitleComponent, TooltipComponent, LegendComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import SupplyChainPanel from '../components/SupplyChainPanel';
-import api from '../services/api';
+import api, { API_BASE } from '../services/api';
 
 // 按需注册 ECharts 组件（减少包体积）
 echarts.use([PieChart, TitleComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
 
 // API 配置
-const TRENDRADAR_API = 'http://localhost:8000';
+const TRENDRADAR_API = API_BASE || '';
 
 // 分类图标映射（静态配置）
 const CATEGORY_CONFIG = {

@@ -13,7 +13,17 @@ from prompts import (
     get_supply_chain_analysis_prompt, 
     ANALYSIS_SYSTEM_PROMPT,
     get_market_analysis_prompt,
-    MARKET_SYSTEM_PROMPT
+    MARKET_SYSTEM_PROMPT,
+    precheck_news_quality  # V2新增：新闻质量预检
+)
+
+# 从 news.py 导入完整的配置
+from .news import (
+    OPTICAL_PARTNERS,
+    CONNECTOR_PARTNERS, 
+    POWER_PARTNERS,
+    CUSTOMERS,
+    SUPPLIERS
 )
 
 router = APIRouter()
@@ -51,6 +61,7 @@ def get_ai_config():
     external_api_key = external_config.get("api_key", "") or os.environ.get("AI_API_KEY", "")
     external_api_base = external_config.get("api_base", "https://api.siliconflow.cn/v1")
     external_model = external_config.get("model", "Pro/moonshotai/Kimi-K2-Thinking")
+    external_thinking_level = external_config.get("thinking_level", "high")
     
     if not internal_config and not external_config:
         internal_api_key = ai_config.get("api_key", "")
@@ -66,7 +77,8 @@ def get_ai_config():
         "external": {
             "api_key": external_api_key,
             "api_base": external_api_base,
-            "model": external_model
+            "model": external_model,
+            "thinking_level": external_thinking_level
         }
     }
 
@@ -74,7 +86,7 @@ def get_ai_config():
 def call_ai_api(api_base: str, api_key: str, model: str, 
                 system_prompt: str, user_prompt: str, 
                 timeout: int = 180, max_tokens: int = 8000):
-    """调用 AI API"""
+    """调用 AI API (OpenAI 兼容格式)"""
     headers = {"Content-Type": "application/json"}
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
@@ -94,6 +106,60 @@ def call_ai_api(api_base: str, api_key: str, model: str,
         timeout=timeout
     )
     return response
+
+
+def call_gemini_api(api_base: str, api_key: str, model: str,
+                    system_prompt: str, user_prompt: str,
+                    thinking_level: str = "high",
+                    timeout: int = 180, max_tokens: int = 8000):
+    """调用 Gemini 3 Pro API (支持 thinkingConfig)"""
+    url = f"{api_base.rstrip('/')}/models/{model}:generateContent"
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": api_key
+    }
+    
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": f"{system_prompt}\n\n{user_prompt}"}
+                ]
+            }
+        ],
+        "generationConfig": {
+            "maxOutputTokens": max_tokens,
+            "temperature": 0.7,
+            "thinkingConfig": {
+                "thinkingLevel": thinking_level
+            }
+        }
+    }
+    
+    response = req.post(url, headers=headers, json=payload, timeout=timeout)
+    return response
+
+
+def parse_gemini_response(response):
+    """解析 Gemini API 响应，转换为统一格式"""
+    if response.status_code != 200:
+        return None, f"Gemini API 错误: {response.status_code} - {response.text}"
+    
+    result = response.json()
+    
+    # Gemini 响应格式: {"candidates": [{"content": {"parts": [{"text": "..."}]}}]}
+    try:
+        candidates = result.get("candidates", [])
+        if candidates:
+            parts = candidates[0].get("content", {}).get("parts", [])
+            # 过滤掉 thought 部分，只取 text 部分
+            text_parts = [p.get("text", "") for p in parts if "text" in p and "thought" not in p]
+            content = "\n".join(text_parts)
+            return content, None
+    except Exception as e:
+        return None, f"解析 Gemini 响应失败: {e}"
+    
+    return None, "Gemini 响应格式异常"
 
 
 def fetch_realtime_news(keywords: list) -> list:
@@ -476,10 +542,22 @@ async def get_market_analysis(refresh: bool = False):
             }
         
         try:
-            response = call_ai_api(
-                external["api_base"], external["api_key"], external["model"],
-                MARKET_SYSTEM_PROMPT, prompt, timeout=60, max_tokens=1000
-            )
+            # 检测是否使用 Gemini API
+            is_gemini = "generativelanguage.googleapis.com" in external["api_base"]
+            
+            if is_gemini:
+                thinking_level = external.get("thinking_level", "low")  # 市场分析用 low 以加快速度
+                response = call_gemini_api(
+                    external["api_base"], external["api_key"], external["model"],
+                    MARKET_SYSTEM_PROMPT, prompt,
+                    thinking_level=thinking_level,
+                    timeout=120, max_tokens=1000
+                )
+            else:
+                response = call_ai_api(
+                    external["api_base"], external["api_key"], external["model"],
+                    MARKET_SYSTEM_PROMPT, prompt, timeout=60, max_tokens=1000
+                )
             used_model = external["model"]
             used_api = "外网"
             print(f"✅ 外网 API 调用成功")
@@ -490,12 +568,19 @@ async def get_market_analysis(refresh: bool = False):
         if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail=f"AI API调用失败")
         
-        result = response.json()
+        # 检测是否使用 Gemini API 来决定解析方式
+        is_gemini = "generativelanguage.googleapis.com" in external.get("api_base", "")
         
-        if "choices" in result and len(result["choices"]) > 0:
-            content = result["choices"][0]["message"]["content"]
+        if is_gemini:
+            content, error = parse_gemini_response(response)
+            if error:
+                raise HTTPException(status_code=500, detail=error)
         else:
-            raise HTTPException(status_code=500, detail="无法解析AI响应")
+            result = response.json()
+            if "choices" in result and len(result["choices"]) > 0:
+                content = result["choices"][0]["message"]["content"]
+            else:
+                raise HTTPException(status_code=500, detail="无法解析AI响应")
         
         # 更新缓存
         _market_analysis_cache["content"] = content
@@ -524,23 +609,93 @@ async def generate_analysis(request: AnalysisRequest):
     internal = ai_config["internal"]
     external = ai_config["external"]
     
-    # 关键词
-    keywords = [
+    # ==================== 1. 获取供应链新闻（强制刷新） ====================
+    print(f"📡 [报告生成] 正在获取最新供应链新闻...")
+    
+    # 关键词（扩展）
+    supply_chain_keywords = [
         "立讯", "歌尔", "蓝思", "富联", "富士康", "京东方", "BOE",
         "欣旺达", "德赛", "舜宇", "鹏鼎", "东山精密", "领益", "瑞声",
-        "苹果", "Apple", "iPhone", "AirPods", "Vision Pro",
-        "华为", "Huawei", "小米", "OPPO", "vivo", "三星",
+        "苹果", "Apple", "iPhone", "AirPods", "Vision Pro", "iPad", "Mac",
+        "华为", "Huawei", "小米", "OPPO", "vivo", "三星", "Samsung",
         "消费电子", "果链", "代工", "供应链", "芯片", "半导体",
-        "AI", "人工智能", "算力", "GPU", "英伟达"
+        "AI", "人工智能", "算力", "GPU", "英伟达", "NVIDIA",
+        # 关税相关
+        "关税", "贸易战", "中美", "制裁", "出口管制", "实体清单",
+        # 原材料相关
+        "铜", "镍", "锡", "铝", "金", "银", "塑料", "PA66", "PBT", "ABS"
     ]
     
-    print(f"📡 正在实时抓取供应链相关新闻...")
-    realtime_news = fetch_realtime_news(keywords)
-    print(f"✅ 抓取到 {len(realtime_news)} 条相关新闻")
+    # 实时抓取最新新闻
+    realtime_news = fetch_realtime_news(supply_chain_keywords)
+    print(f"✅ 实时抓取: {len(realtime_news)} 条新闻")
     
-    # 合并新闻
-    all_news = list(request.news) if request.news else []
+    # 从缓存获取已有的供应链新闻
+    cached_supply = cache.get("news:supply-chain")
+    cached_supply_news = cached_supply.get("data", []) if cached_supply else []
+    print(f"✅ 缓存供应链新闻: {len(cached_supply_news)} 条")
+    
+    # 从缓存获取关税新闻
+    cached_tariff = cache.get("news:tariff")
+    cached_tariff_news = cached_tariff.get("data", []) if cached_tariff else []
+    print(f"✅ 缓存关税新闻: {len(cached_tariff_news)} 条")
+    
+    # ==================== 2. 获取大宗商品数据 ====================
+    print(f"📊 [报告生成] 正在获取大宗商品价格数据...")
+    commodity_summary = ""
+    try:
+        from scrapers.commodity import CommodityScraper
+        scraper = CommodityScraper()
+        commodity_data = scraper.scrape()
+        
+        if commodity_data:
+            commodity_lines = ["**当前大宗商品价格（实时数据）：**"]
+            
+            # 金属类
+            metals = [c for c in commodity_data if c.get('category') == '金属' or any(m in c.get('name', '') for m in ['铜', '铝', '锌', '镍', '锡', '金', '银'])]
+            if metals:
+                commodity_lines.append("\n**金属类原材料：**")
+                for c in metals[:10]:
+                    name = c.get('chinese_name') or c.get('name', '')
+                    price = c.get('price', 0)
+                    change = c.get('change_percent', 0)
+                    unit = c.get('unit', '')
+                    trend = '↑' if change > 0 else ('↓' if change < 0 else '→')
+                    commodity_lines.append(f"- {name}: {price} {unit} ({'+' if change >= 0 else ''}{change}% {trend})")
+            
+            # 塑料/能源类
+            plastics = [c for c in commodity_data if any(p in c.get('name', '').upper() for p in ['PP', 'PE', 'PVC', 'ABS', 'PA', 'PBT', 'PC', '塑料', 'OIL', '原油'])]
+            if plastics:
+                commodity_lines.append("\n**塑料/能源类原材料：**")
+                for c in plastics[:10]:
+                    name = c.get('chinese_name') or c.get('name', '')
+                    price = c.get('price', 0)
+                    change = c.get('change_percent', 0)
+                    unit = c.get('unit', '')
+                    trend = '↑' if change > 0 else ('↓' if change < 0 else '→')
+                    commodity_lines.append(f"- {name}: {price} {unit} ({'+' if change >= 0 else ''}{change}% {trend})")
+            
+            commodity_summary = "\n".join(commodity_lines)
+            print(f"✅ 大宗商品数据: {len(commodity_data)} 条")
+    except Exception as e:
+        print(f"⚠️ 获取大宗商品数据失败: {e}")
+        commodity_summary = "⚠️ 大宗商品数据获取失败，请参考市场公开数据"
+    
+    # ==================== 3. 合并所有新闻来源 ====================
+    all_news = []
+    
+    # 1) 前端传入的新闻
+    if request.news:
+        all_news.extend(list(request.news))
+    
+    # 2) 实时抓取的新闻
     all_news.extend(realtime_news)
+    
+    # 3) 缓存的供应链新闻
+    all_news.extend(cached_supply_news)
+    
+    # 4) 缓存的关税新闻
+    all_news.extend(cached_tariff_news)
     
     # 去重
     seen_titles = set()
@@ -551,25 +706,54 @@ async def generate_analysis(request: AnalysisRequest):
             seen_titles.add(title)
             unique_news.append(n)
     
-    # 构建新闻摘要
+    print(f"✅ 合并去重后总新闻: {len(unique_news)} 条")
+    
+    # ==================== 3.5 新闻质量预检（V2新增） ====================
+    news_quality = precheck_news_quality(unique_news)
+    print(f"📊 新闻质量评分: {news_quality['quality_score']}/100")
+    if news_quality['suggestions']:
+        for suggestion in news_quality['suggestions']:
+            print(f"   💡 {suggestion}")
+    
+    # ==================== 4. 构建新闻摘要 ====================
     news_summary = ""
     if unique_news:
         news_items = []
-        for n in unique_news[:30]:
+        # 取最新的50条新闻（扩大范围）
+        for n in unique_news[:50]:
             title = n.get('title', '')
             url = n.get('url', '')
-            source = n.get('source', '')
+            source = n.get('source', '') or n.get('platform_name', '')
+            publish_time = n.get('publish_time', '')
+            time_str = f" ({publish_time})" if publish_time else ""
             if url:
-                news_items.append(f"- [{title}]({url}) 【{source}】")
+                news_items.append(f"- [{title}]({url}) 【{source}{time_str}】")
             else:
-                news_items.append(f"- {title} 【{source}】")
+                news_items.append(f"- {title} 【{source}{time_str}】")
         news_summary = "\n".join(news_items)
     
-    today = datetime.now().strftime("%Y年%m月%d日")
+    today = datetime.now().strftime("%Y年%m月%d日 %H:%M")
     
-    competitors = request.competitors or ['歌尔股份', '蓝思科技', '工业富联', '鹏鼎控股', '东山精密', '领益智造', '瑞声科技']
-    upstream = request.upstream or ['京东方A', '舜宇光学', '欣旺达', '德赛电池', '信维通信', '长盈精密']
-    downstream = request.downstream or ['苹果', '华为', 'Meta', '奇瑞汽车', '小米', 'OPPO/vivo']
+    # ==================== 5. 使用完整的配置列表 ====================
+    # 友商/竞争对手（18家）
+    all_competitors = list(OPTICAL_PARTNERS.keys()) + list(CONNECTOR_PARTNERS.keys()) + list(POWER_PARTNERS.keys())
+    # 额外添加消费电子竞争对手
+    all_competitors.extend(['歌尔股份', '蓝思科技', '工业富联', '鹏鼎控股', '东山精密', '领益智造', '瑞声科技', '比亚迪电子'])
+    competitors = request.competitors or list(set(all_competitors))  # 去重
+    
+    # 供应商（从SUPPLIERS配置中提取所有供应商名称）
+    all_suppliers = []
+    for category, suppliers in SUPPLIERS.items():
+        all_suppliers.extend(list(suppliers.keys()))
+    # 额外添加重要供应商
+    all_suppliers.extend(['京东方A', '舜宇光学', '欣旺达', '德赛电池', '信维通信', '长盈精密', '蓝思科技'])
+    upstream = request.upstream or list(set(all_suppliers))  # 去重
+    
+    # 客户（10家）
+    all_customers = list(CUSTOMERS.keys())
+    downstream = request.downstream or all_customers
+    
+    print(f"📋 分析配置: {len(competitors)}家友商, {len(upstream)}家供应商, {len(downstream)}家客户")
     
     prompt = get_supply_chain_analysis_prompt(
         company_name=request.company_name,
@@ -578,7 +762,8 @@ async def generate_analysis(request: AnalysisRequest):
         upstream=upstream,
         downstream=downstream,
         news_summary=news_summary,
-        news_count=len(unique_news)
+        news_count=len(unique_news),
+        commodity_summary=commodity_summary
     )
     
     used_model = ""
@@ -610,10 +795,24 @@ async def generate_analysis(request: AnalysisRequest):
             )
         
         try:
-            response = call_ai_api(
-                external["api_base"], external["api_key"], external["model"],
-                ANALYSIS_SYSTEM_PROMPT, prompt, timeout=180, max_tokens=8000
-            )
+            # 检测是否使用 Gemini API
+            is_gemini = "generativelanguage.googleapis.com" in external["api_base"]
+            
+            if is_gemini:
+                # 优先使用请求中的 thinking_level，否则使用配置
+                thinking_level = request.thinking_level or external.get("thinking_level", "high")
+                print(f"🧠 使用 Gemini 3 Pro (thinking_level={thinking_level})")
+                response = call_gemini_api(
+                    external["api_base"], external["api_key"], external["model"],
+                    ANALYSIS_SYSTEM_PROMPT, prompt,
+                    thinking_level=thinking_level,
+                    timeout=300, max_tokens=8000  # Gemini 3 思考模式需要更长超时
+                )
+            else:
+                response = call_ai_api(
+                    external["api_base"], external["api_key"], external["model"],
+                    ANALYSIS_SYSTEM_PROMPT, prompt, timeout=180, max_tokens=8000
+                )
             used_model = external["model"]
             used_api = "外网"
             print(f"✅ 外网 API 调用成功")
@@ -624,12 +823,19 @@ async def generate_analysis(request: AnalysisRequest):
         if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail=f"AI API调用失败: {response.text}")
         
-        result = response.json()
+        # 检测是否使用 Gemini API 来决定解析方式
+        is_gemini = "generativelanguage.googleapis.com" in external.get("api_base", "")
         
-        if "choices" in result and len(result["choices"]) > 0:
-            content = result["choices"][0]["message"]["content"]
+        if is_gemini:
+            content, error = parse_gemini_response(response)
+            if error:
+                raise HTTPException(status_code=500, detail=error)
         else:
-            raise HTTPException(status_code=500, detail="无法解析AI响应")
+            result = response.json()
+            if "choices" in result and len(result["choices"]) > 0:
+                content = result["choices"][0]["message"]["content"]
+            else:
+                raise HTTPException(status_code=500, detail="无法解析AI响应")
         
         return {
             "status": "success",
@@ -637,6 +843,13 @@ async def generate_analysis(request: AnalysisRequest):
             "model": used_model,
             "api_source": used_api,
             "news_count": len(unique_news),
+            "news_quality": {
+                "score": news_quality['quality_score'],
+                "has_customer_news": news_quality['has_customer_news'],
+                "has_competitor_news": news_quality['has_competitor_news'],
+                "has_tariff_news": news_quality['has_tariff_news'],
+                "suggestions": news_quality['suggestions']
+            },
             "timestamp": datetime.now().isoformat()
         }
         

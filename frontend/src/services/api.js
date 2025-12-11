@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-// TrendRadar API 后端地址
-const API_BASE = 'http://localhost:8000';
+// TrendRadar API 后端地址（可通过 VITE_API_BASE 配置，默认同源）
+const rawApiBase = import.meta.env.VITE_API_BASE || '';
+export const API_BASE = rawApiBase.replace(/\/$/, '');
 
 // ============================================
 // 增强版请求缓存 + 去重 + 防抖机制

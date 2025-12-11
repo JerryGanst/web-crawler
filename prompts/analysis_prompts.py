@@ -42,7 +42,8 @@ def get_supply_chain_analysis_prompt(
     upstream: list,
     downstream: list,
     news_summary: str,
-    news_count: int
+    news_count: int,
+    commodity_summary: str = ""
 ) -> str:
     """
     生成供应链分析报告的提示词
@@ -55,6 +56,7 @@ def get_supply_chain_analysis_prompt(
         downstream: 下游客户列表
         news_summary: 新闻摘要
         news_count: 新闻数量
+        commodity_summary: 大宗商品价格摘要
     
     Returns:
         完整的提示词
@@ -94,6 +96,14 @@ def get_supply_chain_analysis_prompt(
 # 关键客户（摘要侧重点）
 {', '.join(downstream)}
 
+# 大宗商品实时价格数据
+{commodity_summary if commodity_summary else '⚠️ 大宗商品数据暂未获取'}
+
+**价格数据用途**：
+- 用于填写"供应链风险评估"章节的原材料价格表格
+- 分析原材料价格变化对立讯技术成本的影响
+- 结合关税政策分析综合成本风险
+
 # 实时新闻情报（共{news_count}条，抓取时间：{today}）
 **请按照客户、友商、物料品类三个层次分析以下新闻，特别关注关税相关新闻**：
 {news_summary if news_summary else '⚠️ 当前时段未抓取到直接相关新闻'}
@@ -103,6 +113,7 @@ def get_supply_chain_analysis_prompt(
 - 📱 客户订单/产品动态
 - 🏭 友商市场动作
 - 📦 物料供应/价格变化
+- 💰 大宗商品价格波动
 
 ---
 

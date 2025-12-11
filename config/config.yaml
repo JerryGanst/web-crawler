@@ -13,9 +13,10 @@ ai:
     model: "openai_gpt-oss-120b"
   # 外网 API（内网不可用时备用）
   external:
-    api_key: "AIzaSyA-iyfxyAachx0ZYS3M8kDj05CHxflbxhw"
+    api_key: "AIzaSyCck0Ezj8dSqhFMZwyaQog_ginNTwjMBqA"
     api_base: "https://generativelanguage.googleapis.com/v1beta"
-    model: "gemini-2.0-flash"
+    model: "gemini-3-pro-preview"
+    thinking_level: "high"  # 思考等级: low/high (默认high，推理更深入)
 
 crawler:
   request_interval: 1000 # 请求间隔(毫秒)

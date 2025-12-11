@@ -5,18 +5,22 @@ TrendRadar Web API 服务 (重构版)
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pathlib import Path
 from contextlib import asynccontextmanager
 
 # 导入 API 模块
 from api.cache import cache, CACHE_TTL, REDIS_HOST, REDIS_PORT
 from api.routes import data, news, reports, analysis
+from api.routes import analysis_v3  # V3 模块化分析
 from api.routes import cache as cache_routes
 from api.scheduler import scheduler
 
 # ==================== 应用配置 ====================
 
 BASE_DIR = Path(__file__).parent
+FRONTEND_DIR = BASE_DIR / "frontend" / "dist"
 
 
 # ==================== 生命周期管理 ====================
@@ -62,10 +66,10 @@ app.add_middleware(
 
 # ==================== 注册路由 ====================
 
-# 根路由
-@app.get("/")
-async def root():
-    """API 根路由"""
+# API 状态路由
+@app.get("/api/status")
+async def api_status():
+    """API 状态路由"""
     return {
         "name": "TrendRadar API",
         "version": "2.0.0",
@@ -76,10 +80,19 @@ async def root():
             "news": "/api/news/{category}",
             "reports": "/api/reports",
             "analysis": "/api/generate-analysis",
+            "analysis_v3": "/api/generate-analysis-v3",  # 模块化版本
             "market_analysis": "/api/market-analysis",
             "cache": "/api/cache/status"
         }
     }
+
+# 根路由 - 返回前端页面
+@app.get("/")
+async def root():
+    """返回前端 SPA 页面"""
+    if FRONTEND_DIR.exists():
+        return FileResponse(FRONTEND_DIR / "index.html")
+    return {"message": "Frontend not built. Run: cd frontend && npm run build"}
 
 # 注册数据路由
 app.include_router(data.router, tags=["数据"])
@@ -93,8 +106,21 @@ app.include_router(reports.router, tags=["报告"])
 # 注册分析路由
 app.include_router(analysis.router, tags=["分析"])
 
+# 注册 V3 模块化分析路由
+app.include_router(analysis_v3.router, tags=["分析V3"])
+
 # 注册缓存管理路由
 app.include_router(cache_routes.router, tags=["缓存"])
+
+
+# ==================== 静态文件服务 ====================
+
+# 挂载静态资源目录
+if FRONTEND_DIR.exists():
+    app.mount("/js", StaticFiles(directory=FRONTEND_DIR / "js"), name="js")
+    app.mount("/css", StaticFiles(directory=FRONTEND_DIR / "css"), name="css")
+    app.mount("/chunks", StaticFiles(directory=FRONTEND_DIR / "chunks"), name="chunks")
+    app.mount("/pages", StaticFiles(directory=FRONTEND_DIR / "pages"), name="pages")
 
 
 # ==================== 启动服务 ====================
@@ -104,5 +130,12 @@ if __name__ == "__main__":
         "server:app",
         host="0.0.0.0",
         port=8000,
-        reload=True
+        reload=True,
+        # 避免 watchfiles 监控虚拟环境导致无限重启
+        reload_dirs=[str(BASE_DIR)],
+        reload_excludes=[
+            ".venv/*",
+            "*/site-packages/*",
+            "*/pip/*",
+        ],
     )

@@ -545,9 +545,13 @@ def _match_news(news_list, entity_config):
                         "title": title,
                         "url": news.get("url", ""),
                         "source": news.get("source", ""),
+                        "publish_time": news.get("publish_time", ""),
                         "matched_keyword": kw
                     })
                     break
+        
+        # 按发布时间排序（最新在前）
+        matched_news.sort(key=lambda x: x.get("publish_time", ""), reverse=True)
         
         stats[name] = {
             "keywords": keywords,
@@ -694,15 +698,20 @@ async def get_tariff_news_stats():
                     matched_news.append({
                         "title": title,
                         "url": news.get("url", ""),
-                        "source": news.get("source", "")
+                        "source": news.get("source", ""),
+                        "publish_time": news.get("publish_time", "")
                     })
                     used_news.add(id(news))
             else:  # "其他政策" 兜底
                 matched_news.append({
                     "title": title,
                     "url": news.get("url", ""),
-                    "source": news.get("source", "")
+                    "source": news.get("source", ""),
+                    "publish_time": news.get("publish_time", "")
                 })
+        
+        # 按发布时间排序（最新在前）
+        matched_news.sort(key=lambda x: x.get("publish_time", ""), reverse=True)
         
         stats[cat_name] = {
             "news_count": len(matched_news),

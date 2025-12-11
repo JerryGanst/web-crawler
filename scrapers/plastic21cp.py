@@ -83,27 +83,65 @@ class Plastic21CPScraper:
             "unit": "元/吨",
             "referer": "https://quote.21cp.com/avg_area/list/301005776779010048-PE.html"
         },
-        # PS 聚苯乙烯
-        "ps_east": {
-            "sid": "749907373505699840",
-            "name": "PS(华东)",
-            "category": "塑料",
-            "unit": "元/吨",
-            "referer": "https://quote.21cp.com/avg_area/list/301005776779010048-PS.html"
-        },
-        "ps_south": {
+        # GPPS 通用级聚苯乙烯 (中高端国产)
+        "gpps_east": {
             "sid": "749907578238066688",
-            "name": "PS(华南)",
+            "name": "GPPS(华东)",
             "category": "塑料",
             "unit": "元/吨",
-            "referer": "https://quote.21cp.com/avg_area/list/301005776779010048-PS.html"
+            "referer": "https://quote.21cp.com/avg_area/detail/749907578238066688--.html"
         },
-        "ps_north": {
-            "sid": "749908132301430784",
-            "name": "PS(华北)",
+        "gpps_south": {
+            "sid": "749907578238066689",
+            "name": "GPPS(华南)",
             "category": "塑料",
             "unit": "元/吨",
-            "referer": "https://quote.21cp.com/avg_area/list/301005776779010048-PS.html"
+            "referer": "https://quote.21cp.com/avg_area/detail/749907578238066689--.html"
+        },
+        # GPPS 通用级聚苯乙烯 (中低端国产)
+        "gpps_low_east": {
+            "sid": "749907373505699840",
+            "name": "GPPS低端(华东)",
+            "category": "塑料",
+            "unit": "元/吨",
+            "referer": "https://quote.21cp.com/avg_area/detail/749907373505699840-20-.html"
+        },
+        "gpps_low_south": {
+            "sid": "749907373505699841",
+            "name": "GPPS低端(华南)",
+            "category": "塑料",
+            "unit": "元/吨",
+            "referer": "https://quote.21cp.com/avg_area/detail/749907373505699841-20-.html"
+        },
+        # HIPS 高抗冲聚苯乙烯 (中高端国产)
+        "hips_east": {
+            "sid": "749910931273736192",
+            "name": "HIPS(华东)",
+            "category": "塑料",
+            "unit": "元/吨",
+            "referer": "https://quote.21cp.com/avg_area/detail/749910931273736192-20-.html"
+        },
+        "hips_south": {
+            "sid": "749910931273736193",
+            "name": "HIPS(华南)",
+            "category": "塑料",
+            "unit": "元/吨",
+            "referer": "https://quote.21cp.com/avg_area/detail/749910931273736193-20-.html"
+        },
+        # HIPS 高抗冲聚苯乙烯 (中低端国产)
+        "hips_low_east": {
+            "sid": "749908132301430784",
+            "name": "HIPS低端(华东)",
+            "category": "塑料",
+            "unit": "元/吨",
+            "referer": "https://quote.21cp.com/avg_area/detail/749908132301430784-20-.html"
+        },
+        "hips_low_south": {
+            "sid": "749908132301430785",
+            "name": "HIPS低端(华南)",
+            "category": "塑料",
+            "unit": "元/吨",
+            "referer": "https://quote.21cp.com/avg_area/detail/749908132301430785-20-.html"
         },
     }
     

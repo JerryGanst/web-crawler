@@ -32,3 +32,5 @@ class AnalysisRequest(BaseModel):
     upstream: Optional[List[str]] = None
     downstream: Optional[List[str]] = None
     news: Optional[List[Dict]] = None
+    model: Optional[str] = None  # 可选指定模型（如 gemini-3-pro-preview）
+    thinking_level: Optional[str] = "high"  # Gemini 3 思考等级: low/high

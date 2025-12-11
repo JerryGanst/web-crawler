@@ -21,10 +21,10 @@ import {
     Users,
     AlertTriangle
 } from 'lucide-react';
-import api from '../services/api';
+import api, { API_BASE } from '../services/api';
 
 // API 配置
-const TRENDRADAR_API = 'http://localhost:8000';
+const TRENDRADAR_API = API_BASE || '';
 
 // 增强版 Markdown 渲染器（支持表格、代码块、图表数据）
 const renderMarkdown = (text) => {

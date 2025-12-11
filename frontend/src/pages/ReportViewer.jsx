@@ -11,7 +11,9 @@ import {
     ChevronUp
 } from 'lucide-react';
 
-const TRENDRADAR_API = 'http://localhost:8000';
+import { API_BASE } from '../services/api';
+
+const TRENDRADAR_API = API_BASE || '';
 
 // 生成SVG雷达图
 const generateRadarSVG = (data) => {
