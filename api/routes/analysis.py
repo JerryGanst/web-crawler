@@ -129,7 +129,8 @@ def call_gemini_api(api_base: str, api_key: str, model: str,
         ],
         "generationConfig": {
             "maxOutputTokens": max_tokens,
-            "temperature": 0.7,
+            # Gemini 3 官方建议保持默认 1.0
+            "temperature": 1.0,
             "thinkingConfig": {
                 "thinkingLevel": thinking_level
             }
@@ -484,41 +485,99 @@ async def get_market_analysis(refresh: bool = False):
     scraper = CommodityScraper()
     commodity_data = scraper.scrape()
     
-    # 构建商品数据摘要
+    # 去重并按品类汇总，确保包括塑料在内的所有大宗品类
+    unique_map = {}
+    for item in commodity_data:
+        key = (item.get('chinese_name') or item.get('name', '')).strip().lower()
+        if key and key not in unique_map:
+            unique_map[key] = item
+    deduped_data = list(unique_map.values())
+    
+    # 品类顺序，确保塑料被单独分类出来
+    category_order = {'贵金属': 0, '能源': 1, '工业金属': 2, '农产品': 3, '塑料': 4}
+    from collections import defaultdict
+    categorized = defaultdict(list)
+    for item in deduped_data:
+        cat = item.get('category') or '其他'
+        categorized[cat].append(item)
+    
+    # 构建商品数据摘要（全量，不截断）
     commodity_summary = []
-    for item in commodity_data[:20]:
-        name = item.get('chinese_name') or item.get('name', '')
-        price = item.get('price', 0)
-        change = item.get('change_percent', 0)
-        unit = item.get('unit', '')
-        commodity_summary.append(f"- {name}: ${price} ({'+' if change >= 0 else ''}{change}%) {unit}")
+    def _fmt_price(value):
+        try:
+            return f"{float(value):,.2f}".rstrip('0').rstrip('.')
+        except Exception:
+            return str(value)
+    
+    def _change_abs(item):
+        try:
+            return abs(float(item.get('change_percent') or 0))
+        except Exception:
+            return 0
+
+    for cat in sorted(categorized.keys(), key=lambda c: category_order.get(c, 99)):
+        items = categorized[cat]
+        commodity_summary.append(f"## {cat}（{len(items)}种）")
+        # 按绝对涨跌幅排序，便于分析波动
+        for item in sorted(items, key=_change_abs, reverse=True):
+            name = item.get('chinese_name') or item.get('name', '')
+            price = _fmt_price(item.get('price') or item.get('current_price') or 0)
+            change = item.get('change_percent', 0) or 0
+            unit = item.get('unit', '')
+            commodity_summary.append(f"- {name}: {price} {unit} ({'+' if change >= 0 else ''}{change}%)")
     
     today = datetime.now().strftime("%Y年%m月%d日 %H:%M")
     prompt = get_market_analysis_prompt(commodity_summary, today)
     
     used_model = ""
     used_api = ""
-    
-    try:
+    # 外网配置有 key 就优先外网（不再限定 Gemini）
+    prefer_external = bool(external.get("api_key"))
+
+    def call_internal():
         print(f"🔄 市场分析: 尝试内网 API...")
-        # 内网超时设为10秒，市场分析内容较短
-        response = call_ai_api(
+        resp = call_ai_api(
             internal["api_base"], internal["api_key"], internal["model"],
             MARKET_SYSTEM_PROMPT, prompt, timeout=10, max_tokens=1000
         )
-        
-        if response.status_code == 200:
-            used_model = internal["model"]
-            used_api = "内网"
-            print(f"✅ 内网 API 调用成功")
-        else:
-            raise Exception(f"内网 API 返回 {response.status_code}")
-            
-    except Exception as e:
-        print(f"⚠️ 内网 API 不可用: {e}")
-        print(f"🔄 切换到外网 API...")
-        
+        if resp.status_code != 200:
+            raise Exception(f"内网 API 返回 {resp.status_code}")
+        return resp, internal["model"], "内网"
+
+    def call_external():
         if not external["api_key"]:
+            raise Exception("未配置外网 API Key")
+        is_gemini = "generativelanguage.googleapis.com" in external["api_base"]
+        if is_gemini:
+            thinking_level = external.get("thinking_level", "low")  # 市场分析用 low 以加快速度
+            resp = call_gemini_api(
+                external["api_base"], external["api_key"], external["model"],
+                MARKET_SYSTEM_PROMPT, prompt,
+                thinking_level=thinking_level,
+                timeout=120, max_tokens=1000
+            )
+        else:
+            resp = call_ai_api(
+                external["api_base"], external["api_key"], external["model"],
+                MARKET_SYSTEM_PROMPT, prompt, timeout=60, max_tokens=1000
+            )
+        if resp.status_code != 200:
+            raise Exception(f"外网 API 返回 {resp.status_code}")
+        return resp, external["model"], "外网"
+
+    try:
+        if prefer_external:
+            response, used_model, used_api = call_external()
+        else:
+            response, used_model, used_api = call_internal()
+    except Exception as e_first:
+        print(f"⚠️ 主优先 API 不可用: {e_first}")
+        try:
+            if prefer_external:
+                response, used_model, used_api = call_internal()
+            else:
+                response, used_model, used_api = call_external()
+        except Exception as e_second:
             default_content = f"""**市场概况**
 今日大宗商品市场整体表现平稳，贵金属板块小幅波动，能源价格维持震荡格局。
 
@@ -540,29 +599,6 @@ async def get_market_analysis(refresh: bool = False):
                 "api_source": "默认",
                 "timestamp": datetime.now().isoformat()
             }
-        
-        try:
-            # 检测是否使用 Gemini API
-            is_gemini = "generativelanguage.googleapis.com" in external["api_base"]
-            
-            if is_gemini:
-                thinking_level = external.get("thinking_level", "low")  # 市场分析用 low 以加快速度
-                response = call_gemini_api(
-                    external["api_base"], external["api_key"], external["model"],
-                    MARKET_SYSTEM_PROMPT, prompt,
-                    thinking_level=thinking_level,
-                    timeout=120, max_tokens=1000
-                )
-            else:
-                response = call_ai_api(
-                    external["api_base"], external["api_key"], external["model"],
-                    MARKET_SYSTEM_PROMPT, prompt, timeout=60, max_tokens=1000
-                )
-            used_model = external["model"]
-            used_api = "外网"
-            print(f"✅ 外网 API 调用成功")
-        except Exception as e2:
-            raise HTTPException(status_code=500, detail=f"AI API 不可用: {e2}")
     
     try:
         if response.status_code != 200:
@@ -628,6 +664,14 @@ async def generate_analysis(request: AnalysisRequest):
     
     # 实时抓取最新新闻
     realtime_news = fetch_realtime_news(supply_chain_keywords)
+    try:
+        from .news import _fetch_power_partner_news, _fetch_power_official_announcements
+        power_news = _fetch_power_partner_news()
+        official_news = _fetch_power_official_announcements()
+        realtime_news.extend(power_news + official_news)
+        print(f"⚡ 电源定向新闻: {len(power_news)}，官网公告: {len(official_news)}")
+    except Exception as e:
+        print(f"⚠️ 电源定向抓取失败: {e}")
     print(f"✅ 实时抓取: {len(realtime_news)} 条新闻")
     
     # 从缓存获取已有的供应链新闻

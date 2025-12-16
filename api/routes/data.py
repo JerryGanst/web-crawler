@@ -224,6 +224,71 @@ async def get_price_history(commodity: Optional[str] = None, days: int = 7):
         }
 
 
+@router.post("/api/price-history/init-plastics")
+async def init_plastics_history(days: int = 30):
+    """
+    初始化塑料历史数据（从中塑在线拉取历史记录）
+    
+    Args:
+        days: 拉取最近多少天的历史数据，默认30天
+    """
+    try:
+        from scrapers.plastic21cp import Plastic21CPScraper
+        from core.price_history import PriceHistoryManager
+        from datetime import datetime, timedelta
+        
+        scraper = Plastic21CPScraper()
+        history_manager = PriceHistoryManager()
+        
+        # 计算日期范围
+        end_date = datetime.now().strftime("%Y-%m-%d")
+        start_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+        
+        total_saved = 0
+        products_processed = []
+        
+        for product_key in scraper.list_products():
+            try:
+                # 获取历史数据
+                records = scraper.fetch(product_key, start_date=start_date, end_date=end_date)
+                
+                # 保存到历史记录
+                for record in records:
+                    name = record.get("chinese_name") or record.get("name")
+                    price = record.get("price")
+                    change = record.get("change_percent", 0)
+                    source = record.get("source", "中塑在线")
+                    date = record.get("price_date")
+                    
+                    if name and price and date:
+                        history_manager.save_daily_price(name, price, change, source, date)
+                        total_saved += 1
+                
+                products_processed.append({
+                    "product": product_key,
+                    "records": len(records)
+                })
+                
+            except Exception as e:
+                products_processed.append({
+                    "product": product_key,
+                    "error": str(e)
+                })
+        
+        return {
+            "status": "success",
+            "message": f"已初始化 {total_saved} 条塑料历史数据",
+            "date_range": {"start": start_date, "end": end_date},
+            "products": products_processed
+        }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
 @router.get("/api/data/sources")
 async def get_data_sources():
     """
@@ -272,6 +337,19 @@ async def get_data_sources():
                     "name": "上海期货交易所",
                     "url": "https://www.shfe.com.cn",
                     "commodities": ["沪金", "沪银", "沪铜", "沪铝", "沪锌", "天然橡胶"]
+                },
+                {
+                    "id": "21cp",
+                    "name": "中塑在线",
+                    "url": "https://quote.21cp.com",
+                    "commodities": [
+                        "ABS(华南)", "ABS(华东)", "ABS(华北)",
+                        "PP(华东)", "PP(华南)", "PP(华北)",
+                        "PE(华东)", "PE(华南)", "PE(华北)",
+                        "GPPS(华东)", "GPPS(华南)", "GPPS低端(华东)", "GPPS低端(华南)",
+                        "HIPS(华东)", "HIPS(华南)", "HIPS低端(华东)", "HIPS低端(华南)",
+                        "WTI原油"
+                    ]
                 }
             ]
         },

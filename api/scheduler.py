@@ -94,9 +94,18 @@ class BackgroundScheduler:
         """抓取实时新闻"""
         try:
             from api.routes.analysis import fetch_realtime_news
+            from api.routes.news import _fetch_power_partner_news, _fetch_power_official_announcements
             
             print(f"⏰ [定时] 开始抓取 {cache_key}...")
             news = fetch_realtime_news(keywords)
+            if category == "supply-chain":
+                power_news = _fetch_power_partner_news()
+                official_news = _fetch_power_official_announcements()
+                seen = {n.get("title") for n in news}
+                for item in power_news + official_news:
+                    if item.get("title") and item["title"] not in seen:
+                        seen.add(item["title"])
+                        news.append(item)
             
             result = {
                 "status": "success",
@@ -131,7 +140,7 @@ class BackgroundScheduler:
             ("大宗商品数据", self._crawl_commodity_data),
             ("财经新闻", lambda: self._crawl_category("finance")),
             ("科技新闻", lambda: self._crawl_category("tech")),
-            ("供应链新闻", lambda: self._fetch_realtime_news("news:supply-chain", supply_chain_keywords)),
+            ("供应链新闻", lambda: self._fetch_realtime_news("news:supply-chain", supply_chain_keywords, "supply-chain")),
             ("关税新闻", lambda: self._fetch_realtime_news("news:tariff", tariff_keywords, "tariff")),
             ("塑料新闻", lambda: self._fetch_realtime_news("news:plastics", plastics_keywords, "plastics")),
             ("大宗商品新闻", lambda: self._crawl_category("commodity")),
@@ -183,7 +192,7 @@ class BackgroundScheduler:
                 "supply_chain": {
                     "interval": 10 * 60,  # 10分钟
                     "last_run": 0,
-                    "func": lambda: self._fetch_realtime_news("news:supply-chain", supply_chain_keywords)
+                    "func": lambda: self._fetch_realtime_news("news:supply-chain", supply_chain_keywords, "supply-chain")
                 },
                 "tariff": {
                     "interval": 10 * 60,

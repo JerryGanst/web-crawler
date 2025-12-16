@@ -45,6 +45,17 @@ TrendRadar/
 └── frontend/           # ⚛️ React 前端 (端口 5173)
 ```
 
+## 模型小测自动评分
+
+用于评测不同模型对 TrendRadar 架构理解的小测与自动打分脚本在 `scripts/score_arch_prompt.py`。
+
+```bash
+# 将模型回答放到 answer.txt 后打分
+python3 scripts/score_arch_prompt.py --file answer.txt
+```
+
+更高难度的 100 分版小测评分脚本在 `scripts/score_arch_exam_100.py`（要求模型按题目给出的 JSON schema 作答）。
+
 ## 🚀 快速启动
 
 ### 方式一：一键启动（推荐）

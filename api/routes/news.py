@@ -12,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 from typing import Dict
+from urllib.parse import quote
 
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 
@@ -61,6 +62,20 @@ POWER_PARTNERS = {
     "航嘉": ["航嘉", "航嘉驰源"],
     "赛尔康": ["赛尔康", "Salcomp"],
     "台达电子": ["台达", "台达电子", "Delta", "2308.TW"],
+}
+# 电源友商官网
+POWER_PARTNER_SITES = {
+    "奥海科技": "https://www.aohai.com",
+    "航嘉": "https://www.huntkey.com",
+    "赛尔康": "https://www.salcomp.com",
+    "台达电子": "https://www.deltaww.com",
+}
+# 电源友商官网新闻/公告页
+POWER_PARTNER_NEWS_PAGES = {
+    "奥海科技": "https://www.aohai.com/news",
+    "航嘉": "https://www.huntkey.com/category/news",
+    "赛尔康": "https://www.salcomp.com/newsroom",
+    "台达电子": "https://www.deltaww.com/en-US/about-delta/news",
 }
 
 # 合并所有友商关键词
@@ -130,6 +145,132 @@ def _crawl_news(category: str, include_custom: bool = True) -> Dict:
     }
 
 
+def _extract_text_from_html(html_text: str, limit: int = 1200) -> str:
+    """简易正文抽取：去掉标签/脚本，压缩空白"""
+    import re, html as html_lib
+    if not html_text:
+        return ""
+    cleaned = re.sub(r"(?is)<script.*?>.*?</script>", " ", html_text)
+    cleaned = re.sub(r"(?is)<style.*?>.*?</style>", " ", cleaned)
+    cleaned = re.sub(r"(?s)<[^>]+>", " ", cleaned)
+    cleaned = html_lib.unescape(cleaned)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned[:limit]
+
+
+def _fetch_power_partner_news(max_per_company: int = 4) -> list:
+    """
+    针对电源友商的定向抓取（Google News RSS），并尝试提取正文。
+    过滤掉雪球/百度，避免噪声。
+    """
+    import requests as req
+    import xml.etree.ElementTree as ET
+    
+    results = []
+    seen_titles = set()
+    
+    headers = {"User-Agent": "Mozilla/5.0 (TrendRadar/1.0)"}
+    
+    for company, keywords in POWER_PARTNERS.items():
+        # 取公司名称作为搜索关键词
+        keyword = company
+        feed_url = f"https://news.google.com/rss/search?q={quote(keyword)}&hl=zh-CN&gl=CN&ceid=CN:zh-Hans"
+        try:
+            resp = req.get(feed_url, timeout=10, headers=headers)
+            if resp.status_code != 200 or not resp.content:
+                continue
+            root = ET.fromstring(resp.content)
+            items = root.findall(".//item")[:max_per_company]
+            for item in items:
+                title = item.findtext("title", "").strip()
+                link = item.findtext("link", "").strip()
+                pub = item.findtext("pubDate", "").strip()
+                if not title or title in seen_titles:
+                    continue
+                seen_titles.add(title)
+                
+                content = ""
+                try:
+                    article = req.get(link, timeout=8, headers=headers)
+                    if article.status_code == 200:
+                        content = _extract_text_from_html(article.text)
+                except Exception:
+                    content = ""
+                
+                results.append({
+                    "title": title,
+                    "url": link,
+                    "source": f"{company} 相关",
+                    "publish_time": pub,
+                    "content": content
+                })
+        except Exception:
+            continue
+
+    return results
+
+
+def _fetch_power_official_announcements(max_per_company: int = 5) -> list:
+    """
+    抓取电源友商官网公告/新闻页内容
+    """
+    import re
+    import requests as req
+    from urllib.parse import urljoin
+
+    headers = {"User-Agent": "Mozilla/5.0 (TrendRadar/1.0)"}
+    results = []
+
+    for company, page_url in POWER_PARTNER_NEWS_PAGES.items():
+        try:
+            resp = req.get(page_url, timeout=12, headers=headers)
+            if resp.status_code != 200 or not resp.text:
+                continue
+            html = resp.text
+
+            links = []
+            try:
+                from bs4 import BeautifulSoup
+
+                soup = BeautifulSoup(html, "html.parser")
+                links = [(a.get_text(" ", strip=True), a.get("href")) for a in soup.find_all("a", href=True)]
+            except Exception:
+                raw_links = re.findall(r'<a[^>]+href=["\']([^"\']+)["\'][^>]*>(.*?)</a>', html, flags=re.I | re.S)
+                for href, text in raw_links:
+                    clean_text = re.sub(r"<[^>]+>", " ", text)
+                    clean_text = re.sub(r"\s+", " ", clean_text).strip()
+                    links.append((clean_text, href))
+
+            seen_titles = set()
+            seen_urls = set()
+            for text, href in links:
+                if not href or not text or len(text) < 5:
+                    continue
+                if href.startswith("#") or href.lower().startswith("javascript"):
+                    continue
+                lower_href = href.lower()
+                if not any(k in lower_href for k in ["news", "press", "media", "info", "article", "xinwen", "gonggao"]) and not any(tag in text for tag in ["新闻", "公告", "动态", "资讯", "媒体"]):
+                    continue
+                full_url = urljoin(page_url, href)
+                if text in seen_titles or full_url in seen_urls:
+                    continue
+                seen_titles.add(text)
+                seen_urls.add(full_url)
+                results.append({
+                    "title": text[:180],
+                    "url": full_url,
+                    "source": f"{company} 官网",
+                    "publish_time": "",
+                    "content": ""
+                })
+                if len(seen_titles) >= max_per_company:
+                    break
+        except Exception:
+            continue
+
+    return results
+
+
 def _background_crawl_news(cache_key: str, category: str, include_custom: bool = True):
     """后台爬取新闻并更新缓存"""
     try:
@@ -151,6 +292,19 @@ def _background_fetch_realtime(cache_key: str, keywords: list, category: str = N
         from .analysis import fetch_realtime_news
         print(f"🔄 [后台] 开始拓取 {cache_key}...")
         news = fetch_realtime_news(keywords)
+        # 过滤不需要的来源
+        news = [n for n in news if n.get("source") not in ["雪球", "百度"]]
+        
+        # 针对 supply-chain 增补电源友商定向抓取（带正文）
+        if category == "supply-chain":
+            power_news = _fetch_power_partner_news()
+            official_news = _fetch_power_official_announcements()
+            # 去重（按标题）
+            seen = {n.get("title") for n in news}
+            for item in power_news + official_news:
+                if item.get("title") and item["title"] not in seen:
+                    seen.add(item["title"])
+                    news.append(item)
         
         # 统计数据来源分布
         sources = {}
@@ -255,7 +409,7 @@ async def get_supply_chain_news(refresh: bool = False):
     cached = cache.get(cache_key)
     
     if refresh:
-        triggered = _trigger_background_refresh(cache_key, _background_fetch_realtime, SUPPLY_CHAIN_KEYWORDS, None)
+        triggered = _trigger_background_refresh(cache_key, _background_fetch_realtime, SUPPLY_CHAIN_KEYWORDS, "supply-chain")
         
         if cached:
             cached["cached"] = True
@@ -527,7 +681,7 @@ MATERIALS = {
 }
 
 
-def _match_news(news_list, entity_config):
+def _match_news(news_list, entity_config, website_map=None):
     """通用新闻匹配函数"""
     stats = {}
     for name, keywords in entity_config.items():
@@ -556,7 +710,8 @@ def _match_news(news_list, entity_config):
         stats[name] = {
             "keywords": keywords,
             "news_count": count,
-            "news": matched_news[:10]  # 最多返回10条
+            "news": matched_news[:10],  # 最多返回10条
+            "website": (website_map or {}).get(name)
         }
     return stats
 
@@ -575,7 +730,8 @@ async def get_partner_news_stats():
     
     stats = {}
     for category_name, partners in categories.items():
-        stats[category_name] = _match_news(news_list, partners)
+        website_map = POWER_PARTNER_SITES if category_name == "电源" else None
+        stats[category_name] = _match_news(news_list, partners, website_map)
     
     total_partners = sum(len(p) for p in categories.values())
     partners_with_news = sum(

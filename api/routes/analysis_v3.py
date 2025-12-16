@@ -74,7 +74,8 @@ async def call_ai_async(
             "system_instruction": {"parts": [{"text": system_prompt}]},
             "contents": [{"role": "user", "parts": [{"text": user_prompt}]}],
             "generation_config": {
-                "temperature": 0.7,
+                # Gemini 3 官方建议保持默认 1.0
+                "temperature": 1.0,
                 "max_output_tokens": max_tokens
             }
         }
@@ -334,6 +335,16 @@ async def generate_analysis_modular(request: AnalysisRequest):
     
     realtime_news = fetch_realtime_news(supply_chain_keywords)
     print(f"📰 实时新闻: {len(realtime_news)} 条")
+    
+    # 针对电源友商补充定向抓取（Google News + 官网公告）
+    try:
+        from .news import _fetch_power_partner_news, _fetch_power_official_announcements
+        power_news = _fetch_power_partner_news()
+        official_news = _fetch_power_official_announcements()
+        realtime_news.extend(power_news + official_news)
+        print(f"⚡ 电源定向新闻: {len(power_news)}，官网公告: {len(official_news)}")
+    except Exception as e:
+        print(f"⚠️ 电源定向抓取失败: {e}")
     
     # 合并请求中的新闻
     all_news = list(request.news) if request.news else []

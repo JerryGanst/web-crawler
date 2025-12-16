@@ -322,6 +322,8 @@ class CommodityScraper:
             return '工业金属'
         if any(k in name_lower for k in ['corn', 'wheat', 'soybean', 'cotton', 'sugar', '玉米', '小麦', '大豆']):
             return '农产品'
+        if any(k in name_lower for k in ['pp', 'polypropylene', 'pe', 'polyethylene', 'pvc', 'abs', 'hips', 'gpps', 'pet', 'pa', 'pc', 'pbt', 'pcta', '塑料', '聚丙烯', '聚乙烯', '聚氯乙烯']):
+            return '塑料'
         
         return '其他'
 

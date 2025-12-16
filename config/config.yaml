@@ -13,10 +13,13 @@ ai:
     model: "openai_gpt-oss-120b"
   # 外网 API（内网不可用时备用）
   external:
-    api_key: "AIzaSyCck0Ezj8dSqhFMZwyaQog_ginNTwjMBqA"
+    api_key: "AIzaSyBB6bEpeMR7aOIrRvJvZ8yZOoHeUwX_qGI"  # Gemini 外网 Key（恢复默认）
     api_base: "https://generativelanguage.googleapis.com/v1beta"
     model: "gemini-3-pro-preview"
     thinking_level: "high"  # 思考等级: low/high (默认high，推理更深入)
+    # alt_api_key_claude: "sk-qjJuVhHf6nqMQ9ttp7Xhhpne9fi3nDZ3YwqCx0fgLTdzPQmb"  # 一步API备用
+    # alt_api_base_claude: "https://yibuapi.com/v1"  # 或 https://yibu.pro/v1
+    # alt_model_claude: "claude-opus-4-5-20251101"
 
 crawler:
   request_interval: 1000 # 请求间隔(毫秒)
