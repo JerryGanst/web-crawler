@@ -16,6 +16,7 @@ class BaseScraper(ABC):
     def __init__(self, name: str, config: Dict[str, Any] = None):
         self.name = name
         self.config = config or {}
+        self.rate_limit_delay = self.config.get("rate_limit_delay", 0)
         self.session = requests.Session()
         self._setup_session()
     
@@ -23,8 +24,11 @@ class BaseScraper(ABC):
         """配置请求会话"""
         default_headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "application/json, text/html, */*",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
             "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
         }
         # 合并自定义 headers
         custom_headers = self.config.get("headers", {})
@@ -40,14 +44,34 @@ class BaseScraper(ABC):
         
         for retry in range(max_retries):
             try:
+                # 轻量级速率限制：每次请求前等待配置的延迟（含抖动）
+                if self.rate_limit_delay > 0:
+                    jitter = random.uniform(0, 0.3)
+                    time.sleep(self.rate_limit_delay + jitter)
+
                 if method.upper() == "GET":
                     resp = self.session.get(url, timeout=timeout, **kwargs)
                 else:
                     resp = self.session.post(url, timeout=timeout, **kwargs)
                 
+                # 429/403 特殊处理：指数退避
+                if resp.status_code in (429, 403):
+                    backoff = random.uniform(5, 10) * (2 ** retry)
+                    print(f"  ⚠️ {self.name} 被限流 ({resp.status_code})，等待 {backoff:.1f}s 后重试...")
+                    time.sleep(backoff)
+                    continue
+                
                 resp.raise_for_status()
                 return resp
                 
+            except requests.exceptions.HTTPError as e:
+                # 非 429/403 的 HTTP 错误
+                if retry < max_retries - 1:
+                    wait = random.uniform(2, 4) + retry * 2
+                    time.sleep(wait)
+                else:
+                    print(f"  ❌ {self.name} 请求失败: {e}")
+                    return None
             except Exception as e:
                 if retry < max_retries - 1:
                     wait = random.uniform(2, 4) + retry * 2

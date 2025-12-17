@@ -1,0 +1,43 @@
+{
+  "mcpServers": {
+    "trendradar": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/Users/jerryganst/Desktop/TrendRadar",
+        "run",
+        "python",
+        "-m",
+        "mcp_server.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/Users/jerryganst/Desktop/TrendRadar"
+      }
+    },
+    "redis": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-redis",
+        "redis://localhost:49907"
+      ]
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/jerryganst/Desktop/TrendRadar"
+      ]
+    },
+    "sqlite": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sqlite",
+        "--db-path",
+        "/Users/jerryganst/Desktop/TrendRadar/data/trendradar.db"
+      ]
+    }
+  }
+}
