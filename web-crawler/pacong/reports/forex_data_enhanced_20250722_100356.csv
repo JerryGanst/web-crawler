@@ -1,0 +1,3 @@
+﻿currency_pair,货币对_中文,bid_price,ask_price,current_price,date,time,source,数据源_中文,timestamp
+09:54:32,09:54:32,4.0952,4.097,4.09,0.0169,4.087,sina_hq_api,新浪财经行情API,2025-07-22 09:54:41
+CNY/TWD,人民币兑新台币,,,4.0938,,,applescript_chrome,AppleScript浏览器获取,2025-07-22 09:54:51

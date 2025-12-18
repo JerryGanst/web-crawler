@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pacong 数据驾驶舱（离线模板）</title>
+  <style>
+    :root {
+      --bg: #eef3ff;
+      --panel: #ffffff;
+      --panel-line: #e3e9f5;
+      --panel-strong: #f7f9ff;
+      --primary: #2f80ed;
+      --primary-2: #56ccf2;
+      --muted: #6f7b96;
+      --text: #2251979f;
+      --green: #15b386;
+      --red: #d1495b;
+      --shadow: 0 12px 28px rgba(47, 128, 237, 0.12);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", "Inter", "HarmonyOS Sans", "PingFang SC", "Segoe UI", sans-serif;
+      background: radial-gradient(120% 120% at 20% 20%, rgba(86, 204, 242, 0.25), transparent),
+                  radial-gradient(120% 120% at 80% 0%, rgba(47, 128, 237, 0.18), transparent),
+                  var(--bg);
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      color: var(--text);
+    }
+    /* 侧边栏：窄条图标 + 文字，亮色 */
+    aside {
+      background: #f9fbff;
+      border-right: 1px solid var(--panel-line);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 10px;
+      gap: 14px;
+    }
+    .nav-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #65b3ff, #2f81ff);
+      box-shadow: var(--shadow);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      margin-bottom: 12px;
+    }
+    .nav-item {
+      width: 64px;
+      text-align: center;
+      padding: 10px 6px;
+      border-radius: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: 0.15s ease;
+      display: grid;
+      gap: 6px;
+      justify-items: center;
+    }
+    .nav-item .dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: #eef3ff;
+      display: grid;
+      place-items: center;
+      color: #9aa8c4;
+      font-size: 16px;
+    }
+    .nav-item.active, .nav-item:hover {
+      background: linear-gradient(180deg, #e9f2ff, #f4f7ff);
+      color: #0962e8;
+      font-weight: 600;
+      box-shadow: var(--shadow);
+    }
+    .nav-item.active .dot, .nav-item:hover .dot {
+      background: #e0edff;
+      color: #0962e8;
+    }
+    main {
+      padding: 26px 30px 34px 30px;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .hero h1 { margin: 0 0 6px 0; font-size: 26px; letter-spacing: 0.2px; }
+    .hero p { margin: 0; color: var(--muted); }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #e7f0ff;
+      color: #0f5fd4;
+      border: 1px solid #d6e4ff;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .actions { display: flex; gap: 10px; align-items: center; }
+    button, .ghost-btn, .chip-btn {
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 700;
+      transition: 0.15s ease;
+      letter-spacing: 0.2px;
+    }
+    button {
+      background: linear-gradient(135deg, #2f80ed, #5aa9ff);
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+    button:hover { transform: translateY(-1px); }
+    .ghost-btn {
+      background: #f4f7ff;
+      color: #0f5fd4;
+      border: 1px solid #d6e4ff;
+      box-shadow: none;
+    }
+    .chip-btn {
+      background: #edf3ff;
+      color: #0f5fd4;
+      border: 1px solid #d6e4ff;
+      padding: 8px 12px;
+      font-weight: 600;
+    }
+    .chip-btn.active {
+      background: #2f80ed;
+      color: #fff;
+      border-color: #2f80ed;
+      box-shadow: var(--shadow);
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--panel-line);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 12px 36px rgba(12, 64, 152, 0.06);
+    }
+    .panel header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .panel h3 {
+      margin: 0;
+      font-size: 17px;
+      letter-spacing: 0.2px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      background: var(--panel-strong);
+      border: 1px solid var(--panel-line);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .card header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .price {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 6px 0 4px 0;
+      color: #0d3f8a;
+    }
+    .sub { color: var(--muted); font-size: 13px; }
+    .trend { color: var(--green); font-weight: 700; }
+    .trend.down { color: var(--red); }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: #eef3ff;
+      color: #0f5fd4;
+      font-size: 12px;
+    }
+    canvas.spark {
+      width: 100%;
+      height: 80px;
+      display: block;
+      margin-top: 6px;
+    }
+    .condensed {
+      display: grid;
+      grid-template-columns: auto auto;
+      gap: 8px 12px;
+      align-items: center;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 0.9fr;
+      gap: 12px;
+    }
+    .hint {
+      background: #f5f8ff;
+      border: 1px dashed var(--panel-line);
+      border-radius: 12px;
+      padding: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    textarea, select {
+      width: 100%;
+      border-radius: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--panel-line);
+      font-family: inherit;
+      background: #f9fbff;
+      color: var(--text);
+      margin: 6px 0 12px 0;
+      outline: none;
+      transition: 0.15s ease;
+    }
+    textarea:focus, select:focus {
+      border-color: #2f80ed;
+      box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.1);
+      background: #fff;
+    }
+    textarea { resize: vertical; min-height: 110px; }
+    .toast {
+      position: fixed;
+      bottom: 22px;
+      right: 24px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: #0f5fd4;
+      color: #fff;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: 0.2s ease;
+      z-index: 6;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    @media (max-width: 1100px) {
+      body { grid-template-columns: 70px 1fr; }
+      aside { padding: 14px 8px; }
+      main { padding: 18px; }
+      .two-col { grid-template-columns: 1fr; }
+      .hero { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <aside>
+    <div class="nav-icon">∞</div>
+    <div class="nav-item active" data-target="dashboard">
+      <div class="dot">📈</div>
+      <div>价格</div>
+    </div>
+    <div class="nav-item" data-target="currency">
+      <div class="dot">💱</div>
+      <div>货币</div>
+    </div>
+    <div class="nav-item" data-target="url-config">
+      <div class="dot">🔗</div>
+      <div>URL</div>
+    </div>
+    <div class="nav-item" data-target="notes">
+      <div class="dot">📘</div>
+      <div>指引</div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="hero" id="dashboard">
+      <div>
+        <span class="pill">采集价展示 · 蓝白亮色主题</span>
+        <h1>大宗商品价格看板</h1>
+        <p>黄金 / 铜 / 石油，价格按采集时间锁定，不允许人工改价；仅可切换币种显示。</p>
+      </div>
+      <div class="actions">
+        <button id="btn-refresh">刷新示例数据</button>
+      </div>
+    </div>
+
+    <section class="panel">
+      <header>
+        <h3>核心商品（采集价）</h3>
+        <div class="actions" id="currency-switch">
+          <span class="sub">显示币种</span>
+          <div class="chip-btn active" data-currency="CNY">人民币</div>
+          <div class="chip-btn" data-currency="USD">美元</div>
+        </div>
+      </header>
+      <div class="grid" id="commodity-grid"></div>
+    </section>
+
+    <section class="panel two-col" id="currency">
+      <div>
+        <header>
+          <h3>价格总览 · 日/周视角</h3>
+          <div class="actions" id="view-switch">
+            <div class="chip-btn active" data-view="daily">日线</div>
+            <div class="chip-btn" data-view="weekly">周线</div>
+          </div>
+        </header>
+        <canvas id="overview" width="600" height="280" style="width:100%;height:280px;"></canvas>
+        <div class="sub" style="margin-top:8px;">展示方式参考股票 K 线轴：横轴按天/周，纵轴为归一化相对变化，便于跨品类对比。</div>
+      </div>
+      <div>
+        <header>
+          <h3>采样统计说明</h3>
+        </header>
+        <div class="hint">
+          - 采样点数以统计学维度呈现（样本数 n、均值 μ、标准差 σ、极差）。<br>
+          - 数据均来自采集结果，仅做展示，不允许人工修改采集价。<br>
+          - 币种切换仅影响显示：基准为人民币，可按汇率展示美元。<br>
+          - 日/周视角用于对齐股票类时间窗口，方便与行情做对比。
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="url-config">
+      <header>
+        <h3>URL 配置入口（离线占位）</h3>
+        <div class="tag">保持侧边栏风格，可拆为独立外放页</div>
+      </header>
+      <div class="grid">
+        <form id="url-form">
+          <label for="url-list" class="sub">目标 URL（每行一个）</label>
+          <textarea id="url-list" placeholder="https://example.com/api/prices&#10;https://data.example.cn/commodities"></textarea>
+          <label for="crawl-method" class="sub">采集方式</label>
+          <select id="crawl-method">
+            <option value="requests">requests · HTTP</option>
+            <option value="selenium">selenium · 浏览器渲染</option>
+            <option value="rpa">rpa · 桌面自动化</option>
+          </select>
+          <label for="crawl-frequency" class="sub">抓取频次</label>
+          <select id="crawl-frequency">
+            <option>每 15 分钟</option>
+            <option>每 1 小时</option>
+            <option>每日</option>
+          </select>
+          <label for="schema" class="sub">字段映射（示例 YAML）</label>
+          <textarea id="schema" placeholder="fields:&#10;  name: .title&#10;  price: .quote.cny&#10;  change_pct: .quote.change"></textarea>
+          <div class="actions">
+            <button type="submit">暂存配置</button>
+            <div class="ghost-btn" id="btn-copy-template">复制示例</div>
+          </div>
+        </form>
+        <div class="hint" id="notes">
+simple_scrapers:
+  commodity_custom:
+    enabled: true
+    name: "自定义 URL 来源"
+    urls:
+      - https://example.com/api/prices
+    method: "requests"
+    parser:
+      name: ".title"
+      price: ".quote.cny"
+      change_pct: ".quote.change"
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const state = {
+      currency: "CNY",
+      view: "daily",
+      usdRate: 7.2,
+      commodities: [
+        { id: "gold", name: "黄金", symbol: "Au", priceCNY: 482.3, change: 0.82, daily: [469, 472, 475, 479, 482, 480, 486, 489], weekly: [460, 472, 485, 492], color: "#2f80ed", unitCNY: "元/克" },
+        { id: "copper", name: "铜", symbol: "Cu", priceCNY: 73800, change: -0.35, daily: [73200, 73450, 73300, 73580, 73900, 74100, 73800], weekly: [72500, 73300, 74000, 74400], color: "#56ccf2", unitCNY: "元/吨" },
+        { id: "oil", name: "石油", symbol: "WTI", priceCNY: 548.2, change: 1.12, daily: [533, 536, 540, 539, 545, 548, 552, 549], weekly: [528, 538, 546, 552], color: "#1a6df3", unitCNY: "元/桶" }
+      ]
+    };
+
+    const $ = (q) => document.querySelector(q);
+    const toastEl = $("#toast");
+    const grid = $("#commodity-grid");
+
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      setTimeout(() => toastEl.classList.remove("show"), 2100);
+    }
+
+    function fmtPrice(value, currency) {
+      const symbol = currency === "USD" ? "$" : "¥";
+      const v = currency === "USD" ? value / state.usdRate : value;
+      const number = v >= 1000 ? v.toLocaleString("zh-CN", { maximumFractionDigits: 2 }) : v.toFixed(2);
+      return `${symbol}${number}`;
+    }
+
+    function stats(series) {
+      const n = series.length;
+      const mean = series.reduce((a, b) => a + b, 0) / n;
+      const variance = series.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / n;
+      const std = Math.sqrt(variance);
+      const min = Math.min(...series);
+      const max = Math.max(...series);
+      return { n, mean, std, min, max };
+    }
+
+    function renderCards() {
+      grid.innerHTML = "";
+      state.commodities.forEach((c) => {
+        const series = c[state.view];
+        const st = stats(series);
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <header>
+            <div><strong>${c.name}</strong> <span class="sub">(${c.symbol})</span></div>
+            <div class="tag">${state.view === "daily" ? "日线" : "周线"}</div>
+          </header>
+          <div class="price">${fmtPrice(c.priceCNY, state.currency)}</div>
+          <div class="sub"><span class="trend ${c.change < 0 ? "down" : ""}">${c.change > 0 ? "+" : ""}${c.change.toFixed(2)}%</span> · ${c.unitCNY}</div>
+          <canvas class="spark" data-id="${c.id}" width="320" height="96"></canvas>
+          <div class="condensed">
+            <div>采样 n = ${st.n}</div><div>均值 μ = ${st.mean.toFixed(2)}</div>
+            <div>标准差 σ = ${st.std.toFixed(2)}</div><div>极差 = ${(st.max - st.min).toFixed(2)}</div>
+          </div>
+        `;
+        grid.appendChild(card);
+        drawSpark(card.querySelector("canvas"), series, c.color);
+      });
+      drawOverview();
+    }
+
+    function drawSpark(canvas, data, color) {
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      const min = Math.min(...data);
+      const max = Math.max(...data);
+      const range = max - min || 1;
+      const pad = 8;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      data.forEach((v, i) => {
+        const x = pad + (i / (data.length - 1 || 1)) * (w - pad * 2);
+        const y = h - pad - ((v - min) / range) * (h - pad * 2);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.strokeStyle = color + "55";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(pad, h - pad - ((data[data.length - 1] - min) / range) * (h - pad * 2));
+      ctx.lineTo(w - pad, h - pad - ((data[data.length - 1] - min) / range) * (h - pad * 2));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    function drawOverview() {
+      const canvas = $("#overview");
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = "#e1e8f5";
+      ctx.lineWidth = 1;
+      for (let i = 1; i < 4; i++) {
+        const y = (h / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+      state.commodities.forEach((c) => {
+        const data = c[state.view];
+        const min = Math.min(...data);
+        const max = Math.max(...data);
+        const range = max - min || 1;
+        const pad = 26;
+        ctx.strokeStyle = c.color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        data.forEach((v, i) => {
+          const x = pad + (i / (data.length - 1 || 1)) * (w - pad * 2);
+          const y = h - pad - ((v - min) / range) * (h - pad * 2);
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      });
+    }
+
+    function randomizeSeries() {
+      state.commodities.forEach((c) => {
+        c.daily = c.daily.map((v) => v * (0.985 + Math.random() * 0.03));
+        c.weekly = c.weekly.map((v) => v * (0.985 + Math.random() * 0.03));
+      });
+      renderCards();
+      showToast("示例采集数据已刷新");
+    }
+
+    function copyTemplate() {
+      const snippet = `simple_scrapers:
+  commodity_custom:
+    enabled: true
+    name: "自定义 URL 来源"
+    urls:
+      - https://example.com/api/prices
+    method: "requests"
+    parser:
+      name: ".title"
+      price: ".quote.cny"
+      change_pct: ".quote.change"`;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(snippet)
+          .then(() => showToast("已复制示例配置"))
+          .catch(() => fallbackCopy(snippet));
+      } else {
+        fallbackCopy(snippet);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.setAttribute("readonly", "");
+      area.style.position = "absolute";
+      area.style.left = "-9999px";
+      document.body.appendChild(area);
+      area.select();
+      try {
+        document.execCommand("copy");
+        showToast("已复制示例配置");
+      } catch (e) {
+        showToast("复制失败，请手动选择文本");
+      }
+      document.body.removeChild(area);
+    }
+
+    // 事件绑定
+    document.getElementById("btn-refresh").onclick = randomizeSeries;
+    document.getElementById("btn-copy-template").onclick = copyTemplate;
+    document.getElementById("url-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      showToast("配置暂存成功（占位，无接口调用）");
+    });
+    document.querySelectorAll("#currency-switch .chip-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#currency-switch .chip-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.currency = btn.dataset.currency;
+        renderCards();
+        showToast(`币种切换为 ${state.currency === "USD" ? "美元" : "人民币"}`);
+      });
+    });
+    document.querySelectorAll("#view-switch .chip-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#view-switch .chip-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.view = btn.dataset.view;
+        renderCards();
+      });
+    });
+
+    // 侧边栏高亮同步（点击 + 观察）
+    const navItems = Array.from(document.querySelectorAll(".nav-item"));
+    navItems.forEach((item) => {
+      item.addEventListener("click", () => {
+        const target = document.getElementById(item.dataset.target);
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+      if (visible[0]) {
+        const id = visible[0].target.id;
+        navItems.forEach((n) => n.classList.toggle("active", n.dataset.target === id));
+      }
+    }, { threshold: 0.3 });
+    ["dashboard", "currency", "url-config", "notes"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    renderCards();
+  </script>
+</body>
+</html>

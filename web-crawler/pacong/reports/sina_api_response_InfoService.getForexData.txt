@@ -1,0 +1,2 @@
+/*<script>location.href='//sina.com';</script>*/
+var  _fx_scnytwd=({"__ERROR":3,"__ERRORMSG":"Service not valid"});

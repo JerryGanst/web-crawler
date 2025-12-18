@@ -1,0 +1,90 @@
+# =============================================================
+# TrendRadar 多数据库架构配置
+# =============================================================
+# 
+# 设计原则:
+#   - SQLite: 非结构化数据 (新闻、爬取日志、推送记录)
+#   - MySQL:  结构化数据 (大宗商品行情、变更日志)
+#   - Redis:  一级缓存、价格历史快照、会话状态
+#   - MongoDB: 历史数据归档、海量日志
+#
+# =============================================================
+
+# Redis 配置 (缓存与快照)
+redis:
+  enabled: true
+  host: "10.180.248.145"
+  port: 6379
+  db: 0
+  password: ""  # 如有密码请填写
+
+# MongoDB 配置 (历史归档)
+mongodb:
+  enabled: true
+  host: "10.180.116.172"
+  port: 27070
+  username: "root"
+  password: "362514"
+  database: "admin"
+  authentication_source: "admin"
+
+# SQLite 配置 (非结构化数据)
+sqlite:
+  enabled: false
+  path: "data/trendradar.db"
+  
+  # 存储内容
+  tables:
+    - news              # 新闻数据 (动态字段)
+    - platforms         # 平台配置
+    - keyword_matches   # 关键词匹配
+    - crawl_logs        # 爬取日志
+    - push_records      # 推送记录
+    - analytics_cache   # 分析缓存
+
+# MySQL 配置 (结构化数据)
+mysql:
+  enabled: true
+  
+  # 连接配置
+  host: "localhost"
+  port: 3306
+  database: "trendradar"
+  user: "root"
+  password: "123456"  # 生产环境请使用环境变量
+  charset: "utf8mb4"
+  
+  # 连接池配置
+  pool:
+    min_connections: 2
+    max_connections: 10
+    connection_timeout: 30
+  
+  # 存储内容
+  tables:
+    - commodity_latest   # 商品最新快照
+    - commodity_history  # 商品历史存档
+    - change_log         # 变更日志 (供LLM消费)
+    - crawl_batch        # 采集批次记录
+
+# 数据分层策略
+data_routing:
+  # 新闻类数据 → MongoDB
+  news:
+    storage: mongodb
+    reason: "字段动态，使用文档模型持久化"
+  
+  # 大宗商品数据 → MySQL  
+  commodity:
+    storage: mysql
+    reason: "结构固定，需要事务、历史追溯、变更日志"
+  
+  # 爬取日志 → MongoDB
+  crawl_logs:
+    storage: mongodb
+    reason: "日志类数据，便于归档与聚合"
+  
+  # 变更日志 → MySQL
+  change_logs:
+    storage: mysql
+    reason: "供LLM消费，需要精确查询"
