@@ -33,6 +33,13 @@ class News:
     extra_data: Dict[str, Any] = field(default_factory=dict)
     id: Optional[int] = None
     
+    # 新增字段：数据来源（如 newsnow, jin10 等）
+    source: str = ""
+    # 新增字段：平台名称（如 金十数据, 财联社深度 等）
+    platform_name: str = ""
+    # 新增字段：摘要/内容片段
+    summary: str = ""
+    
     def __post_init__(self):
         if self.crawled_at is None:
             self.crawled_at = datetime.now()
@@ -42,6 +49,12 @@ class News:
             self.first_seen_at = self.crawled_at
         if self.last_seen_at is None:
             self.last_seen_at = self.crawled_at
+            
+        # 尝试从 extra_data 自动填充 source 和 platform_name
+        if not self.source and self.extra_data:
+            self.source = self.extra_data.get('source', '')
+        if not self.platform_name and self.extra_data:
+            self.platform_name = self.extra_data.get('platform_name', '')
     
     @property
     def title_hash(self) -> str:
@@ -82,11 +95,16 @@ class News:
             self.weight_score,
             self.category,
             self.extra_json,
+            # 新增字段的数据库映射 (注意：如果使用MySQL，表结构也需要更新；MongoDB则直接支持)
+            self.source,
+            self.platform_name,
+            self.summary
         )
     
     @classmethod
     def from_db_row(cls, row) -> 'News':
         """从数据库行创建实例"""
+        # 兼容旧表结构，如果行中没有新字段，提供默认值
         return cls(
             id=row['id'],
             platform_id=row['platform_id'],
@@ -100,11 +118,15 @@ class News:
             last_seen_at=datetime.fromisoformat(row['last_seen_at']) if row['last_seen_at'] else None,
             crawled_at=datetime.fromisoformat(row['crawled_at']) if row['crawled_at'] else None,
             crawl_date=row['crawl_date'] or "",
-            published_at=datetime.fromisoformat(row['published_at']) if row['published_at'] else None,
+            published_at=datetime.fromisoformat(row['published_at']) if row.get('published_at') else None,
             appearance_count=row['appearance_count'] or 1,
             weight_score=row['weight_score'] or 0.0,
             category=row['category'] or "",
             extra_data=json.loads(row['extra_data']) if row['extra_data'] else {},
+            # 安全读取新字段
+            source=row.get('source', ''),
+            platform_name=row.get('platform_name', ''),
+            summary=row.get('summary', '')
         )
 
 

@@ -42,6 +42,43 @@ class BackgroundScheduler:
             unified = UnifiedDataSource()
             data = unified.crawl_category(category, include_custom=include_custom)
             
+            # 1. 写入 MongoDB
+            try:
+                from database.manager import db_manager
+                if db_manager.mongodb_enabled:
+                    # 将普通字典转换为 News 对象
+                    from database.models import News
+                    news_objects = []
+                    for item in data:
+                        # 处理时间
+                        p_time = item.get("time")
+                        published_at = None
+                        if p_time:
+                            try:
+                                if isinstance(p_time, str):
+                                    published_at = datetime.fromisoformat(p_time.replace('Z', '+00:00'))
+                                else:
+                                    published_at = p_time
+                            except:
+                                published_at = datetime.now()
+                        else:
+                            published_at = datetime.now()
+
+                        news_objects.append(News(
+                            platform_id=item.get("platform", "unknown"),
+                            title=item.get("title", ""),
+                            url=item.get("url", ""),
+                            # source 字段在 News 模型中不存在，放入 extra_data
+                            published_at=published_at,
+                            category=category,
+                            extra_data=item
+                        ))
+                    
+                    inserted, updated = db_manager.news_repo.insert_batch(news_objects)
+                    print(f"✅ [定时] {category} 归档到 MongoDB: 新增 {inserted}, 更新 {updated}")
+            except Exception as e:
+                print(f"⚠️ [定时] MongoDB 归档失败: {e}")
+
             result = {
                 "status": "success",
                 "category": category,
@@ -52,6 +89,16 @@ class BackgroundScheduler:
                 "scheduled_refresh": True
             }
             cache.set(f"news:{category}", result, ttl=CACHE_TTL)
+            
+            # 2. 写入 MongoDB 快照 (作为 Redis 的持久化备份)
+            try:
+                from database.manager import db_manager
+                if db_manager.mongodb_enabled:
+                    db_manager.news_repo.save_snapshot(f"news:{category}", result)
+                    print(f"✅ [定时] {category} 快照已保存到 MongoDB")
+            except Exception as e:
+                print(f"⚠️ [定时] MongoDB 快照保存失败: {e}")
+                
             print(f"⏰ [定时] {category} 完成: {len(data)} 条")
         except Exception as e:
             print(f"⏰ [定时] {category} 失败: {e}")
@@ -68,6 +115,16 @@ class BackgroundScheduler:
             category_order = {'贵金属': 0, '能源': 1, '工业金属': 2, '农产品': 3, '其他': 4}
             data.sort(key=lambda x: category_order.get(x.get('category', '其他'), 4))
             
+            # 1. 写入 MongoDB
+            try:
+                from database.manager import db_manager
+                if db_manager.mongodb_enabled:
+                    count = db_manager.commodity_repo.save_batch(data)
+                    print(f"✅ [定时] 已归档 {count} 条商品数据到 MongoDB")
+            except Exception as e:
+                print(f"⚠️ [定时] MongoDB 归档失败: {e}")
+            
+            # 2. 写入 Redis (保持原有缓存逻辑)
             result = {
                 "data": data,
                 "source": "TrendRadar Commodity",
@@ -78,6 +135,16 @@ class BackgroundScheduler:
             }
             cache.set("data:commodity", result, ttl=CACHE_TTL)
             
+            # 3. 写入 MongoDB 快照 (作为 Redis 的持久化备份)
+            try:
+                from database.manager import db_manager
+                if db_manager.mongodb_enabled:
+                    # 使用 news_repo 统一管理快照
+                    db_manager.news_repo.save_snapshot("data:commodity", result)
+                    print(f"✅ [定时] 大宗商品数据快照已保存到 MongoDB")
+            except Exception as e:
+                print(f"⚠️ [定时] MongoDB 快照保存失败: {e}")
+
             # 保存价格历史
             try:
                 from core.price_history import PriceHistoryManager
@@ -107,17 +174,75 @@ class BackgroundScheduler:
                         seen.add(item["title"])
                         news.append(item)
             
+            # 统计数据来源分布
+            sources = {}
+            for item in news:
+                # 按照优先级提取来源：platform_name > source > platform > 未知
+                # 修复逻辑：优先取 platform_name 或 source，避免取到 newsnow
+                source_name = item.get('platform_name') or item.get('source') or item.get('platform') or '未知'
+                sources[source_name] = sources.get(source_name, 0) + 1
+            
+            # 1. 写入 MongoDB
+            try:
+                from database.manager import db_manager
+                if db_manager.mongodb_enabled and category:
+                    from database.models import News
+                    news_objects = []
+                    for item in news:
+                        # 处理时间
+                        p_time = item.get("time")
+                        published_at = None
+                        if p_time:
+                            try:
+                                if isinstance(p_time, str):
+                                    published_at = datetime.fromisoformat(p_time.replace('Z', '+00:00'))
+                                else:
+                                    published_at = p_time
+                            except:
+                                published_at = datetime.now()
+                        else:
+                            published_at = datetime.now()
+
+                        news_objects.append(News(
+                            platform_id=item.get("platform", "unknown"),
+                            title=item.get("title", ""),
+                            url=item.get("url", ""),
+                            # source removed
+                            published_at=published_at,
+                            category=category,
+                            extra_data=item,
+                            source=item.get("source", ""),
+                            platform_name=item.get("platform_name", ""),
+                            summary=item.get("summary", "") or item.get("content", "")[:200]
+                        ))
+                    
+                    inserted, updated = db_manager.news_repo.insert_batch(news_objects)
+                    print(f"✅ [定时] {category} (实时) 归档到 MongoDB: 新增 {inserted}, 更新 {updated}")
+            except Exception as e:
+                print(f"⚠️ [定时] MongoDB 归档失败: {e}")
+            
             result = {
                 "status": "success",
                 "data": news,
                 "timestamp": datetime.now().isoformat(),
                 "total": len(news),
+                "sources": sources,  # 添加 sources 统计
                 "cached": False,
                 "scheduled_refresh": True
             }
             if category:
                 result["category"] = category
             cache.set(cache_key, result, ttl=CACHE_TTL)
+            
+            # 2. 写入 MongoDB 快照 (作为 Redis 的持久化备份)
+            try:
+                from database.manager import db_manager
+                if db_manager.mongodb_enabled:
+                    db_manager.news_repo.save_snapshot(cache_key, result)
+                    print(f"✅ [定时] {cache_key} 快照已保存到 MongoDB")
+            except Exception as e:
+                print(f"⚠️ [定时] MongoDB 快照保存失败: {e}")
+
             print(f"⏰ [定时] {cache_key} 完成: {len(news)} 条")
         except Exception as e:
             print(f"⏰ [定时] {cache_key} 失败: {e}")

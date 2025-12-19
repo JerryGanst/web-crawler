@@ -10,6 +10,7 @@ import requests as req
 
 from ..cache import cache, CACHE_TTL
 from ..models import AnalysisRequest
+from database.manager import db_manager
 from prompts import (
     get_supply_chain_analysis_prompt, 
     ANALYSIS_SYSTEM_PROMPT,
@@ -31,16 +32,9 @@ router = APIRouter()
 
 BASE_DIR = Path(__file__).parent.parent.parent
 
-# 市场分析缓存
-_market_analysis_cache = {
-    "content": None,
-    "timestamp": None,
-    "ttl": 1800  # 30分钟缓存
-}
-
 # 分析任务线程池
 from concurrent.futures import ThreadPoolExecutor
-_executor = ThreadPoolExecutor(max_workers=5, thread_name_prefix="analysis-bg")
+_executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix="analysis-bg")
 
 
 def load_config():
@@ -634,27 +628,47 @@ def _generate_market_analysis_sync():
 async def get_market_analysis(refresh: bool = False):
     """获取 AI 生成的市场分析报告"""
     
-    # 检查缓存
-    if not refresh and _market_analysis_cache["content"]:
-        cache_age = (datetime.now() - _market_analysis_cache["timestamp"]).total_seconds()
-        if cache_age < _market_analysis_cache["ttl"]:
-            return {
-                "status": "success",
-                "content": _market_analysis_cache["content"],
-                "cached": True,
-                "cache_age": int(cache_age),
-                "timestamp": _market_analysis_cache["timestamp"].isoformat()
-            }
-    
+    # 1. 优先检查 Redis 缓存
+    cache_key = "analysis:market-summary"
+    if not refresh:
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+
     # 使用线程池执行同步逻辑
     loop = asyncio.get_running_loop()
     result = await loop.run_in_executor(_executor, _generate_market_analysis_sync)
     
     # 更新缓存
     if result.get("status") == "success":
-        _market_analysis_cache["content"] = result.get("content")
-        _market_analysis_cache["timestamp"] = datetime.now()
-    
+        # 更新 Redis 缓存
+        result["cached"] = True
+        result["timestamp"] = datetime.now().isoformat()
+        cache.set(cache_key, result, ttl=1800)
+        
+        # 3. 同步写入 MySQL
+        try:
+            if db_manager.mysql_enabled:
+                from database.mysql.connection import get_cursor
+                
+                # 准备数据
+                content = result.get("content", "")
+                model = result.get("model", "")
+                api_source = result.get("api_source", "")
+                
+                # 写入
+                with get_cursor(commit=True) as cursor:
+                    cursor.execute("""
+                        INSERT INTO market_analysis (content, model, api_source)
+                        VALUES (%s, %s, %s)
+                    """, (content, model, api_source))
+                    
+                print(f"✅ [API] 市场分析已归档到 MySQL")
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"⚠️ [API] 市场分析 MySQL 归档失败: {e}")
+     
     return result
 
 

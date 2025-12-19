@@ -47,11 +47,11 @@ mysql:
   enabled: true
   
   # 连接配置
-  host: "localhost"
+  host: "10.180.114.226"
   port: 3306
   database: "trendradar"
   user: "root"
-  password: "123456"  # 生产环境请使用环境变量
+  password: "BCSscZMTHQ8Rx!Gu"  # 生产环境请使用环境变量
   charset: "utf8mb4"
   
   # 连接池配置

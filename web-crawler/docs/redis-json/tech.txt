@@ -1,0 +1,1181 @@
+key:trendradar:news:tech
+value:
+{
+    "status": "success",
+    "category": "tech",
+    "data": [
+        {
+            "id": "美国UP主在中国给老外演短剧",
+            "title": "美国UP主在中国给老外演短剧",
+            "url": "https://search.bilibili.com/all?keyword=%E7%BE%8E%E5%9B%BDUP%E4%B8%BB%E5%9C%A8%E4%B8%AD%E5%9B%BD%E7%BB%99%E8%80%81%E5%A4%96%E6%BC%94%E7%9F%AD%E5%89%A7",
+            "extra": {
+                "icon": "/api/proxy/img.png?type=encodeURIComponent&url=http%3A%2F%2Fi0.hdslb.com%2Fbfs%2Factivity-plat%2Fstatic%2F20221213%2Feaf2dd702d7cc14d8d9511190245d057%2Flrx9rnKo24.png"
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "百岁台湾老兵寻亲路",
+            "title": "百岁台湾老兵寻亲路",
+            "url": "https://search.bilibili.com/all?keyword=%E7%99%BE%E5%B2%81%E5%8F%B0%E6%B9%BE%E8%80%81%E5%85%B5%E5%AF%BB%E4%BA%B2%E8%B7%AF",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "于谦为钓鱼打架",
+            "title": "于谦为钓鱼打架",
+            "url": "https://search.bilibili.com/all?keyword=%E4%BA%8E%E8%B0%A6%E4%B8%BA%E9%92%93%E9%B1%BC%E6%89%93%E6%9E%B6",
+            "extra": {
+                "icon": "/api/proxy/img.png?type=encodeURIComponent&url=http%3A%2F%2Fi0.hdslb.com%2Fbfs%2Factivity-plat%2Fstatic%2F20240304%2Ffbb6ffcfd09815bd66290b6b7bde1196%2FOBQYPHMTcv.png"
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "西红柿为何最近身价暴涨",
+            "title": "西红柿为何最近身价暴涨",
+            "url": "https://search.bilibili.com/all?keyword=%E8%A5%BF%E7%BA%A2%E6%9F%BF%E4%B8%BA%E4%BD%95%E6%9C%80%E8%BF%91%E8%BA%AB%E4%BB%B7%E6%9A%B4%E6%B6%A8",
+            "extra": {
+                "icon": "/api/proxy/img.png?type=encodeURIComponent&url=http%3A%2F%2Fi0.hdslb.com%2Fbfs%2Factivity-plat%2Fstatic%2F20221213%2Feaf2dd702d7cc14d8d9511190245d057%2Flrx9rnKo24.png"
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "点映看阿凡达3的真实感受",
+            "title": "点映看阿凡达3的真实感受",
+            "url": "https://search.bilibili.com/all?keyword=%E7%82%B9%E6%98%A0%E7%9C%8B%E9%98%BF%E5%87%A1%E8%BE%BE3%E7%9A%84%E7%9C%9F%E5%AE%9E%E6%84%9F%E5%8F%97",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "泽连斯基最艰难的时刻",
+            "title": "泽连斯基最艰难的时刻",
+            "url": "https://search.bilibili.com/all?keyword=%E6%B3%BD%E8%BF%9E%E6%96%AF%E5%9F%BA%E6%9C%80%E8%89%B0%E9%9A%BE%E7%9A%84%E6%97%B6%E5%88%BB",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "一口气看清海南封关机遇",
+            "title": "一口气看清海南封关机遇",
+            "url": "https://search.bilibili.com/all?keyword=%E4%B8%80%E5%8F%A3%E6%B0%94%E7%9C%8B%E6%B8%85%E6%B5%B7%E5%8D%97%E5%B0%81%E5%85%B3%E6%9C%BA%E9%81%87",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "挑战在原始部落生活48小时",
+            "title": "挑战在原始部落生活48小时",
+            "url": "https://search.bilibili.com/all?keyword=%E6%8C%91%E6%88%98%E5%9C%A8%E5%8E%9F%E5%A7%8B%E9%83%A8%E8%90%BD%E7%94%9F%E6%B4%BB48%E5%B0%8F%E6%97%B6",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "2026总台春晚吉祥物公布",
+            "title": "2026总台春晚吉祥物公布",
+            "url": "https://search.bilibili.com/all?keyword=2026%E6%80%BB%E5%8F%B0%E6%98%A5%E6%99%9A%E5%90%89%E7%A5%A5%E7%89%A9%E5%85%AC%E5%B8%83",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "海南封关意味着什么",
+            "title": "海南封关意味着什么",
+            "url": "https://search.bilibili.com/all?keyword=%E6%B5%B7%E5%8D%97%E5%B0%81%E5%85%B3%E6%84%8F%E5%91%B3%E7%9D%80%E4%BB%80%E4%B9%88",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "UP主花5w帮闺蜜圆梦EXO",
+            "title": "UP主花5w帮闺蜜圆梦EXO",
+            "url": "https://search.bilibili.com/all?keyword=UP%E4%B8%BB%E8%8A%B15w%E5%B8%AE%E9%97%BA%E8%9C%9C%E5%9C%86%E6%A2%A6EXO",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "UP主给马克龙当面科普",
+            "title": "UP主给马克龙当面科普",
+            "url": "https://search.bilibili.com/all?keyword=UP%E4%B8%BB%E7%BB%99%E9%A9%AC%E5%85%8B%E9%BE%99%E5%BD%93%E9%9D%A2%E7%A7%91%E6%99%AE",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "韩国大头贴进化成了什么样",
+            "title": "韩国大头贴进化成了什么样",
+            "url": "https://search.bilibili.com/all?keyword=%E9%9F%A9%E5%9B%BD%E5%A4%A7%E5%A4%B4%E8%B4%B4%E8%BF%9B%E5%8C%96%E6%88%90%E4%BA%86%E4%BB%80%E4%B9%88%E6%A0%B7",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "沐曦股份高开单签盈利30万",
+            "title": "沐曦股份高开单签盈利30万",
+            "url": "https://search.bilibili.com/all?keyword=%E6%B2%90%E6%9B%A6%E8%82%A1%E4%BB%BD%E9%AB%98%E5%BC%80%E5%8D%95%E7%AD%BE%E7%9B%88%E5%88%A930%E4%B8%87",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "TGA全球直播观看数超1.71亿",
+            "title": "TGA全球直播观看数超1.71亿",
+            "url": "https://search.bilibili.com/all?keyword=TGA%E5%85%A8%E7%90%83%E7%9B%B4%E6%92%AD%E8%A7%82%E7%9C%8B%E6%95%B0%E8%B6%851.71%E4%BA%BF",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "中国版免年费山姆超市",
+            "title": "中国版免年费山姆超市",
+            "url": "https://search.bilibili.com/all?keyword=%E4%B8%AD%E5%9B%BD%E7%89%88%E5%85%8D%E5%B9%B4%E8%B4%B9%E5%B1%B1%E5%A7%86%E8%B6%85%E5%B8%82",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "王者孙悟空筋斗云特效一览",
+            "title": "王者孙悟空筋斗云特效一览",
+            "url": "https://search.bilibili.com/all?keyword=%E7%8E%8B%E8%80%85%E5%AD%99%E6%82%9F%E7%A9%BA%E7%AD%8B%E6%96%97%E4%BA%91%E7%89%B9%E6%95%88%E4%B8%80%E8%A7%88",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "Steam2025回顾上线",
+            "title": "Steam2025回顾上线",
+            "url": "https://search.bilibili.com/all?keyword=Steam2025%E5%9B%9E%E9%A1%BE%E4%B8%8A%E7%BA%BF",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "甄嬛传熹贵妃是怎样接管后宫的",
+            "title": "甄嬛传熹贵妃是怎样接管后宫的",
+            "url": "https://search.bilibili.com/all?keyword=%E7%94%84%E5%AC%9B%E4%BC%A0%E7%86%B9%E8%B4%B5%E5%A6%83%E6%98%AF%E6%80%8E%E6%A0%B7%E6%8E%A5%E7%AE%A1%E5%90%8E%E5%AE%AB%E7%9A%84",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "阿凡达3终极前瞻",
+            "title": "阿凡达3终极前瞻",
+            "url": "https://search.bilibili.com/all?keyword=%E9%98%BF%E5%87%A1%E8%BE%BE3%E7%BB%88%E6%9E%81%E5%89%8D%E7%9E%BB",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "如何掌握雷电之力",
+            "title": "如何掌握雷电之力",
+            "url": "https://search.bilibili.com/all?keyword=%E5%A6%82%E4%BD%95%E6%8E%8C%E6%8F%A1%E9%9B%B7%E7%94%B5%E4%B9%8B%E5%8A%9B",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "北京摆摊一天能挣多钱",
+            "title": "北京摆摊一天能挣多钱",
+            "url": "https://search.bilibili.com/all?keyword=%E5%8C%97%E4%BA%AC%E6%91%86%E6%91%8A%E4%B8%80%E5%A4%A9%E8%83%BD%E6%8C%A3%E5%A4%9A%E9%92%B1",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "马天宇说三人行评分低了",
+            "title": "马天宇说三人行评分低了",
+            "url": "https://search.bilibili.com/all?keyword=%E9%A9%AC%E5%A4%A9%E5%AE%87%E8%AF%B4%E4%B8%89%E4%BA%BA%E8%A1%8C%E8%AF%84%E5%88%86%E4%BD%8E%E4%BA%86",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "蹲妹来B站了",
+            "title": "蹲妹来B站了",
+            "url": "https://search.bilibili.com/all?keyword=%E8%B9%B2%E5%A6%B9%E6%9D%A5B%E7%AB%99%E4%BA%86",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "Peanut回应Faker喊话复出",
+            "title": "Peanut回应Faker喊话复出",
+            "url": "https://search.bilibili.com/all?keyword=Peanut%E5%9B%9E%E5%BA%94Faker%E5%96%8A%E8%AF%9D%E5%A4%8D%E5%87%BA",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "CS2地图沙漠2的前世今生",
+            "title": "CS2地图沙漠2的前世今生",
+            "url": "https://search.bilibili.com/all?keyword=CS2%E5%9C%B0%E5%9B%BE%E6%B2%99%E6%BC%A02%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "周深 B站我欠你什么",
+            "title": "周深 B站我欠你什么",
+            "url": "https://search.bilibili.com/all?keyword=%E5%91%A8%E6%B7%B1%20B%E7%AB%99%E6%88%91%E6%AC%A0%E4%BD%A0%E4%BB%80%E4%B9%88",
+            "extra": {
+                "icon": "/api/proxy/img.png?type=encodeURIComponent&url=http%3A%2F%2Fi0.hdslb.com%2Fbfs%2Factivity-plat%2Fstatic%2F20221117%2Feaf2dd702d7cc14d8d9511190245d057%2FEeuqbMwao9.png"
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "罗永浩五小时对谈大鹏",
+            "title": "罗永浩五小时对谈大鹏",
+            "url": "https://search.bilibili.com/all?keyword=%E7%BD%97%E6%B0%B8%E6%B5%A9%E4%BA%94%E5%B0%8F%E6%97%B6%E5%AF%B9%E8%B0%88%E5%A4%A7%E9%B9%8F",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "六小龄童 我没有权力不让别人演",
+            "title": "六小龄童 我没有权力不让别人演",
+            "url": "https://search.bilibili.com/all?keyword=%E5%85%AD%E5%B0%8F%E9%BE%84%E7%AB%A5%20%E6%88%91%E6%B2%A1%E6%9C%89%E6%9D%83%E5%8A%9B%E4%B8%8D%E8%AE%A9%E5%88%AB%E4%BA%BA%E6%BC%94",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "id": "山西菜为何以主食居多",
+            "title": "山西菜为何以主食居多",
+            "url": "https://search.bilibili.com/all?keyword=%E5%B1%B1%E8%A5%BF%E8%8F%9C%E4%B8%BA%E4%BD%95%E4%BB%A5%E4%B8%BB%E9%A3%9F%E5%B1%85%E5%A4%9A",
+            "extra": {
+                "icon": ""
+            },
+            "platform": "bilibili-hot-search",
+            "platform_name": "bilibili 热搜",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/167.htm",
+            "title": "2999 元起 vivo S50/Pro mini 正式开售：搭载第三代骁龙 8s、第五代骁龙 8 芯片",
+            "id": "https://www.ithome.com/0/906/167.htm",
+            "pubDate": "2025-12-19 08:22:29",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/166.htm",
+            "title": "部分 AirPods Pro 3 用户反馈苹果 12 月最新固件未彻底修复静电噪音问题",
+            "id": "https://www.ithome.com/0/906/166.htm",
+            "pubDate": "2025-12-19 08:16:52",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/165.htm",
+            "title": "万吨大驱做指挥：辽宁舰航母编队远海训练更多细节公布",
+            "id": "https://www.ithome.com/0/906/165.htm",
+            "pubDate": "2025-12-19 08:08:37",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/164.htm",
+            "title": "拳头发现部分主板 BIOS 存在安全漏洞，玩家须更新才能玩《无畏契约》",
+            "id": "https://www.ithome.com/0/906/164.htm",
+            "pubDate": "2025-12-19 08:05:44",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/163.htm",
+            "title": "科技昨夜今晨 1219：小米 17 Ultra 手机下周发布；海南自贸港全岛封关；苹果首款折叠 iPhone 再曝...",
+            "id": "https://www.ithome.com/0/906/163.htm",
+            "pubDate": "2025-12-19 08:04:20",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/162.htm",
+            "title": "谷歌安卓 16 调整 Emoji 表情设计，风格向 iOS 靠拢",
+            "id": "https://www.ithome.com/0/906/162.htm",
+            "pubDate": "2025-12-19 07:55:27",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/161.htm",
+            "title": "中文水平考试 HSK3.0 新标准落地：扩展 9 级体系，全球 168 国考点开放报名",
+            "id": "https://www.ithome.com/0/906/161.htm",
+            "pubDate": "2025-12-19 07:51:49",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/160.htm",
+            "title": "OpenAI 升级 ChatGPT AI 助理，优先保护未成年人安全",
+            "id": "https://www.ithome.com/0/906/160.htm",
+            "pubDate": "2025-12-19 07:45:58",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/159.htm",
+            "title": "近 30 年忠实果粉遭遇数字惊魂：兑换正规渠道购买的苹果礼品卡致封号",
+            "id": "https://www.ithome.com/0/906/159.htm",
+            "pubDate": "2025-12-19 07:42:42",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/158.htm",
+            "title": "估值跃升至 8300 亿美元：曝 OpenAI 正筹划募资至多 1000 亿美元",
+            "id": "https://www.ithome.com/0/906/158.htm",
+            "pubDate": "2025-12-19 07:37:04",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/157.htm",
+            "title": "不再滚动翻找：ChatGPT AI 可置顶聊天，让重要信息触手可及",
+            "id": "https://www.ithome.com/0/906/157.htm",
+            "pubDate": "2025-12-19 07:22:55",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/156.htm",
+            "title": "TikTok 内部信曝美国方案：字节跳动仍保留电商、广告业务，新合资公司仅负责数据安全",
+            "id": "https://www.ithome.com/0/906/156.htm",
+            "pubDate": "2025-12-19 07:17:27",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/155.htm",
+            "title": "苹果全能视觉 AI 模型 UniGen 1.5 亮相，看图、修图、绘图三合一",
+            "id": "https://www.ithome.com/0/906/155.htm",
+            "pubDate": "2025-12-19 07:13:34",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/154.htm",
+            "title": "消息称苹果首款折叠屏手机 iPhone Fold 到 2027 年才能顺利出货，产能爬坡、良率问题成主因",
+            "id": "https://www.ithome.com/0/906/154.htm",
+            "pubDate": "2025-12-19 07:12:09",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/153.htm",
+            "title": "三星内部调查 DRAM“吃回扣”丑闻，供应短缺预计将持续至 2027 年",
+            "id": "https://www.ithome.com/0/906/153.htm",
+            "pubDate": "2025-12-19 07:07:25",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/152.htm",
+            "title": "OpenAI 最强智能体编程模型 GPT-5.2-Codex 登场：AI 实战软件工程天花板，优化 Win11 原生环境",
+            "id": "https://www.ithome.com/0/906/152.htm",
+            "pubDate": "2025-12-19 07:00:38",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/151.htm",
+            "title": "英特尔 Nova Lake-S 处理器细节确认：酷睿 Ultra 9 最高 52 核 + 288MB bLLC 大缓存",
+            "id": "https://www.ithome.com/0/906/151.htm",
+            "pubDate": "2025-12-19 06:58:20",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/150.htm",
+            "title": "曝苹果 Studio Display 存在屏幕闪烁问题，macOS 26.1、26.2 并未改善",
+            "id": "https://www.ithome.com/0/906/150.htm",
+            "pubDate": "2025-12-19 06:46:04",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/149.htm",
+            "title": "高通提前完成对 Alphawave Semi 的收购，完善 AI 产品组合",
+            "id": "https://www.ithome.com/0/906/149.htm",
+            "pubDate": "2025-12-19 06:41:45",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/148.htm",
+            "title": "英伟达发布 591.59 WHQL 驱动，修复 RTX 50 系列 GPU 游戏稳定性问题",
+            "id": "https://www.ithome.com/0/906/148.htm",
+            "pubDate": "2025-12-19 06:37:07",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/147.htm",
+            "title": "Epic 喜加一：《巨人杀手：暗黑之潮》游戏免费领取",
+            "id": "https://www.ithome.com/0/906/147.htm",
+            "pubDate": "2025-12-19 00:08:08",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/146.htm",
+            "title": "大众明确不会再推出燃油小车：会很贵，毫无意义",
+            "id": "https://www.ithome.com/0/906/146.htm",
+            "pubDate": "2025-12-18 23:50:33",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/145.htm",
+            "title": "消息称联想拯救者 Legion Go 2 新机型将登陆 CES 2026，出厂预装 SteamOS",
+            "id": "https://www.ithome.com/0/906/145.htm",
+            "pubDate": "2025-12-18 23:33:42",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/144.htm",
+            "title": "中国气象局：到 2035 年建成自主可控、国际先进的地球系统预报体系",
+            "id": "https://www.ithome.com/0/906/144.htm",
+            "pubDate": "2025-12-18 23:24:43",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/143.htm",
+            "title": "海信将在 CES 2026 公布新一代 RGB Mini LED 屏、全球首款四合一热泵洗衣烘干机 X-Zone Master",
+            "id": "https://www.ithome.com/0/906/143.htm",
+            "pubDate": "2025-12-18 23:17:29",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/142.htm",
+            "title": "消息称索尼已开始要求开发者优化 PS5 游戏，为适配 PS6 掌机做准备",
+            "id": "https://www.ithome.com/0/906/142.htm",
+            "pubDate": "2025-12-18 23:09:19",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/141.htm",
+            "title": "华为推出全能充臻选礼盒：熊猫和花主题充电宝、充电器等，739 元",
+            "id": "https://www.ithome.com/0/906/141.htm",
+            "pubDate": "2025-12-18 22:55:20",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/140.htm",
+            "title": "全球最小的全自主机器人诞生：比盐粒还小，成本仅 1 美分，能自由移动、通信",
+            "id": "https://www.ithome.com/0/906/140.htm",
+            "pubDate": "2025-12-18 22:32:14",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/139.htm",
+            "title": "今年前 11 个月四川汽车产量达 102.4 万辆，重回百万辆量级",
+            "id": "https://www.ithome.com/0/906/139.htm",
+            "pubDate": "2025-12-18 22:30:36",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.ithome.com/0/906/137.htm",
+            "title": "影石 Insta360 发布 2025 冬季全景更新：全新动态跟拍 2.0，新增直出 4K 画质选项等",
+            "id": "https://www.ithome.com/0/906/137.htm",
+            "pubDate": "2025-12-18 22:10:00",
+            "platform": "ithome",
+            "platform_name": "IT之家",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601725122774020",
+            "title": "中信证券：预计美联储明年全年降息两次各25bps",
+            "id": "/newsflashes/3601725122774020",
+            "extra": {
+                "date": 1766104770430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601729321665799",
+            "title": "安徽“十五五”规划建议：加快皖北地区全面振兴",
+            "id": "/newsflashes/3601729321665799",
+            "extra": {
+                "date": 1766104650430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601728721782022",
+            "title": "安徽“十五五”规划建议：高标准建设合肥科创金融改革试验区",
+            "id": "/newsflashes/3601728721782022",
+            "extra": {
+                "date": 1766104590430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601728035062786",
+            "title": "安徽“十五五”规划建议：以超常规举措加强关键共性技术、前沿引领技术、现代工程技术、颠覆性技术创新",
+            "id": "/newsflashes/3601728035062786",
+            "extra": {
+                "date": 1766104470430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601726958028039",
+            "title": "安徽“十五五”规划建议：壮大多层次资本市场安徽板块",
+            "id": "/newsflashes/3601726958028039",
+            "extra": {
+                "date": 1766104410430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601726048732164",
+            "title": "安徽“十五五”规划建议：推动量子科技、氢能和核聚变能、脑机接口等成为新的经济增长点",
+            "id": "/newsflashes/3601726048732164",
+            "extra": {
+                "date": 1766104350430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601714593104897",
+            "title": "中信证券：看好半导体设备行业的投资机遇",
+            "id": "/newsflashes/3601714593104897",
+            "extra": {
+                "date": 1766104290430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601719987897350",
+            "title": "韩媒：韩国拟对一次性杯子单独收费",
+            "id": "/newsflashes/3601719987897350",
+            "extra": {
+                "date": 1766104170430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601718545040645",
+            "title": "美国商务部长卢特尼克称年底前还将公布更多药品定价协议",
+            "id": "/newsflashes/3601718545040645",
+            "extra": {
+                "date": 1766104050430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601717080556803",
+            "title": "银行理财代销渠道加速下沉",
+            "id": "/newsflashes/3601717080556803",
+            "extra": {
+                "date": 1766103810430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601705079833863",
+            "title": "中金公司：2026年龙头猪企有望持续跑赢行业",
+            "id": "/newsflashes/3601705079833863",
+            "extra": {
+                "date": 1766103750430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601713229923591",
+            "title": "大众汽车欢迎欧盟放宽2035年汽车排放规则之举",
+            "id": "/newsflashes/3601713229923591",
+            "extra": {
+                "date": 1766103690430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601714089280768",
+            "title": "联邦快递第二财季净利润为9.6亿美元",
+            "id": "/newsflashes/3601714089280768",
+            "extra": {
+                "date": 1766103630430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601716180993286",
+            "title": "中国汽车流通协会：2025年全年乘用车终端零售量预计达2355万",
+            "id": "/newsflashes/3601716180993286",
+            "extra": {
+                "date": 1766103330430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601699529786627",
+            "title": "科创板并购重组市场快速增长",
+            "id": "/newsflashes/3601699529786627",
+            "extra": {
+                "date": 1766103270430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601701796939014",
+            "title": "电解锰价格13连涨，最新价创三年多新高",
+            "id": "/newsflashes/3601701796939014",
+            "extra": {
+                "date": 1766103210430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601704568701953",
+            "title": "中金公司：预计2026年煤价将呈现前低后高走势",
+            "id": "/newsflashes/3601704568701953",
+            "extra": {
+                "date": 1766103150430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601711320745224",
+            "title": "美国商务部经济分析局：7-9月个人收入与支出数据将随三季度GDP初值更新",
+            "id": "/newsflashes/3601711320745224",
+            "extra": {
+                "date": 1766103030430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601707563631873",
+            "title": "耐克：第二财季净利润7.92亿美元，同比下降32%",
+            "id": "/newsflashes/3601707563631873",
+            "extra": {
+                "date": 1766102790430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.36kr.com/newsflashes/3601695978243331",
+            "title": "华泰证券：公募绩效考核优化，关注优质金融",
+            "id": "/newsflashes/3601695978243331",
+            "extra": {
+                "date": 1766102490430
+            },
+            "platform": "36kr",
+            "platform_name": "36氪",
+            "category": "tech",
+            "source": "newsnow"
+        },
+        {
+            "title": "Beginning January 2026, all ACM publications will be made open access",
+            "url": "https://dl.acm.org/openaccess",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 1,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 1275,
+                "comments": 140
+            },
+            "source": "custom"
+        },
+        {
+            "title": "1.5 TB of VRAM on Mac Studio – RDMA over Thunderbolt 5",
+            "url": "https://www.jeffgeerling.com/blog/2025/15-tb-vram-on-mac-studio-rdma-over-thunderbolt-5",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 2,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 118,
+                "comments": 36
+            },
+            "source": "custom"
+        },
+        {
+            "title": "We pwned X, Vercel, Cursor, and Discord through a supply-chain attack",
+            "url": "https://gist.github.com/hackermondev/5e2cdc32849405fff6b46957747a2d28",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 3,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 545,
+                "comments": 208
+            },
+            "source": "custom"
+        },
+        {
+            "title": "Trained LLMs exclusively on pre-1913 texts",
+            "url": "https://github.com/DGoettlich/history-llms",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 4,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 111,
+                "comments": 35
+            },
+            "source": "custom"
+        },
+        {
+            "title": "Texas is suing all of the big TV makers for spying on what you watch",
+            "url": "https://www.theverge.com/news/845400/texas-tv-makers-lawsuit-samsung-sony-lg-hisense-tcl-spying",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 5,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 451,
+                "comments": 243
+            },
+            "source": "custom"
+        },
+        {
+            "title": "GPT-5.2-Codex",
+            "url": "https://openai.com/index/introducing-gpt-5-2-codex/",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 6,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 346,
+                "comments": 199
+            },
+            "source": "custom"
+        },
+        {
+            "title": "How China built its ‘Manhattan Project’ to rival the West in AI chips",
+            "url": "https://www.japantimes.co.jp/business/2025/12/18/tech/china-west-ai-chips/",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 7,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 175,
+                "comments": 179
+            },
+            "source": "custom"
+        },
+        {
+            "title": "Skills for organizations, partners, the ecosystem",
+            "url": "https://claude.com/blog/organization-skills-and-directory",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 8,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 226,
+                "comments": 138
+            },
+            "source": "custom"
+        },
+        {
+            "title": "AI vending machine was tricked into giving away everything",
+            "url": "https://kottke.org/25/12/this-ai-vending-machine-was-tricked-into-giving-away-everything",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 9,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 51,
+                "comments": 2
+            },
+            "source": "custom"
+        },
+        {
+            "title": "Classical statues were not painted horribly",
+            "url": "https://worksinprogress.co/issue/were-classical-statues-painted-horribly/",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 10,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 544,
+                "comments": 264
+            },
+            "source": "custom"
+        },
+        {
+            "title": "T5Gemma 2: The next generation of encoder-decoder models",
+            "url": "https://blog.google/technology/developers/t5gemma-2/",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 11,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 89,
+                "comments": 13
+            },
+            "source": "custom"
+        },
+        {
+            "title": "Great Ideas in Theoretical Computer Science",
+            "url": "https://www.cs251.com/",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 12,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 20,
+                "comments": 0
+            },
+            "source": "custom"
+        },
+        {
+            "title": "Show HN: Picknplace.js, an alternative to drag-and-drop",
+            "url": "https://jgthms.com/picknplace.js/",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 14,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 101,
+                "comments": 58
+            },
+            "source": "custom"
+        },
+        {
+            "title": "Firefox will have an option to disable all AI features",
+            "url": "https://mastodon.social/@firefoxwebdevs/115740500373677782",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 15,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 251,
+                "comments": 223
+            },
+            "source": "custom"
+        },
+        {
+            "title": "Show HN: Stop AI scrapers from hammering your self-hosted blog (using porn)",
+            "url": "https://github.com/vivienhenz24/fuzzy-canary",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 16,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 110,
+                "comments": 82
+            },
+            "source": "custom"
+        },
+        {
+            "title": "How did IRC ping timeouts end up in a lawsuit?",
+            "url": "https://mjg59.dreamwidth.org/73777.html",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 17,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 120,
+                "comments": 12
+            },
+            "source": "custom"
+        },
+        {
+            "title": "FunctionGemma 270M Model",
+            "url": "https://blog.google/technology/developers/functiongemma/",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 18,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 143,
+                "comments": 38
+            },
+            "source": "custom"
+        },
+        {
+            "title": "The Scottish Highlands, the Appalachians, Atlas are the same mountain range",
+            "url": "https://vividmaps.com/central-pangean-mountains/",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 19,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 81,
+                "comments": 21
+            },
+            "source": "custom"
+        },
+        {
+            "title": "How to hack Discord, Vercel and more with one easy trick",
+            "url": "https://kibty.town/blog/mintlify/",
+            "platform": "hackernews",
+            "platform_name": "Hacker News",
+            "category": "tech",
+            "rank": 20,
+            "timestamp": "2025-12-19T08:41:42.842896",
+            "extra": {
+                "score": 103,
+                "comments": 17
+            },
+            "source": "custom"
+        }
+    ],
+    "timestamp": "2025-12-19T08:41:42.843869",
+    "total": 99,
+    "cached": false,
+    "scheduled_refresh": true
+}
+
+
+

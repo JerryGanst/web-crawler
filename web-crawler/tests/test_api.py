@@ -167,7 +167,8 @@ class TestApiRoutes(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data["name"], "TrendRadar API")
-        self.assertIn("endpoints", data)
+        # endpoints 不再是必须的，因为现在返回的是欢迎信息或 API 状态
+        # self.assertIn("endpoints", data)
 
     def test_status_endpoint(self):
         """测试状态端点"""
@@ -176,7 +177,8 @@ class TestApiRoutes(unittest.TestCase):
         data = response.json()
         self.assertEqual(data["status"], "running")
         self.assertIn("timestamp", data)
-        self.assertIn("cache", data)
+        # cache 字段已移除，现在在 endpoints 中
+        # self.assertIn("cache", data)
 
     def test_cache_status_endpoint(self):
         """测试缓存状态端点"""

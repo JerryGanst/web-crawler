@@ -1,14 +1,10 @@
-import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
 import { RefreshCw, Send, TrendingUp, DollarSign, Newspaper, Cpu, ExternalLink, Link2, Gem, Scale, PieChart as PieChartIcon } from 'lucide-react';
-import * as echarts from 'echarts/core';
-import { PieChart } from 'echarts/charts';
-import { TitleComponent, TooltipComponent, LegendComponent } from 'echarts/components';
-import { CanvasRenderer } from 'echarts/renderers';
 import SupplyChainPanel from '../components/SupplyChainPanel';
 import api, { API_BASE } from '../services/api';
 
-// 按需注册 ECharts 组件（减少包体积）
-echarts.use([PieChart, TitleComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
+// 动态导入 ECharts 组件
+const EChartsComponent = lazy(() => import('../components/EChartsComponent'));
 
 // API 配置
 const TRENDRADAR_API = API_BASE || '';
@@ -57,9 +53,14 @@ const TrendRadar = () => {
     // 数据缓存（用于切换分类时快速回显）
     const dataCache = useRef({});
 
-    const chartRef = useRef(null);
-    const chartInstance = useRef(null);
-    
+    // 监听数据变化更新图表数据（不再直接操作实例）
+    const chartData = useMemo(() => {
+        if (!stats.sources || Object.keys(stats.sources).length === 0) return [];
+        return Object.entries(stats.sources)
+            .map(([name, count]) => ({ name, value: count }))
+            .sort((a, b) => b.value - a.value);
+    }, [stats.sources]);
+
     // 请求控制 refs
     const hasFetchedCategories = useRef(false);
     const currentRequestRef = useRef(null);  // 跟踪当前请求
@@ -70,15 +71,9 @@ const TrendRadar = () => {
         isMountedRef.current = true;
         return () => {
             isMountedRef.current = false;
-            // 清理图表实例
-            if (chartInstance.current) {
-                chartInstance.current.dispose();
-                chartInstance.current = null;
-            }
         };
     }, []);
 
-    // 加载分类（只执行一次）
     useEffect(() => {
         if (hasFetchedCategories.current) return;
         hasFetchedCategories.current = true;
@@ -180,67 +175,6 @@ const TrendRadar = () => {
         }
     }, [selectedCategory, loadNews]);
 
-    // 更新图表（使用 useMemo 优化配置）
-    const chartOptions = useMemo(() => ({
-        tooltip: {
-            trigger: 'item',
-            formatter: '{b}: {c} ({d}%)'
-        },
-        legend: {
-            type: 'scroll',
-            orient: 'vertical',
-            right: 10,
-            top: 20,
-            bottom: 20,
-            textStyle: { fontSize: 12 }
-        },
-        series: [{
-            name: '数据来源',
-            type: 'pie',
-            radius: ['40%', '70%'],
-            center: ['35%', '50%'],
-            avoidLabelOverlap: false,
-            itemStyle: {
-                borderRadius: 8,
-                borderColor: '#fff',
-                borderWidth: 2
-            },
-            label: { show: false, position: 'center' },
-            emphasis: {
-                label: {
-                    show: true,
-                    fontSize: 18,
-                    fontWeight: 'bold'
-                }
-            },
-            labelLine: { show: false },
-            data: []
-        }]
-    }), []);
-
-    const updateChart = useCallback((sources) => {
-        if (!chartRef.current) return;
-
-        if (!chartInstance.current) {
-            chartInstance.current = echarts.init(chartRef.current);
-        }
-
-        // 处理空数据：显示空图表而不是保留旧数据
-        const pieData = (!sources || Object.keys(sources).length === 0)
-            ? []
-            : Object.entries(sources)
-                .map(([name, count]) => ({ name, value: count }))
-                .sort((a, b) => b.value - a.value);
-        
-        chartInstance.current.setOption({
-            ...chartOptions,
-            series: [{
-                ...chartOptions.series[0],
-                data: pieData
-            }]
-        }, true);  // true = notMerge, ensures old data is cleared
-    }, [chartOptions]);
-
     // 触发爬取并推送
     const handleCrawlAndPush = useCallback(async () => {
         setPushing(true);
@@ -260,47 +194,8 @@ const TrendRadar = () => {
         }
     }, [selectedCategory, loadNews]);
 
-    // 响应式图表
-    useEffect(() => {
-        const handleResize = () => {
-            chartInstance.current?.resize();
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    // 响应式图表 logic moved to EChartsComponent
 
-    // 监听数据变化更新图表
-    useEffect(() => {
-        if (selectedCategory !== 'supply_chain' && chartRef.current) {
-            // 确保实例存在
-            if (!chartInstance.current) {
-                chartInstance.current = echarts.init(chartRef.current);
-            }
-            updateChart(stats.sources);
-        }
-    }, [stats.sources, updateChart, selectedCategory]);
-
-    // 当分类切换回非supply_chain时，确保图表正确初始化
-    useEffect(() => {
-        if (selectedCategory !== 'supply_chain' && chartRef.current) {
-            // 延迟初始化以确保DOM已渲染
-            const timer = setTimeout(() => {
-                if (chartRef.current) {
-                    // 只有当图表实例不存在时才重新创建
-                    if (!chartInstance.current) {
-                        chartInstance.current = echarts.init(chartRef.current);
-                        // 初始化后立即更新一次当前数据
-                        // 注意：这里必须使用 ref 中的最新数据或依赖外部副作用，
-                        // 但由于 stats 在依赖中会导致闭包问题，我们这里只做 init，
-                        // 数据更新交给上面的 useEffect 负责。
-                        // 不过为了防止 init 后无数据，我们可以尝试手动触发一次。
-                        // 更好的方式是：让上面的 useEffect 负责 setOption，这里只负责 init。
-                    }
-                }
-            }, 100);
-            return () => clearTimeout(timer);
-        }
-    }, [selectedCategory]);
 
     // 渲染分类按钮
     const renderCategoryButton = useCallback((cat) => {
@@ -485,24 +380,13 @@ const TrendRadar = () => {
                                 数据来源分布
                             </h3>
                             <div style={{ position: 'relative', height: '280px' }}>
-                                <div ref={chartRef} style={{ height: '100%', visibility: Object.keys(stats.sources).length > 0 ? 'visible' : 'hidden' }} />
-                                {Object.keys(stats.sources).length === 0 && (
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: 0, left: 0, right: 0, bottom: 0,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: '#94a3b8',
-                                        flexDirection: 'column',
-                                        gap: '12px'
-                                    }}>
-                                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <PieChartIcon size={24} />
-                                        </div>
-                                        <span style={{ fontSize: '14px' }}>暂无数据来源</span>
+                                <Suspense fallback={
+                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                                        加载图表组件...
                                     </div>
-                                )}
+                                }>
+                                    <EChartsComponent data={chartData} />
+                                </Suspense>
                             </div>
                         </div>
 

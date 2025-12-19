@@ -1,0 +1,648 @@
+key:trendradar:price-history:all:7
+
+value:
+{
+    "status": "success",
+    "days": 7,
+    "data": {
+        "钯金": [
+            {
+                "date": "2025-12-18",
+                "price": 1696.5,
+                "change_percent": 3.13,
+                "source": "Business Insider"
+            }
+        ],
+        "铝": [
+            {
+                "date": "2025-12-18",
+                "price": 2895.62,
+                "change_percent": 0.64,
+                "source": "Business Insider"
+            }
+        ],
+        "咖啡": [
+            {
+                "date": "2025-12-18",
+                "price": 3.52,
+                "change_percent": -7.22,
+                "source": "Business Insider"
+            }
+        ],
+        "天然气": [
+            {
+                "date": "2025-12-18",
+                "price": 3.366,
+                "change_percent": -1.2,
+                "source": "新浪期货"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 3.231,
+                "change_percent": 0,
+                "source": "新浪期货"
+            }
+        ],
+        "HIPS(华东)": [
+            {
+                "date": "2025-12-18",
+                "price": 8500,
+                "change_percent": 0,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 8500,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ],
+        "棉花": [
+            {
+                "date": "2025-12-18",
+                "price": 0.64,
+                "change_percent": 0.38,
+                "source": "Business Insider"
+            }
+        ],
+        "Feeder Cattle": [
+            {
+                "date": "2025-12-18",
+                "price": 3.42,
+                "change_percent": -0.52,
+                "source": "Business Insider"
+            }
+        ],
+        "Lumber": [
+            {
+                "date": "2025-12-18",
+                "price": 565,
+                "change_percent": 0.27,
+                "source": "Business Insider"
+            }
+        ],
+        "COMEX铜": [
+            {
+                "date": "2025-12-18",
+                "price": 542.071,
+                "change_percent": -0.18,
+                "source": "新浪期货"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 542.378,
+                "change_percent": -0.09,
+                "source": "新浪期货"
+            }
+        ],
+        "Rapeseed": [
+            {
+                "date": "2025-12-18",
+                "price": 467,
+                "change_percent": -0.48,
+                "source": "Business Insider"
+            }
+        ],
+        "Soybean Meal": [
+            {
+                "date": "2025-12-18",
+                "price": 297.7,
+                "change_percent": -0.17,
+                "source": "Business Insider"
+            }
+        ],
+        "Palm Oil": [
+            {
+                "date": "2025-12-18",
+                "price": 3949,
+                "change_percent": 0.05,
+                "source": "Business Insider"
+            }
+        ],
+        "ABS(华北)": [
+            {
+                "date": "2025-12-18",
+                "price": 7850,
+                "change_percent": 0,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 7850,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ],
+        "可可": [
+            {
+                "date": "2025-12-18",
+                "price": 4357,
+                "change_percent": 0.02,
+                "source": "Business Insider"
+            }
+        ],
+        "PE(华东)": [
+            {
+                "date": "2025-12-18",
+                "price": 8900,
+                "change_percent": -0.56,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 8900,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ],
+        "COMEX黄金": [
+            {
+                "date": "2025-12-18",
+                "price": 4356.428,
+                "change_percent": -0.43,
+                "source": "新浪期货"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 4361.384,
+                "change_percent": -0.16,
+                "source": "新浪期货"
+            }
+        ],
+        "PP(华北)": [
+            {
+                "date": "2025-12-18",
+                "price": 7150,
+                "change_percent": 0,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 7150,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ],
+        "铜": [
+            {
+                "date": "2025-12-18",
+                "price": 11719.85,
+                "change_percent": 0.72,
+                "source": "Business Insider"
+            }
+        ],
+        "Live Cattle": [
+            {
+                "date": "2025-12-18",
+                "price": 2.3,
+                "change_percent": -0.37,
+                "source": "Business Insider"
+            }
+        ],
+        "糖": [
+            {
+                "date": "2025-12-18",
+                "price": 0.15,
+                "change_percent": -0.4,
+                "source": "Business Insider"
+            }
+        ],
+        "铅": [
+            {
+                "date": "2025-12-18",
+                "price": 1913.65,
+                "change_percent": 0.67,
+                "source": "Business Insider"
+            }
+        ],
+        "PP(华南)": [
+            {
+                "date": "2025-12-18",
+                "price": 7550,
+                "change_percent": 0,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 7550,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ],
+        "GPPS低端(华南)": [
+            {
+                "date": "2025-12-18",
+                "price": 6900,
+                "change_percent": 0,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 6900,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ],
+        "黄金": [
+            {
+                "date": "2025-12-18",
+                "price": 4333.04,
+                "change_percent": -0.14,
+                "source": "Business Insider"
+            }
+        ],
+        "Milk": [
+            {
+                "date": "2025-12-18",
+                "price": 15.78,
+                "change_percent": -0.32,
+                "source": "Business Insider"
+            }
+        ],
+        "取暖油": [
+            {
+                "date": "2025-12-18",
+                "price": 57.33,
+                "change_percent": 0.93,
+                "source": "Business Insider"
+            }
+        ],
+        "小麦": [
+            {
+                "date": "2025-12-18",
+                "price": 185.25,
+                "change_percent": 0,
+                "source": "Business Insider"
+            }
+        ],
+        "Orange Juice": [
+            {
+                "date": "2025-12-18",
+                "price": 1.7,
+                "change_percent": 1.04,
+                "source": "Business Insider"
+            }
+        ],
+        "PP(华东)": [
+            {
+                "date": "2025-12-18",
+                "price": 7400,
+                "change_percent": 0,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 7400,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ],
+        "HIPS(华南)": [
+            {
+                "date": "2025-12-18",
+                "price": 7700,
+                "change_percent": 0,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 7700,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ],
+        "GPPS(华南)": [
+            {
+                "date": "2025-12-18",
+                "price": 7700,
+                "change_percent": 0,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 7700,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ],
+        "Soybean Oil": [
+            {
+                "date": "2025-12-18",
+                "price": 0.49,
+                "change_percent": 0.31,
+                "source": "Business Insider"
+            }
+        ],
+        "布伦特原油": [
+            {
+                "date": "2025-12-18",
+                "price": 60.22,
+                "change_percent": -0.73,
+                "source": "Business Insider"
+            }
+        ],
+        "WTI原油": [
+            {
+                "date": "2025-12-18",
+                "price": 55.94,
+                "change_percent": 1.2122308666546047,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 56.15,
+                "change_percent": 0.3754022166607079,
+                "source": "中塑在线"
+            }
+        ],
+        "Coal": [
+            {
+                "date": "2025-12-18",
+                "price": 98,
+                "change_percent": 1.55,
+                "source": "Business Insider"
+            }
+        ],
+        "PE(华北)": [
+            {
+                "date": "2025-12-18",
+                "price": 4500,
+                "change_percent": 0,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 4500,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ],
+        "Natural Gas (Henry Hub)": [
+            {
+                "date": "2025-12-18",
+                "price": 4.08,
+                "change_percent": 1.39,
+                "source": "Business Insider"
+            }
+        ],
+        "白银": [
+            {
+                "date": "2025-12-18",
+                "price": 66.5,
+                "change_percent": 0.39,
+                "source": "Business Insider"
+            }
+        ],
+        "锡": [
+            {
+                "date": "2025-12-18",
+                "price": 42126,
+                "change_percent": 2.53,
+                "source": "Business Insider"
+            }
+        ],
+        "GPPS低端(华东)": [
+            {
+                "date": "2025-12-18",
+                "price": 7300,
+                "change_percent": -0.68,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 7300,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ],
+        "RBOB汽油": [
+            {
+                "date": "2025-12-18",
+                "price": 1.7,
+                "change_percent": 0.62,
+                "source": "Business Insider"
+            }
+        ],
+        "HIPS低端(华南)": [
+            {
+                "date": "2025-12-18",
+                "price": 8050,
+                "change_percent": 0,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 8050,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ],
+        "ABS(华东)": [
+            {
+                "date": "2025-12-18",
+                "price": 12900,
+                "change_percent": 0,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 12900,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ],
+        "Oats": [
+            {
+                "date": "2025-12-18",
+                "price": 2.88,
+                "change_percent": 0.26,
+                "source": "Business Insider"
+            }
+        ],
+        "铂金": [
+            {
+                "date": "2025-12-18",
+                "price": 1967,
+                "change_percent": 3.15,
+                "source": "Business Insider"
+            }
+        ],
+        "GPPS(华东)": [
+            {
+                "date": "2025-12-18",
+                "price": 7800,
+                "change_percent": 0,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 7800,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ],
+        "大米": [
+            {
+                "date": "2025-12-18",
+                "price": 9.32,
+                "change_percent": -0.64,
+                "source": "Business Insider"
+            }
+        ],
+        "COMEX白银": [
+            {
+                "date": "2025-12-18",
+                "price": 66.17,
+                "change_percent": -0.98,
+                "source": "新浪期货"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 65.592,
+                "change_percent": -0.12,
+                "source": "新浪期货"
+            }
+        ],
+        "大豆": [
+            {
+                "date": "2025-12-18",
+                "price": 10.57,
+                "change_percent": -0.12,
+                "source": "Business Insider"
+            }
+        ],
+        "Lean Hog": [
+            {
+                "date": "2025-12-18",
+                "price": 0.83,
+                "change_percent": -2.09,
+                "source": "Business Insider"
+            }
+        ],
+        "ABS(华南)": [
+            {
+                "date": "2025-12-18",
+                "price": 8050,
+                "change_percent": 0.63,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 8050,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ],
+        "镍": [
+            {
+                "date": "2025-12-18",
+                "price": 14269,
+                "change_percent": 1.08,
+                "source": "Business Insider"
+            }
+        ],
+        "玉米": [
+            {
+                "date": "2025-12-18",
+                "price": 4.42,
+                "change_percent": 0.34,
+                "source": "Business Insider"
+            }
+        ],
+        "PE(华南)": [
+            {
+                "date": "2025-12-18",
+                "price": 4500,
+                "change_percent": 0,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 4500,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ],
+        "锌": [
+            {
+                "date": "2025-12-18",
+                "price": 3033.4,
+                "change_percent": 0.24,
+                "source": "Business Insider"
+            }
+        ],
+        "HIPS低端(华东)": [
+            {
+                "date": "2025-12-18",
+                "price": 7950,
+                "change_percent": 0,
+                "source": "中塑在线"
+            },
+            {
+                "date": "2025-12-19",
+                "price": 7950,
+                "change_percent": 0,
+                "source": "中塑在线"
+            }
+        ]
+    },
+    "commodities": [
+        "钯金",
+        "铝",
+        "咖啡",
+        "天然气",
+        "HIPS(华东)",
+        "棉花",
+        "Feeder Cattle",
+        "Lumber",
+        "COMEX铜",
+        "Rapeseed",
+        "Soybean Meal",
+        "Palm Oil",
+        "ABS(华北)",
+        "可可",
+        "PE(华东)",
+        "COMEX黄金",
+        "PP(华北)",
+        "铜",
+        "Live Cattle",
+        "糖",
+        "铅",
+        "PP(华南)",
+        "GPPS低端(华南)",
+        "黄金",
+        "Milk",
+        "取暖油",
+        "小麦",
+        "Orange Juice",
+        "PP(华东)",
+        "HIPS(华南)",
+        "GPPS(华南)",
+        "Soybean Oil",
+        "布伦特原油",
+        "WTI原油",
+        "Coal",
+        "PE(华北)",
+        "Natural Gas (Henry Hub)",
+        "白银",
+        "锡",
+        "GPPS低端(华东)",
+        "RBOB汽油",
+        "HIPS低端(华南)",
+        "ABS(华东)",
+        "Oats",
+        "铂金",
+        "GPPS(华东)",
+        "大米",
+        "COMEX白银",
+        "大豆",
+        "Lean Hog",
+        "ABS(华南)",
+        "镍",
+        "玉米",
+        "PE(华南)",
+        "锌",
+        "HIPS低端(华东)"
+    ],
+    "cached": false
+}

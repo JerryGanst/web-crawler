@@ -1,0 +1,322 @@
+key:trendradar:news:commodity
+value:
+{
+    "status": "success",
+    "category": "commodity",
+    "data": [
+        {
+            "title": "湖南华信稀贵科技股份有限公司碲锭外售招标",
+            "url": "https://news.smm.cn/news/103670177",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "美元下跌 金属涨跌互现 沪银涨逾3%续刷新高 钯主连两连板【SMM日评】",
+            "url": "https://news.smm.cn/news/103678736",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "AI持续带火存储需求！多方预测存储芯片短缺情况将持续严峻 企业陆续回应相关动态",
+            "url": "https://news.smm.cn/news/103678954",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "西部矿业：全资子公司格尔木西矿资源取得采矿许可证 该矿区拥有金金属量2.86吨",
+            "url": "https://news.smm.cn/news/103679092",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "SMM走访巴彦淖尔紫金有色金属有限公司 围绕锌产业市场动态、行业挑战等展开探讨",
+            "url": "https://news.smm.cn/news/103674432",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "12月18日SMM金属现货价格|铜价|铝价|铅价|锌价|锡价|镍价|钢铁|稀土",
+            "url": "https://news.smm.cn/news/103678197",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "再下一储能大单！天合光能继续布局北美储能市场 今年出货量或超1GWh？",
+            "url": "https://news.smm.cn/news/103678636",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "国家发改委：着力扩大有效投资",
+            "url": "https://news.smm.cn/news/103678585",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "【12.18锂电快讯】欧盟将放弃2035年内燃机禁令|赣锋锂业称储能电芯产能满产",
+            "url": "https://news.smm.cn/news/103676973",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "印尼料下调镍产量以稳定价格",
+            "url": "https://news.smm.cn/news/103679082",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "云南铜业：硫酸是公司铜冶炼生产环节副产品 凉山矿业拥有红泥坡铜矿等优质铜矿资源",
+            "url": "https://news.smm.cn/news/103679097",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "汽车补贴政策不会停？广州再发3亿购车补贴",
+            "url": "https://news.smm.cn/news/103679086",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "智利佐罗金矿勘探取得重要发现",
+            "url": "https://news.smm.cn/news/103679083",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "网传汽车工厂内电池产线起火 小米澄清",
+            "url": "https://news.smm.cn/news/103634652",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "【关注】中国光伏协会紧急辟谣近期网络不实消息！",
+            "url": "https://news.smm.cn/news/103617708",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "零跑汽车否认“一汽成最大股东”传闻 称消息不实",
+            "url": "https://news.smm.cn/news/103604486",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "小米汽车副总裁李肖爽否认宣传“SOS 1秒接通”：系造谣诋毁 将追责",
+            "url": "https://news.smm.cn/news/103584176",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "北汽集团声明：发生翻车的212汽车与其无关",
+            "url": "https://news.smm.cn/news/103558504",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "伦铜逼近12000美元关口！下游消费承压 后市需警惕高位回落风险【SMM评论】",
+            "url": "https://news.smm.cn/news/103669497",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "美元连跌三周 金属普跌 铜银下挫 伦锌锡沪铝跌幅居前 氧化铝涨逾3%【隔夜行情】",
+            "url": "https://news.smm.cn/news/103669915",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "美元连跌两周 金属涨跌互现 伦铜纽银沪银再刷新高 沪银周线大涨逾9%【隔夜行情】",
+            "url": "https://news.smm.cn/news/103657937",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "美元下跌 伦沪铜、沪银继续刷新历史新高 双焦下挫逾5%【SMM日评】",
+            "url": "https://news.smm.cn/news/103660132",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "美元走软 金属集体下挫 伦沪铜、沪铝沪锡跌超1% 多晶硅涨超3% 【SMM日评】",
+            "url": "https://news.smm.cn/news/103662370",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "【SMM公告】关于新增越南8mm电解铜杆（CIF）加工费价格点的公告",
+            "url": "https://news.smm.cn/news/103665156",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "美元下跌 金属普涨 伦沪铜再刷新高！沪铝沪锌携手刷新阶段高位【SMM日评】",
+            "url": "https://news.smm.cn/news/103657723",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "海关总署：前11个月铜材进口降4.7%稀土出口增11.7%铝材出口降9.2%",
+            "url": "https://news.smm.cn/news/103660040",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "金属普涨 伦沪锡涨逾1% 纽沪银涨逾2%续刷新高 碳酸锂涨近4%【SMM日评】",
+            "url": "https://news.smm.cn/news/103666899",
+            "source": "custom",
+            "category": "commodity",
+            "pubDate": "2025-12-19 08:11:07",
+            "platform": "smm",
+            "platform_name": "上海有色网"
+        },
+        {
+            "title": "数据来源网络，仅供参考【详情】",
+            "url": "https://www.plasway.com/news/market?web=new",
+            "platform": "plasway",
+            "platform_name": "Plasway",
+            "category": "commodity",
+            "rank": 0,
+            "timestamp": "2025-12-19T08:12:13.272529",
+            "extra": {
+                "section": "market",
+                "content_available": false,
+                "original_url": "https://yingluo.plasway.com/news/123795.html",
+                "summary": "数据来源网络，仅供参考【详情】"
+            },
+            "source": "custom"
+        },
+        {
+            "title": "据统计，2025年10月，我国塑料制品行业产量达683.3万吨，同比下降7.6%。1-10月累计产量为6557.3万吨，同比增长0.5%。",
+            "url": "http://localhost:8000/api/reader/56fc016f8636",
+            "platform": "plasway",
+            "platform_name": "Plasway",
+            "category": "commodity",
+            "rank": 0,
+            "timestamp": "2025-12-19T08:12:13.272529",
+            "extra": {
+                "section": "market",
+                "content_available": true,
+                "original_url": "https://yingluo.plasway.com/news/123786.html",
+                "summary": "据统计，2025年10月，我国塑料制品行业产量达683.3万吨，同比下降7.6%。1-10月累计产量为6557.3万吨，同比增长0.5%。\n\n2025年10月主要省市区产量、增幅及全国占比\n\n\n2025年10月，塑料制品产量全国排名前十的省份依次为广东、浙江、湖北、江苏、山东、福建、安徽、湖南、四川、重庆。\n\n\n据统计，2025年10月，国内汽车产量为335.9万辆，环比增长2.5%。其中，商用车产量为36.4万辆，环比下降3.2%；乘用车产量为299.5万辆，环比增长3.3%；新能源汽车产量为177.2万辆，同比增长21.1%。【详情】"
+            },
+            "source": "custom"
+        },
+        {
+            "title": "以下数据基于越南统计总局最新发布的信息(2025年12月6日)，小编为你整理关键趋势，便于企业快速判断越南市场的供应链变化、贸易结构与风险机会。",
+            "url": "http://localhost:8000/api/reader/a371b953607e",
+            "platform": "plasway",
+            "platform_name": "Plasway",
+            "category": "commodity",
+            "rank": 0,
+            "timestamp": "2025-12-19T08:12:13.272529",
+            "extra": {
+                "section": "policy",
+                "content_available": true,
+                "original_url": "https://yingluo.plasway.com/news/123788.html",
+                "summary": "以下数据基于越南统计总局最新发布的信息(2025年12月6日)，小编为你整理关键趋势，便于企业快速判断越南市场的供应链变化、贸易结构与风险机会。\n\n一、总体贸易表现：强劲增长，但顺差收窄\n\n总进出口额：8397.5 亿美元（+17.2%）\n出口：4301.4 亿美元（+16.1%）\n进口：4096.1 亿美元（+18.4%）\n顺差：205.3 亿美元（&darr;，去年同期 243.8 亿）\n\n分析：进口增速高于出口，显示越南制造业扩张动力强，但对外依赖加深。顺差减少值得关注。\n\n二、外资继续主导越南出口：占 76.2%\n\n\n\n分析：越南制造业出【详情】"
+            },
+            "source": "custom"
+        },
+        {
+            "title": "越南外贸交出一份亮眼“成绩单”。据越南财政部统计局近日发布报告显示，今年1-11月，越南货物进出口总额达8397.5亿美元，较去年同期大幅增长17.2%，这一规模已超越2024年全年总额（7862.9",
+            "url": "http://localhost:8000/api/reader/a57b47cb14df",
+            "platform": "plasway",
+            "platform_name": "Plasway",
+            "category": "commodity",
+            "rank": 0,
+            "timestamp": "2025-12-19T08:12:13.272529",
+            "extra": {
+                "section": "policy",
+                "content_available": true,
+                "original_url": "https://yingluo.plasway.com/news/123787.html",
+                "summary": "越南外贸交出一份亮眼“成绩单”。据越南财政部统计局近日发布报告显示，今年1-11月，越南货物进出口总额达8397.5亿美元，较去年同期大幅增长17.2%，这一规模已超越2024年全年总额（7862.9亿美元），展现出强劲的外贸活力。\n\n\n具体来看，前11个月出口总额为4301.4亿美元，同比增长16.1%；进口总额为4096.1亿美元，增长18.4%。在此期间，越南实现贸易顺差205.3亿美元，延续了贸易盈余态势。\n\n从单月表现看，11月进出口活动有所放缓。当月出口额390.7亿美元，环比下降7.1%；进口额379.8亿美元，环比下降3.7%，【详情】"
+            },
+            "source": "custom"
+        }
+    ],
+    "timestamp": "2025-12-19T08:12:13.273501",
+    "total": 31,
+    "cached": false,
+    "scheduled_refresh": true
+}
+
+
+

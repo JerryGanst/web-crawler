@@ -80,10 +80,12 @@ async def add_process_time_header(request, call_next):
 @app.get("/api/status")
 async def api_status():
     """API 状态路由"""
+    import time
     return {
         "name": "TrendRadar API",
         "version": "2.0.0",
         "status": "running",
+        "timestamp": time.time(),
         "docs": "/docs",
         "endpoints": {
             "data": "/api/data",
@@ -96,13 +98,21 @@ async def api_status():
         }
     }
 
-# 根路由 - 返回前端页面
+# 根路由 - 返回 API 信息（如果是后端模式）或前端页面
 @app.get("/")
 async def root():
-    """返回前端 SPA 页面"""
-    if FRONTEND_DIR.exists():
-        return FileResponse(FRONTEND_DIR / "index.html")
-    return {"message": "Frontend not built. Run: cd frontend && npm run build"}
+    # 优先检查是否有构建好的前端
+    index_file = FRONTEND_DIR / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
+    
+    # 否则返回 API 信息
+    return {
+        "name": "TrendRadar API",
+        "version": "2.0.0",
+        "status": "running",
+        "message": "Frontend not found, running in API-only mode"
+    }
 
 # 注册数据路由
 app.include_router(data.router, tags=["数据"])

@@ -205,5 +205,51 @@ SELECT
     version_ts,
     created_at
 FROM change_log
-WHERE field_name = 'price' AND change_type = 'UPDATE'
-ORDER BY created_at DESC;
+WHERE field_name = 'price';
+
+-- ============================================================
+-- 7. 市场分析报告表: market_analysis
+-- 说明: 存储 AI 生成的市场分析报告
+-- ============================================================
+CREATE TABLE IF NOT EXISTS market_analysis (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    
+    -- 报告内容
+    content TEXT NOT NULL COMMENT 'Markdown 格式的报告内容',
+    
+    -- 元数据
+    model VARCHAR(64) COMMENT '使用的 AI 模型',
+    api_source VARCHAR(32) COMMENT 'API 来源 (内网/外网)',
+    
+    -- 时间戳
+    created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) COMMENT '生成时间',
+    
+    -- 索引
+    INDEX idx_created_at (created_at DESC)
+) ENGINE=InnoDB COMMENT='市场分析报告表';
+
+-- ============================================================
+-- 8. 汇率历史表: exchange_rates
+-- 说明: 记录汇率历史数据
+-- ============================================================
+CREATE TABLE IF NOT EXISTS exchange_rates (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    
+    -- 货币对
+    base_currency VARCHAR(3) NOT NULL COMMENT '基础货币 (如 USD)',
+    target_currency VARCHAR(3) NOT NULL COMMENT '目标货币 (如 CNY)',
+    
+    -- 汇率
+    rate DECIMAL(10, 6) NOT NULL COMMENT '汇率值',
+    
+    -- 元数据
+    source VARCHAR(64) COMMENT '数据来源 (如 api.exchangerate-api.com)',
+    timestamp DATETIME(3) COMMENT '数据时间戳 (来源提供的时间)',
+    
+    -- 系统时间
+    created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
+    
+    -- 索引
+    INDEX idx_currency_pair (base_currency, target_currency),
+    INDEX idx_created_at (created_at DESC)
+) ENGINE=InnoDB COMMENT='汇率历史表';

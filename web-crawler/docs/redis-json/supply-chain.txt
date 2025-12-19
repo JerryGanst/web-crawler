@@ -1,0 +1,336 @@
+key:trendradar:news:supply-chain
+value:
+{
+    "status": "success",
+    "data": [
+        {
+            "title": "中信证券：看好半导体设备行业的投资机遇",
+            "url": "https://news.10jqka.com.cn/20251219/c673335647.shtml",
+            "source": "同花顺",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": ""
+        },
+        {
+            "title": "AI通过“观察学习”吸取价值观",
+            "url": "https://news.10jqka.com.cn/20251219/c673333971.shtml",
+            "source": "同花顺",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": ""
+        },
+        {
+            "title": "OpenAI新一轮融资可能使该初创公司估值高达8300亿美元",
+            "url": "https://news.10jqka.com.cn/20251219/c673333168.shtml",
+            "source": "同花顺",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": ""
+        },
+        {
+            "title": "白宫AI和加密货币主管：参议员将于1月审议加密货币市场法案",
+            "url": "https://finance.sina.com.cn/stock/usstock/c/2025-12-19/doc-inhchsqv2549127.shtml",
+            "source": "新浪财经",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": ""
+        },
+        {
+            "title": "1.56亿元出售算力资产，亿田智能跨界转型困局何解？",
+            "url": "https://finance.sina.com.cn/jjxw/2025-12-19/doc-inhchsqp7538832.shtml",
+            "source": "新浪财经",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": ""
+        },
+        {
+            "title": "AI校园争夺战升级：OpenAI以“批发价”抢占百万用户，微软(MSFT.US)谷歌(GOOGL.US)如何破局？",
+            "url": "https://finance.sina.com.cn/stock/hkstock/ggscyd/2025-12-19/doc-inhchsqt7892055.shtml",
+            "source": "新浪财经",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": ""
+        },
+        {
+            "title": "中际旭创:北京中银(苏州)律师事务所关于公司2025年第四次临时股东会之法律意见书",
+            "url": "https://data.eastmoney.com/notices/detail/300308/AN202512091797018570.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300308"
+        },
+        {
+            "title": "中际旭创:2025年第四次临时股东会决议公告",
+            "url": "https://data.eastmoney.com/notices/detail/300308/AN202512091797018568.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300308"
+        },
+        {
+            "title": "中际旭创:关于投资国泰海通中际旭创产业基金的进展公告",
+            "url": "https://data.eastmoney.com/notices/detail/300308/AN202511281789996861.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300308"
+        },
+        {
+            "title": "中际旭创:关于部分高级管理人员减持计划期限届满暨实施情况公告",
+            "url": "https://data.eastmoney.com/notices/detail/300308/AN202511241787557655.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300308"
+        },
+        {
+            "title": "中际旭创:关于使用部分自有资金进行现金管理的进展公告",
+            "url": "https://data.eastmoney.com/notices/detail/300308/AN202511211785661266.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300308"
+        },
+        {
+            "title": "新易盛:300502新易盛投资者关系管理信息20251029",
+            "url": "https://data.eastmoney.com/notices/detail/300502/AN202510301771970717.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300502"
+        },
+        {
+            "title": "新易盛:2025年三季度报告",
+            "url": "https://data.eastmoney.com/notices/detail/300502/AN202510291771333527.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300502"
+        },
+        {
+            "title": "新易盛:关于2025年第三季度报告披露的提示性公告",
+            "url": "https://data.eastmoney.com/notices/detail/300502/AN202510291771333504.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300502"
+        },
+        {
+            "title": "新易盛:第五届董事会第十一次会议决议公告",
+            "url": "https://data.eastmoney.com/notices/detail/300502/AN202510291771333502.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300502"
+        },
+        {
+            "title": "新易盛:关于股东询价转让结果报告书暨控股股东权益变动触及1%整数倍的提示性公告",
+            "url": "https://data.eastmoney.com/notices/detail/300502/AN202510211766363508.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300502"
+        },
+        {
+            "title": "天孚通信:第五届董事会第九次临时会议决议公告",
+            "url": "https://data.eastmoney.com/notices/detail/300394/AN202512121799073735.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300394"
+        },
+        {
+            "title": "天孚通信:关于授权公司管理层启动公司境外发行股份(H股)并在香港联合交易所有限公司上市相关筹备工作的公告",
+            "url": "https://data.eastmoney.com/notices/detail/300394/AN202512121799073749.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300394"
+        },
+        {
+            "title": "天孚通信:股票交易异常波动公告",
+            "url": "https://data.eastmoney.com/notices/detail/300394/AN202512081796405737.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300394"
+        },
+        {
+            "title": "天孚通信:关于董事、高级管理人员减持股份的预披露公告",
+            "url": "https://data.eastmoney.com/notices/detail/300394/AN202512021792609914.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300394"
+        },
+        {
+            "title": "天孚通信:2025年11月27日天孚通信投资者关系活动记录表",
+            "url": "https://data.eastmoney.com/notices/detail/300394/AN202511271789436638.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300394"
+        },
+        {
+            "title": "光迅科技:上海荣正企业咨询服务(集团)股份有限公司关于武汉光迅科技股份有限公司2022年限制性股票激励计划暂缓授予部分第一个解除限售期解除限售条件成就事项之独立财务顾问报告",
+            "url": "https://data.eastmoney.com/notices/detail/002281/AN202512161801564839.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "002281"
+        },
+        {
+            "title": "光迅科技:武汉光迅科技股份有限公司关于2022年限制性股票激励计划暂缓授予的限制性股票第一个解除限售期解除限售条件成就的公告",
+            "url": "https://data.eastmoney.com/notices/detail/002281/AN202512151801080715.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "002281"
+        },
+        {
+            "title": "光迅科技:武汉光迅科技股份有限公司第八届董事会薪酬与考核委员会2025年第六次会议意见",
+            "url": "https://data.eastmoney.com/notices/detail/002281/AN202512151801080660.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "002281"
+        },
+        {
+            "title": "光迅科技:北京市嘉源律师事务所关于武汉光迅科技股份有限公司2022年限制性股票激励计划暂缓授予的限制性股票第一个解除限售期解除限售条件成就相关事项的法律意见书",
+            "url": "https://data.eastmoney.com/notices/detail/002281/AN202512151801080706.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "002281"
+        },
+        {
+            "title": "光迅科技:武汉光迅科技股份有限公司第八届董事会第二次会议决议公告",
+            "url": "https://data.eastmoney.com/notices/detail/002281/AN202512151801080687.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "002281"
+        },
+        {
+            "title": "中航光电:关于部分董事减持计划时间届满未减持股份的公告",
+            "url": "https://data.eastmoney.com/notices/detail/002179/AN202512101797747399.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "002179"
+        },
+        {
+            "title": "中航光电:关于以集中竞价交易方式回购公司股份的进展公告",
+            "url": "https://data.eastmoney.com/notices/detail/002179/AN202512011791977830.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "002179"
+        },
+        {
+            "title": "中航光电:第七届董事会第二十次会议决议公告",
+            "url": "https://data.eastmoney.com/notices/detail/002179/AN202512011791967065.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "002179"
+        },
+        {
+            "title": "中航光电:北京市嘉源律师事务所关于中航光电科技股份有限公司A股限制性股票激励计划(第三期)第二个解锁期解锁事项及回购注销部分限制性股票的法律意见书",
+            "url": "https://data.eastmoney.com/notices/detail/002179/AN202512011791967068.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "002179"
+        },
+        {
+            "title": "中航光电:关于调整2025年度日常关联交易预计的公告",
+            "url": "https://data.eastmoney.com/notices/detail/002179/AN202512011791967074.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "002179"
+        },
+        {
+            "title": "意华股份:关于为子公司提供担保的公告",
+            "url": "https://data.eastmoney.com/notices/detail/002897/AN202512121799008552.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "002897"
+        },
+        {
+            "title": "意华股份:关于非独立董事辞职暨选举职工代表董事的公告",
+            "url": "https://data.eastmoney.com/notices/detail/002897/AN202511141781272203.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "002897"
+        },
+        {
+            "title": "意华股份:意华股份2025年第三次临时股东会法律意见书",
+            "url": "https://data.eastmoney.com/notices/detail/002897/AN202511141781272226.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "002897"
+        },
+        {
+            "title": "意华股份:2025年第三次临时股东大会决议公告",
+            "url": "https://data.eastmoney.com/notices/detail/002897/AN202511141781272211.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "002897"
+        },
+        {
+            "title": "意华股份:第五届董事会第七次会议决议公告",
+            "url": "https://data.eastmoney.com/notices/detail/002897/AN202511141781272236.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "002897"
+        },
+        {
+            "title": "金信诺:关于独立董事任期届满的提示性公告",
+            "url": "https://data.eastmoney.com/notices/detail/300252/AN202512121799070225.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300252"
+        },
+        {
+            "title": "金信诺:中航证券有限公司关于深圳金信诺高新技术股份有限公司开展外汇衍生品交易业务的核查意见",
+            "url": "https://data.eastmoney.com/notices/detail/300252/AN202512031793285409.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300252"
+        },
+        {
+            "title": "金信诺:关于公司及子公司向相关业务方申请授信额度的公告",
+            "url": "https://data.eastmoney.com/notices/detail/300252/AN202512031793286558.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300252"
+        },
+        {
+            "title": "金信诺:关于开展沪铜、沪锡期货套期保值业务的公告",
+            "url": "https://data.eastmoney.com/notices/detail/300252/AN202512031793285444.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300252"
+        },
+        {
+            "title": "金信诺:中航证券有限公司关于深圳金信诺高新技术股份有限公司2026年度日常关联交易预计的核查意见",
+            "url": "https://data.eastmoney.com/notices/detail/300252/AN202512031793285417.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "300252"
+        },
+        {
+            "title": "威胜信息:关于2025年11月中标合同情况的自愿性披露公告",
+            "url": "https://data.eastmoney.com/notices/detail/688100/AN202512021792515871.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "688100"
+        },
+        {
+            "title": "威胜信息:威胜信息技术股份有限公司2025年11月24日-26日投资者交流会会议记录",
+            "url": "https://data.eastmoney.com/notices/detail/688100/AN202511261788726830.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "688100"
+        },
+        {
+            "title": "威胜信息:威胜信息技术股份有限公司2025年三季度业绩说明会会议纪录",
+            "url": "https://data.eastmoney.com/notices/detail/688100/AN202511251788071599.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "688100"
+        },
+        {
+            "title": "威胜信息:关于召开2025年第三季度业绩说明会的公告",
+            "url": "https://data.eastmoney.com/notices/detail/688100/AN202511161782417861.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "688100"
+        },
+        {
+            "title": "威胜信息:北京市金杜律师事务所关于威胜信息技术股份有限公司2025年第二次临时股东大会的法律意见书",
+            "url": "https://data.eastmoney.com/notices/detail/688100/AN202511071776934819.html",
+            "source": "东方财富公告",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": "688100"
+        }
+    ],
+    "timestamp": "2025-12-19T08:42:05.264214",
+    "total": 46,
+    "cached": false,
+    "scheduled_refresh": true,
+    "category": "supply-chain"
+}
+
+

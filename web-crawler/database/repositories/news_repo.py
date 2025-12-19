@@ -649,6 +649,37 @@ class MongoNewsRepository:
         result = self._col.delete_many({"crawl_date": {"$lt": before_date}})
         return int(result.deleted_count or 0)
 
+    def save_snapshot(self, cache_key: str, data: Dict[str, Any]) -> None:
+        """
+        保存最新数据快照（用于缓存回源）
+        
+        Args:
+            cache_key: Redis 缓存 Key (如 "news:finance")
+            data: 完整的缓存数据 (包含 data, timestamp 等)
+        """
+        snapshot_col = self._db["news_snapshots"]
+        
+        # 确保快照集合有索引
+        # snapshot_col.create_index([("_id", 1)], unique=True) # _id 默认有索引
+        
+        doc = {
+            "_id": cache_key,
+            "data": data,
+            "updated_at": datetime.now(),
+            "expire_at": datetime.now() + timedelta(days=7)  # 7天后自动过期（需配合 TTL 索引）
+        }
+        
+        snapshot_col.replace_one(
+            {"_id": cache_key},
+            doc,
+            upsert=True
+        )
+
+    def get_snapshot(self, cache_key: str) -> Optional[Dict[str, Any]]:
+        """获取最新数据快照"""
+        doc = self._db["news_snapshots"].find_one({"_id": cache_key})
+        return doc.get("data") if doc else None
+
 
 class MongoKeywordMatchRepository:
     def __init__(self, mongo_db: Any):

@@ -78,6 +78,9 @@ class RedisCache:
     
     def _key(self, key: str) -> str:
         """添加前缀"""
+        # 如果 key 已经包含前缀，则不重复添加
+        if key.startswith(REDIS_PREFIX):
+            return key
         return f"{REDIS_PREFIX}{key}"
     
     def get(self, key: str) -> Optional[Any]:

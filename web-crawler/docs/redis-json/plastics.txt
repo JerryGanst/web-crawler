@@ -1,0 +1,21 @@
+key:trendradar:news:plastics
+value:
+{
+    "status": "success",
+    "data": [
+        {
+            "title": "韩国11月PPI月率0.3%，前值0.2%",
+            "url": "https://news.10jqka.com.cn/20251219/c673334110.shtml",
+            "source": "同花顺",
+            "publish_time": "2025-12-19 08:11",
+            "matched_keyword": ""
+        }
+    ],
+    "timestamp": "2025-12-19T08:11:07.095197",
+    "total": 1,
+    "cached": false,
+    "scheduled_refresh": true,
+    "category": "plastics"
+}
+
+

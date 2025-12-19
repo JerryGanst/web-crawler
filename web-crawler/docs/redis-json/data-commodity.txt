@@ -1,0 +1,396 @@
+key:trendradar:data:commodity
+value:
+{
+    "data": [
+        {
+            "name": "COMEX黄金",
+            "chinese_name": "COMEX黄金",
+            "price": 4360.956,
+            "current_price": 4360.956,
+            "change_percent": -0.17,
+            "unit": "USD/盎司",
+            "source": "新浪期货",
+            "category": "贵金属",
+            "url": "https://finance.sina.com.cn/futures/quotes/hf_GC.shtml"
+        },
+        {
+            "name": "COMEX白银",
+            "chinese_name": "COMEX白银",
+            "price": 65.5,
+            "current_price": 65.5,
+            "change_percent": -0.26,
+            "unit": "USD/盎司",
+            "source": "新浪期货",
+            "category": "贵金属",
+            "url": "https://finance.sina.com.cn/futures/quotes/hf_SI.shtml"
+        },
+        {
+            "name": "WTI原油",
+            "chinese_name": "WTI原油",
+            "price": 55.8,
+            "current_price": 55.8,
+            "change_percent": -0.34,
+            "unit": "USD/桶",
+            "source": "新浪期货",
+            "category": "能源",
+            "url": "https://finance.sina.com.cn/futures/quotes/hf_CL.shtml"
+        },
+        {
+            "name": "天然气",
+            "chinese_name": "天然气",
+            "price": 3.221,
+            "current_price": 3.221,
+            "change_percent": -0.31,
+            "unit": "USD/MMBtu",
+            "source": "新浪期货",
+            "category": "能源",
+            "url": "https://finance.sina.com.cn/futures/quotes/hf_NG.shtml"
+        },
+        {
+            "name": "WTI原油",
+            "chinese_name": "WTI原油",
+            "price": 56.15,
+            "current_price": 56.15,
+            "change_percent": 0.3754022166607079,
+            "high_price": 57.03,
+            "low_price": 55.88,
+            "unit": "USD/桶",
+            "source": "中塑在线",
+            "category": "能源",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "product_sid": null,
+                "price_range": null
+            },
+            "url": "https://quote.21cp.com/crude_centre/list/158651161505726464--.html"
+        },
+        {
+            "name": "COMEX铜",
+            "chinese_name": "COMEX铜",
+            "price": 542.859,
+            "current_price": 542.859,
+            "change_percent": -0.02,
+            "unit": "USD/磅",
+            "source": "新浪期货",
+            "category": "工业金属",
+            "url": "https://finance.sina.com.cn/futures/quotes/hf_HG.shtml"
+        },
+        {
+            "name": "ABS(华南)",
+            "chinese_name": "ABS(华南)",
+            "price": 8050,
+            "current_price": 8050,
+            "change_percent": 0,
+            "pre_price": 8050,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华南区域",
+                "sid": "824553200865566721"
+            },
+            "url": "https://quote.21cp.com/avg_area/list/303561829995569152-ABS.html"
+        },
+        {
+            "name": "ABS(华东)",
+            "chinese_name": "ABS(华东)",
+            "price": 12900,
+            "current_price": 12900,
+            "change_percent": 0,
+            "pre_price": 12900,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华南区域",
+                "sid": "824553200865566724"
+            },
+            "url": "https://quote.21cp.com/avg_area/list/303561829995569152-ABS.html"
+        },
+        {
+            "name": "ABS(华北)",
+            "chinese_name": "ABS(华北)",
+            "price": 7850,
+            "current_price": 7850,
+            "change_percent": 0,
+            "pre_price": 7850,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华南区域",
+                "sid": "824553200865566722"
+            },
+            "url": "https://quote.21cp.com/avg_area/list/303561829995569152-ABS.html"
+        },
+        {
+            "name": "PP(华东)",
+            "chinese_name": "PP(华东)",
+            "price": 7400,
+            "current_price": 7400,
+            "change_percent": 0,
+            "pre_price": 7400,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华东区域",
+                "sid": "824553218812993536"
+            },
+            "url": "https://quote.21cp.com/avg_area/list/301005776779010048-PP.html"
+        },
+        {
+            "name": "PP(华南)",
+            "chinese_name": "PP(华南)",
+            "price": 7550,
+            "current_price": 7550,
+            "change_percent": 0,
+            "pre_price": 7550,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华南区域",
+                "sid": "824553201679392768"
+            },
+            "url": "https://quote.21cp.com/avg_area/list/301005776779010048-PP.html"
+        },
+        {
+            "name": "PP(华北)",
+            "chinese_name": "PP(华北)",
+            "price": 7150,
+            "current_price": 7150,
+            "change_percent": 0,
+            "pre_price": 7150,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华北区域",
+                "sid": "824553195643658240"
+            },
+            "url": "https://quote.21cp.com/avg_area/list/301005776779010048-PP.html"
+        },
+        {
+            "name": "PE(华东)",
+            "chinese_name": "PE(华东)",
+            "price": 8900,
+            "current_price": 8900,
+            "change_percent": 0,
+            "pre_price": 8900,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华东区域",
+                "sid": "824553208037957632"
+            },
+            "url": "https://quote.21cp.com/avg_area/list/301005776779010048-PE.html"
+        },
+        {
+            "name": "PE(华南)",
+            "chinese_name": "PE(华南)",
+            "price": 4500,
+            "current_price": 4500,
+            "change_percent": 0,
+            "pre_price": 4500,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华南区域",
+                "sid": "824553196398632960"
+            },
+            "url": "https://quote.21cp.com/avg_area/list/301005776779010048-PE.html"
+        },
+        {
+            "name": "PE(华北)",
+            "chinese_name": "PE(华北)",
+            "price": 4500,
+            "current_price": 4500,
+            "change_percent": 0,
+            "pre_price": 4500,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华南区域",
+                "sid": "824553196398632961"
+            },
+            "url": "https://quote.21cp.com/avg_area/list/301005776779010048-PE.html"
+        },
+        {
+            "name": "GPPS(华东)",
+            "chinese_name": "GPPS(华东)",
+            "price": 7800,
+            "current_price": 7800,
+            "change_percent": 0,
+            "pre_price": 7800,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华东区域",
+                "sid": "824553210470653952"
+            },
+            "url": "https://quote.21cp.com/avg_area/detail/749907578238066688--.html"
+        },
+        {
+            "name": "GPPS(华南)",
+            "chinese_name": "GPPS(华南)",
+            "price": 7700,
+            "current_price": 7700,
+            "change_percent": 0,
+            "pre_price": 7700,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华南区域",
+                "sid": "824553199020204032"
+            },
+            "url": "https://quote.21cp.com/avg_area/detail/749907578238066689--.html"
+        },
+        {
+            "name": "GPPS低端(华东)",
+            "chinese_name": "GPPS低端(华东)",
+            "price": 7300,
+            "current_price": 7300,
+            "change_percent": 0,
+            "pre_price": 7300,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华东区域",
+                "sid": "824553210470653953"
+            },
+            "url": "https://quote.21cp.com/avg_area/detail/749907373505699840-20-.html"
+        },
+        {
+            "name": "GPPS低端(华南)",
+            "chinese_name": "GPPS低端(华南)",
+            "price": 6900,
+            "current_price": 6900,
+            "change_percent": 0,
+            "pre_price": 6900,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华南区域",
+                "sid": "824553199020204033"
+            },
+            "url": "https://quote.21cp.com/avg_area/detail/749907373505699841-20-.html"
+        },
+        {
+            "name": "HIPS(华东)",
+            "chinese_name": "HIPS(华东)",
+            "price": 8500,
+            "current_price": 8500,
+            "change_percent": 0,
+            "pre_price": 8500,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华东区域",
+                "sid": "824553210470653954"
+            },
+            "url": "https://quote.21cp.com/avg_area/detail/749910931273736192-20-.html"
+        },
+        {
+            "name": "HIPS(华南)",
+            "chinese_name": "HIPS(华南)",
+            "price": 7700,
+            "current_price": 7700,
+            "change_percent": 0,
+            "pre_price": 7700,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华南区域",
+                "sid": "824553199020204034"
+            },
+            "url": "https://quote.21cp.com/avg_area/detail/749910931273736193-20-.html"
+        },
+        {
+            "name": "HIPS低端(华东)",
+            "chinese_name": "HIPS低端(华东)",
+            "price": 7950,
+            "current_price": 7950,
+            "change_percent": 0,
+            "pre_price": 7950,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华东区域",
+                "sid": "824553210470653955"
+            },
+            "url": "https://quote.21cp.com/avg_area/detail/749908132301430784-20-.html"
+        },
+        {
+            "name": "HIPS低端(华南)",
+            "chinese_name": "HIPS低端(华南)",
+            "price": 8050,
+            "current_price": 8050,
+            "change_percent": 0,
+            "pre_price": 8050,
+            "unit": "元/吨",
+            "source": "中塑在线",
+            "category": "塑料",
+            "price_date": "2025-12-19",
+            "version_ts": "2025-12-19 23:59:59",
+            "extra_data": {
+                "market_area": "华南区域",
+                "sid": "824553199020204035"
+            },
+            "url": "https://quote.21cp.com/avg_area/detail/749908132301430785-20-.html"
+        }
+    ],
+    "source": "TrendRadar Commodity",
+    "timestamp": "2025-12-19T08:41:19.402255",
+    "cached": false,
+    "scheduled_refresh": true,
+    "categories": [
+        "能源",
+        "工业金属",
+        "贵金属",
+        "塑料"
+    ]
+}

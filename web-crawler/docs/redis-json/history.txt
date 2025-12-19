@@ -1,0 +1,36 @@
+hash: trendradar:history:ABS(华南)
+key:2025-12-19  
+value :{
+    "price": 8050,
+    "change_percent": 0,
+    "source": "中塑在线",
+    "timestamp": "2025-12-19T08:41:19.504602"
+}
+
+key：2025-12-18
+value:
+{
+    "price": 8050,
+    "change_percent": 0.63,
+    "source": "中塑在线",
+    "timestamp": "2025-12-18T18:50:55.276348"
+}
+
+hash:trendradar:history:COMEX铜
+key:2025-12-18
+value：
+{
+    "price": 542.071,
+    "change_percent": -0.18,
+    "source": "新浪期货",
+    "timestamp": "2025-12-18T18:50:55.274348"
+}
+
+key:2025-12-19
+value:{
+    "price": 542.859,
+    "change_percent": -0.02,
+    "source": "新浪期货",
+    "timestamp": "2025-12-19T08:41:19.494602"
+}
+

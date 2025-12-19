@@ -1,0 +1,2115 @@
+key:trendradar:news:finance
+value:
+{
+    "status": "success",
+    "category": "finance",
+    "data": [
+        {
+            "id": 2234156,
+            "title": "12月19日投资避雷针：百亿电池龙头突发 终止筹划控制权变更事项",
+            "pubDate": 1766103008000,
+            "url": "https://www.cls.cn/detail/2234156",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234157,
+            "title": "美总统特朗普签署2026财年国防授权法案",
+            "pubDate": 1766102971000,
+            "url": "https://www.cls.cn/detail/2234157",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234155,
+            "title": "中央网信办在人民日报撰文：加强网络生态治理，营造清朗网络空间",
+            "pubDate": 1766102960000,
+            "url": "https://www.cls.cn/detail/2234155",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234118,
+            "title": "美光上修第二财季营收展望超40亿美元 HBM需求持续高景气",
+            "pubDate": 1766102812000,
+            "url": "https://www.cls.cn/detail/2234118",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234124,
+            "title": "特朗普旗下企业拟并购核聚变初创公司 核聚变行业商业化显著加速",
+            "pubDate": 1766102785000,
+            "url": "https://www.cls.cn/detail/2234124",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234132,
+            "title": "蚂蚁阿福下载量猛增引爆市场 AI医疗领域有望迎需求爆发",
+            "pubDate": 1766102761000,
+            "url": "https://www.cls.cn/detail/2234132",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234149,
+            "title": "小K播早报|周受资内部信曝TikTok美国方案 OpenAI计划筹资至多1000亿美元",
+            "pubDate": 1766102734000,
+            "url": "https://www.cls.cn/detail/2234149",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234139,
+            "title": "特朗普签署行政命令 重申2028年登月目标",
+            "pubDate": 1766102317000,
+            "url": "https://www.cls.cn/detail/2234139",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234130,
+            "title": "陆治原：不断推动民政事业高质量发展",
+            "pubDate": 1766101591000,
+            "url": "https://www.cls.cn/detail/2234130",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234120,
+            "title": "Hib单苗市场遇冷 成大生物按下研发“终止键”",
+            "pubDate": 1766100935000,
+            "url": "https://www.cls.cn/detail/2234120",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234113,
+            "title": "人民日报和音：读懂海南自贸港封关启航的开放分量",
+            "pubDate": 1766100302000,
+            "url": "https://www.cls.cn/detail/2234113",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234107,
+            "title": "“北溪”爆炸案一嫌犯身份曝光：案发时为乌军现役士兵",
+            "pubDate": 1766099405000,
+            "url": "https://www.cls.cn/detail/2234107",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234096,
+            "title": "港股早报 |  外资机构称中国股票估值极具吸引力 港交所启动买卖单位改革咨询",
+            "pubDate": 1766099119000,
+            "url": "https://www.cls.cn/detail/2234096",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234073,
+            "title": "ChatGPT移动端消费额突破30亿美元 耗时31个月 快过其他等头部应用",
+            "pubDate": 1766091762000,
+            "url": "https://www.cls.cn/detail/2234073",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234067,
+            "title": "拉加德：货币政策处于良好位置 但不预设利率路径",
+            "pubDate": 1766087589000,
+            "url": "https://www.cls.cn/detail/2234067",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234052,
+            "title": "白宫官员盛赞11月CPI：美国经济呈现高增长、低通胀态势",
+            "pubDate": 1766081467000,
+            "url": "https://www.cls.cn/detail/2234052",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234035,
+            "title": "OpenAI抢占美国高校：ChatGPT在教育市场率先起跑",
+            "pubDate": 1766076850000,
+            "url": "https://www.cls.cn/detail/2234035",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234021,
+            "title": "时隔一年 车身轻量化龙头旭升集团再谋易主 |速读公告",
+            "pubDate": 1766075664000,
+            "url": "https://www.cls.cn/detail/2234021",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234005,
+            "title": "“量子科技第一股”国盾量子董事长吕品逝世",
+            "pubDate": 1766072147000,
+            "url": "https://www.cls.cn/detail/2234005",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233996,
+            "title": "SpaceX上市在即，特斯拉还能承载多少“马斯克溢价”？",
+            "pubDate": 1766071764000,
+            "url": "https://www.cls.cn/detail/2233996",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233998,
+            "title": "反内卷政策暖风推动情绪好转 焦煤价格大幅反弹",
+            "pubDate": 1766071389000,
+            "url": "https://www.cls.cn/detail/2233998",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233997,
+            "title": "特朗普商业帝国再扩张！DJT并购TAE转型为聚变能源公司",
+            "pubDate": 1766071357000,
+            "url": "https://www.cls.cn/detail/2233997",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233981,
+            "title": "欧洲两大央行公布2025年收官决议 未来政策路径正在分道扬镳",
+            "pubDate": 1766068938000,
+            "url": "https://www.cls.cn/detail/2233981",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233974,
+            "title": "超万人挤爆火山引擎大会   豆包大模型“全都要”",
+            "pubDate": 1766068653000,
+            "url": "https://www.cls.cn/detail/2233974",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233973,
+            "title": "商汤联合创始人领衔！大晓机器人与智元、沐曦等发力具身智能落地",
+            "pubDate": 1766068451000,
+            "url": "https://www.cls.cn/detail/2233973",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233971,
+            "title": "智谱、MiniMax抢夺大模型第一股 背后高瓴都投了",
+            "pubDate": 1766068379000,
+            "url": "https://www.cls.cn/detail/2233971",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233968,
+            "title": "美国11月CPI低于预期，FED货币政策宽松预期升温",
+            "pubDate": 1766068119000,
+            "url": "https://www.cls.cn/detail/2233968",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233868,
+            "title": "中国光伏行业协会罕见未预测下一年度新增装机",
+            "pubDate": 1766062134000,
+            "url": "https://www.cls.cn/detail/2233868",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233818,
+            "title": "湖北舰，最新训练画面",
+            "pubDate": 1766059093000,
+            "url": "https://www.cls.cn/detail/2233818",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233723,
+            "title": "机器人年终盘点⑤：欢迎来到“机器人”纪元 一图看懂产业星图",
+            "pubDate": 1766055398000,
+            "url": "https://www.cls.cn/detail/2233723",
+            "platform": "cls-depth",
+            "platform_name": "财联社深度",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761678,
+            "title": "21亿美元收购保险公司，Ackman复刻“伯克希尔哈撒韦”",
+            "extra": {
+                "date": 1766103290000
+            },
+            "url": "https://wallstreetcn.com/articles/3761678",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761679,
+            "title": "德银调查机构客户“2026年最大风险”：超半数选择了“科技泡沫破裂”，“美联储新主席大幅降息”排第二",
+            "extra": {
+                "date": 1766103080000
+            },
+            "url": "https://wallstreetcn.com/articles/3761679",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761680,
+            "title": "就在今天！史上最大规模期权到期，美股将迎来“疯狂一日”？",
+            "extra": {
+                "date": 1766102892000
+            },
+            "url": "https://wallstreetcn.com/articles/3761680",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761670,
+            "title": "10月日本、英国增持美债超百亿美元，中国持仓下降，加拿大大降",
+            "extra": {
+                "date": 1766100662000
+            },
+            "url": "https://wallstreetcn.com/articles/3761670",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761677,
+            "title": "华尔街见闻早餐FM-Radio | 2025年12月19日",
+            "extra": {
+                "date": 1766100245000
+            },
+            "url": "https://wallstreetcn.com/articles/3761677",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 41958261,
+            "title": "白银“超买”史上最高！",
+            "extra": {
+                "date": 1766098695000
+            },
+            "url": "https://wallstreetcn.com/charts/41958261",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761635,
+            "title": "“三巫日”前美CPI意外降温，美国股债汇齐涨，加密货币下挫，人民币再度逼近7.03",
+            "extra": {
+                "date": 1766098536000
+            },
+            "url": "https://wallstreetcn.com/articles/3761635",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761652,
+            "title": "特朗普媒体集团大涨42%，公司拟并购核聚变公司TAE，计划明年开始建设核聚变发电厂",
+            "extra": {
+                "date": 1766098393000
+            },
+            "url": "https://wallstreetcn.com/articles/3761652",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761676,
+            "title": "AI数据中心太火，美商务部长被盯上了，民主党议员发函敦促调查利益冲突",
+            "extra": {
+                "date": 1766098065000
+            },
+            "url": "https://wallstreetcn.com/articles/3761676",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761668,
+            "title": "强化AI编程能力迎战谷歌！OpenAI发布GPT-5.2-Codex，软件工程和网安一把抓",
+            "extra": {
+                "date": 1766098045000
+            },
+            "url": "https://wallstreetcn.com/articles/3761668",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761672,
+            "title": "12月19日会员早报：美国11月CPI大幅低于预期 特朗普收购核聚变上市公司",
+            "extra": {
+                "date": 1766098013000
+            },
+            "url": "https://wallstreetcn.com/member/articles/3761672",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761661,
+            "title": "回顾牛气冲天的2025 得出的结论是：买指数！？",
+            "extra": {
+                "date": 1766098001000
+            },
+            "url": "https://wallstreetcn.com/member/articles/3761661",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761675,
+            "title": "Meta被爆明年上半年发布新图像和视频AI模型，研究开发世界模型",
+            "extra": {
+                "date": 1766097968000
+            },
+            "url": "https://wallstreetcn.com/articles/3761675",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761673,
+            "title": "苹果宣布：大幅降低日本“苹果税”，专家：中国被区别对待，抽成比例高于美欧日韩",
+            "extra": {
+                "date": 1766093444000
+            },
+            "url": "https://wallstreetcn.com/articles/3761673",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761674,
+            "title": "报道：欧央行官员们表示，降息周期很有可能结束了",
+            "extra": {
+                "date": 1766093373000
+            },
+            "url": "https://wallstreetcn.com/articles/3761674",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761671,
+            "title": "美联储主席最热人选哈塞特：CPI报告好得令人震惊，美联储有很大空间可以降息",
+            "extra": {
+                "date": 1766092639000
+            },
+            "url": "https://wallstreetcn.com/articles/3761671",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761669,
+            "title": "特朗普称赞沃勒和鲍曼，称将在未来几周内公布美联储主席人选",
+            "extra": {
+                "date": 1766090115000
+            },
+            "url": "https://wallstreetcn.com/articles/3761669",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761666,
+            "title": "特朗普行政令降低大麻管制等级，投资者“卖事实”，大麻股普跌",
+            "extra": {
+                "date": 1766089740000
+            },
+            "url": "https://wallstreetcn.com/articles/3761666",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761664,
+            "title": "美CPI降温别高兴太早：经济学家怀疑政府关门导致数据失真，有人指明显出错",
+            "extra": {
+                "date": 1766085893000
+            },
+            "url": "https://wallstreetcn.com/articles/3761664",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761667,
+            "title": "充满争议仍获放行：密歇根州批准为甲骨文与OpenAI超级数据中心供电",
+            "extra": {
+                "date": 1766085677000
+            },
+            "url": "https://wallstreetcn.com/articles/3761667",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761663,
+            "title": "拉加德暗示欧央行不急行动：政策处于有利位置，未预设利率路径，任何选项都应考虑",
+            "extra": {
+                "date": 1766078428000
+            },
+            "url": "https://wallstreetcn.com/articles/3761663",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761535,
+            "title": "付鹏：高度关注！全球长债收益率显著上行如何影响大类资产交易？",
+            "extra": {
+                "date": 1766073958000
+            },
+            "url": "https://wallstreetcn.com/premium/articles/3761535?layout=wscn-layout",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761662,
+            "title": "私募代持“罗生门”：15万“友情投”被净值击穿",
+            "extra": {
+                "date": 1766071809000
+            },
+            "url": "https://wallstreetcn.com/articles/3761662",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761649,
+            "title": "国际秩序重构推动中国资产重估，国内收支分化重视赤字与化债，欧服务业通胀有望渐降---1218宏观脱水",
+            "extra": {
+                "date": 1766071596000
+            },
+            "url": "https://wallstreetcn.com/member/articles/3761649",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761638,
+            "title": "为什么说扩内需是人民币走强的关键？",
+            "extra": {
+                "date": 1766071583000
+            },
+            "url": "https://wallstreetcn.com/member/articles/3761638",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761658,
+            "title": "美国上周首申人数回落至22.4万人，扭转此前激增趋势",
+            "extra": {
+                "date": 1766071152000
+            },
+            "url": "https://wallstreetcn.com/articles/3761658",
+            "platform": "wallstreetcn-news",
+            "platform_name": "华尔街见闻快讯",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234172,
+            "title": "安徽“十五五”规划建议：支持亳州建设世界中医药之都 加快淮北、淮南等资源型城市创新发展",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234172?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766103819000,
+            "url": "https://www.cls.cn/detail/2234172",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234170,
+            "title": "安徽“十五五”规划建议：推动企业上市“迎客松行动”计划和“科创100”上市专项行动扩围提质",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234170?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766103744000,
+            "url": "https://www.cls.cn/detail/2234170",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234169,
+            "title": "安徽“十五五”规划建议：加快构建房地产发展新模式 完善商品房开发、融资、销售等基础制度",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234169?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766103721000,
+            "url": "https://www.cls.cn/detail/2234169",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234168,
+            "title": "安徽“十五五”规划建议：推动量子科技、氢能和核聚变能、脑机接口等成为新的经济增长点",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234168?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766103640000,
+            "url": "https://www.cls.cn/detail/2234168",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234164,
+            "title": "中信证券：预计美联储明年全年降息两次各25bps",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234164?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766103392000,
+            "url": "https://www.cls.cn/detail/2234164",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234162,
+            "title": "中信证券：技术迭代推动液冷渗透 看好国产厂商突破",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234162?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766103164000,
+            "url": "https://www.cls.cn/detail/2234162",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234159,
+            "title": "中金：2026年龙头猪企有望持续跑赢行业",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234159?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766103025000,
+            "url": "https://www.cls.cn/detail/2234159",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234158,
+            "title": "中信证券：看好半导体设备行业的投资机遇",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234158?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766102976000,
+            "url": "https://www.cls.cn/detail/2234158",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234046,
+            "title": "【九点特供】“全球化AGI第一股”上市在即，MiniMax通过港交所聆讯，机构看好国产多模态大模型和应用发展的奇点将至；商务部召开消费新业态新模式新场景试点工作部署推进视频会议",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234046?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766102832000,
+            "url": "https://www.cls.cn/detail/2234046",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234151,
+            "title": "财联社12月19日早间新闻精选",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234151?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766102641000,
+            "url": "https://www.cls.cn/detail/2234151",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234154,
+            "title": "美总统特朗普签署2026财年国防授权法案",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234154?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766102587000,
+            "url": "https://www.cls.cn/detail/2234154",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234153,
+            "title": "财联社12月19日电，英国汽车制造商和贸易商协会（SMMT）数据显示，11月英国汽车产量同比下降14.3%，共有65,932辆乘用车和商用车出厂。",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234153?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766102560000,
+            "url": "https://www.cls.cn/detail/2234153",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234152,
+            "title": "财联社12月19日电，英国12月Gfk消费者信心指数为-17，预期-18，前值-19。",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234152?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766102515000,
+            "url": "https://www.cls.cn/detail/2234152",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234150,
+            "title": "日经225指数开盘涨0.86%",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234150?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766102453000,
+            "url": "https://www.cls.cn/detail/2234150",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234148,
+            "title": "中金公司：预计2026年煤价将呈现前低后高走势",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234148?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766102358000,
+            "url": "https://www.cls.cn/detail/2234148",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234146,
+            "title": "澳大利亚警方逮捕7名有“极端思想”男子",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234146?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766102147000,
+            "url": "https://www.cls.cn/detail/2234146",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234141,
+            "title": "胡塞武装扣押10名联合国工作人员",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234141?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766101876000,
+            "url": "https://www.cls.cn/detail/2234141",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234140,
+            "title": "美国商务部经济分析局：7-9月个人收入与支出数据将随三季度GDP初值更新",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234140?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766101831000,
+            "url": "https://www.cls.cn/detail/2234140",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233961,
+            "title": "【点金互动易】已批量交付低轨卫通天线和高轨天线，供货4D毫米波雷达波导天线约300万件，这家公司与国内外AR/AI眼镜客户深入合作批量出货",
+            "mobileUrl": "https://api3.cls.cn/share/article/2233961?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766101343000,
+            "url": "https://www.cls.cn/detail/2233961",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234136,
+            "title": "新项目密集投产投运 央企能源保供火力全开",
+            "mobileUrl": "https://api3.cls.cn/share/article/2234136?os=web&sv=8.4.6&app=CailianpressWeb",
+            "pubDate": 1766101318000,
+            "url": "https://www.cls.cn/detail/2234136",
+            "platform": "cls-telegraph",
+            "platform_name": "财联社电报",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.gelonghui.com/news/5137567",
+            "title": "药捷安康-B(02617.HK)：替恩戈替尼片新药上市申请获国家药监局受理",
+            "id": "/news/5137567",
+            "extra": {
+                "date": 1766103253232,
+                "info": "港股公告摘要"
+            },
+            "platform": "gelonghui",
+            "platform_name": "格隆汇",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.gelonghui.com/news/5137566",
+            "title": "美股异动丨INNO Holdings跌37.52%，为跌幅最大的中概股",
+            "id": "/news/5137566",
+            "extra": {
+                "date": 1766103193232,
+                "info": "美股异动"
+            },
+            "platform": "gelonghui",
+            "platform_name": "格隆汇",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.gelonghui.com/news/5137565",
+            "title": "美股异动丨中概股华赢集团收涨18.38%",
+            "id": "/news/5137565",
+            "extra": {
+                "date": 1766102893232,
+                "info": "美股异动"
+            },
+            "platform": "gelonghui",
+            "platform_name": "格隆汇",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.gelonghui.com/news/5137564",
+            "title": "中金公司：2026年龙头猪企有望持续跑赢行业",
+            "id": "/news/5137564",
+            "extra": {
+                "date": 1766102413232,
+                "info": "研报摘要"
+            },
+            "platform": "gelonghui",
+            "platform_name": "格隆汇",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.gelonghui.com/news/5137563",
+            "title": "中金公司：预计2026年煤价将呈现前低后高走势",
+            "id": "/news/5137563",
+            "extra": {
+                "date": 1766102293232,
+                "info": "研报摘要"
+            },
+            "platform": "gelonghui",
+            "platform_name": "格隆汇",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.gelonghui.com/news/5137562",
+            "title": "美国SEC发布加密货币托管指导意见",
+            "id": "/news/5137562",
+            "extra": {
+                "date": 1766101573232,
+                "info": "虚拟资产"
+            },
+            "platform": "gelonghui",
+            "platform_name": "格隆汇",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.gelonghui.com/news/5137561",
+            "title": "国联民生(01456.HK)遭易方达基金减持462.25万股",
+            "id": "/news/5137561",
+            "extra": {
+                "date": 1766100673232,
+                "info": "港股公告摘要"
+            },
+            "platform": "gelonghui",
+            "platform_name": "格隆汇",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.gelonghui.com/news/5137560",
+            "title": "中国信达(01359.HK)获易方达基金增持2.14亿股",
+            "id": "/news/5137560",
+            "extra": {
+                "date": 1766100673232,
+                "info": "港股公告摘要"
+            },
+            "platform": "gelonghui",
+            "platform_name": "格隆汇",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.gelonghui.com/news/5137559",
+            "title": "深圳高速公路股份(00548.HK)获招商公路增持53.8万股",
+            "id": "/news/5137559",
+            "extra": {
+                "date": 1766100673232,
+                "info": "港股公告摘要"
+            },
+            "platform": "gelonghui",
+            "platform_name": "格隆汇",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.gelonghui.com/news/5137558",
+            "title": "三花智控(02050.HK)遭Baillie Gifford & Co减持414.15万股",
+            "id": "/news/5137558",
+            "extra": {
+                "date": 1766100673232,
+                "info": "港股公告摘要"
+            },
+            "platform": "gelonghui",
+            "platform_name": "格隆汇",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.gelonghui.com/news/5137557",
+            "title": "秦港股份(03369.HK)获长城人寿保险增持90.6万股",
+            "id": "/news/5137557",
+            "extra": {
+                "date": 1766100673232,
+                "info": "港股公告摘要"
+            },
+            "platform": "gelonghui",
+            "platform_name": "格隆汇",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.gelonghui.com/news/5137556",
+            "title": "美股异动｜耐克盘后大跌近10%，第二财季净利润7.92亿美元同比下降32%",
+            "id": "/news/5137556",
+            "extra": {
+                "date": 1766100673232,
+                "info": "美股异动"
+            },
+            "platform": "gelonghui",
+            "platform_name": "格隆汇",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.gelonghui.com/news/5137555",
+            "title": "朝聚眼科(02219.HK)12月18日耗资32.69万港元回购12万股",
+            "id": "/news/5137555",
+            "extra": {
+                "date": 1766100673232,
+                "info": "港股公告摘要"
+            },
+            "platform": "gelonghui",
+            "platform_name": "格隆汇",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.gelonghui.com/news/5137554",
+            "title": "美股三大指数集体收涨，纳指涨1.38%，美光涨超10%，中概指数涨近1%",
+            "id": "/news/5137554",
+            "extra": {
+                "date": 1766097073232,
+                "info": "市场综述"
+            },
+            "platform": "gelonghui",
+            "platform_name": "格隆汇",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "url": "https://www.gelonghui.com/news/5137521",
+            "title": "12月19日A股投资避雷针︱古鳌科技：前实控人陈崇军犯操纵证券市场罪，被判处有期徒刑六年",
+            "id": "/news/5137521",
+            "extra": {
+                "date": 1766073420000,
+                "info": "A股公告摘要"
+            },
+            "platform": "gelonghui",
+            "platform_name": "格隆汇",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761635,
+            "title": "“三巫日”前美CPI意外降温，美国股债汇齐涨，加密货币下挫，人民币再度逼近7.03",
+            "url": "https://wallstreetcn.com/articles/3761635",
+            "platform": "wallstreetcn-hot",
+            "platform_name": "华尔街见闻",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761659,
+            "title": "通胀超预期放缓！美国11月核心CPI同比上涨2.6%，创2021年以来最低水平",
+            "url": "https://wallstreetcn.com/articles/3761659",
+            "platform": "wallstreetcn-hot",
+            "platform_name": "华尔街见闻",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761603,
+            "title": "美光电话会：“好日子还在后头！”CEO直言2026年HBM已售罄，正签署“前所未有”长期合同",
+            "url": "https://wallstreetcn.com/articles/3761603",
+            "platform": "wallstreetcn-hot",
+            "platform_name": "华尔街见闻",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761607,
+            "title": "AI新子弹要来了！报道称OpenAI正探讨“数百亿甚至1000亿美元融资”",
+            "url": "https://wallstreetcn.com/articles/3761607",
+            "platform": "wallstreetcn-hot",
+            "platform_name": "华尔街见闻",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761628,
+            "title": "今晚，2025年美国最后一份CPI出炉：围绕3%关口拉锯，“2字头”仍是市场最大期待",
+            "url": "https://wallstreetcn.com/articles/3761628",
+            "platform": "wallstreetcn-hot",
+            "platform_name": "华尔街见闻",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761605,
+            "title": "明天，日本加息“板上钉钉”，市场聚焦“下一步如何加”？",
+            "url": "https://wallstreetcn.com/articles/3761605",
+            "platform": "wallstreetcn-hot",
+            "platform_name": "华尔街见闻",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761610,
+            "title": "美国市场“流动性紧张”谜底揭晓？摩根大通从美联储账户提取近3500亿美元，投向美债",
+            "url": "https://wallstreetcn.com/articles/3761610",
+            "platform": "wallstreetcn-hot",
+            "platform_name": "华尔街见闻",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761632,
+            "title": "华尔街点评美光财报：业绩指引过于“炸裂”，但市场顾虑明年HBM价格回撤",
+            "url": "https://wallstreetcn.com/articles/3761632",
+            "platform": "wallstreetcn-hot",
+            "platform_name": "华尔街见闻",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761621,
+            "title": "日本加息会引爆全球流动性冲击吗？",
+            "url": "https://wallstreetcn.com/articles/3761621",
+            "platform": "wallstreetcn-hot",
+            "platform_name": "华尔街见闻",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 3761652,
+            "title": "特朗普媒体集团大涨42%，公司拟并购核聚变公司TAE，计划明年开始建设核聚变发电厂",
+            "url": "https://wallstreetcn.com/articles/3761652",
+            "platform": "wallstreetcn-hot",
+            "platform_name": "华尔街见闻",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SZ000919",
+            "url": "https://xueqiu.com/s/SZ000919",
+            "title": "金陵药业",
+            "extra": {
+                "info": "6.35% SZ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "MU",
+            "url": "https://xueqiu.com/s/MU",
+            "title": "美光科技",
+            "extra": {
+                "info": "10.21% NASDAQ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "NVDA",
+            "url": "https://xueqiu.com/s/NVDA",
+            "title": "英伟达",
+            "extra": {
+                "info": "1.87% NASDAQ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "DJT",
+            "url": "https://xueqiu.com/s/DJT",
+            "title": "特朗普媒体科技",
+            "extra": {
+                "info": "41.93% NASDAQ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "ORCL",
+            "url": "https://xueqiu.com/s/ORCL",
+            "title": "甲骨文",
+            "extra": {
+                "info": "0.88% NYSE"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "TSLA",
+            "url": "https://xueqiu.com/s/TSLA",
+            "title": "特斯拉",
+            "extra": {
+                "info": "3.45% NASDAQ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SH601399",
+            "url": "https://xueqiu.com/s/SH601399",
+            "title": "国机重装",
+            "extra": {
+                "info": "-1.88% SH"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SZ002788",
+            "url": "https://xueqiu.com/s/SZ002788",
+            "title": "鹭燕医药",
+            "extra": {
+                "info": "9.97% SZ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "ALB",
+            "url": "https://xueqiu.com/s/ALB",
+            "title": "美国雅保",
+            "extra": {
+                "info": "4.28% NYSE"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SH688110",
+            "url": "https://xueqiu.com/s/SH688110",
+            "title": "东芯股份",
+            "extra": {
+                "info": "7% SH"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "BABA",
+            "url": "https://xueqiu.com/s/BABA",
+            "title": "阿里巴巴",
+            "extra": {
+                "info": "0.16% NYSE"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SZ002163",
+            "url": "https://xueqiu.com/s/SZ002163",
+            "title": "海南发展",
+            "extra": {
+                "info": "-5.64% SZ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SZ002837",
+            "url": "https://xueqiu.com/s/SZ002837",
+            "title": "英维克",
+            "extra": {
+                "info": "1.29% SZ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SZ002044",
+            "url": "https://xueqiu.com/s/SZ002044",
+            "title": "美年健康",
+            "extra": {
+                "info": "10.05% SZ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SH688027",
+            "url": "https://xueqiu.com/s/SH688027",
+            "title": "国盾量子",
+            "extra": {
+                "info": "-1.21% SH"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SH600346",
+            "url": "https://xueqiu.com/s/SH600346",
+            "title": "恒力石化",
+            "extra": {
+                "info": "1.17% SH"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SZ002536",
+            "url": "https://xueqiu.com/s/SZ002536",
+            "title": "飞龙股份",
+            "extra": {
+                "info": "7.47% SZ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SZ002317",
+            "url": "https://xueqiu.com/s/SZ002317",
+            "title": "众生药业",
+            "extra": {
+                "info": "-3.24% SZ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SH688270",
+            "url": "https://xueqiu.com/s/SH688270",
+            "title": "臻镭科技",
+            "extra": {
+                "info": "4.42% SH"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SZ300456",
+            "url": "https://xueqiu.com/s/SZ300456",
+            "title": "赛微电子",
+            "extra": {
+                "info": "7.96% SZ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SZ300253",
+            "url": "https://xueqiu.com/s/SZ300253",
+            "title": "卫宁健康",
+            "extra": {
+                "info": "11.11% SZ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SH688802",
+            "url": "https://xueqiu.com/s/SH688802",
+            "title": "C沐曦-U",
+            "extra": {
+                "info": "-5.16% SH"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SZ000592",
+            "url": "https://xueqiu.com/s/SZ000592",
+            "title": "平潭发展",
+            "extra": {
+                "info": "6.37% SZ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SZ002565",
+            "url": "https://xueqiu.com/s/SZ002565",
+            "title": "顺灏股份",
+            "extra": {
+                "info": "10.02% SZ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SH603516",
+            "url": "https://xueqiu.com/s/SH603516",
+            "title": "淳中科技",
+            "extra": {
+                "info": "-5.89% SH"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SZ001330",
+            "url": "https://xueqiu.com/s/SZ001330",
+            "title": "博纳影业",
+            "extra": {
+                "info": "9.97% SZ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SH600519",
+            "url": "https://xueqiu.com/s/SH600519",
+            "title": "贵州茅台",
+            "extra": {
+                "info": "-0.15% SH"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "GOOGL",
+            "url": "https://xueqiu.com/s/GOOGL",
+            "title": "谷歌A",
+            "extra": {
+                "info": "1.93% NASDAQ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "SH600879",
+            "url": "https://xueqiu.com/s/SH600879",
+            "title": "航天电子",
+            "extra": {
+                "info": "1.65% SH"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "CRWV",
+            "url": "https://xueqiu.com/s/CRWV",
+            "title": "CoreWeave",
+            "extra": {
+                "info": "4.85% NASDAQ"
+            },
+            "platform": "xueqiu",
+            "platform_name": "雪球热帖",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234103,
+            "title": "【早报】吴清发声，事关资本市场；商务部：已批准部分稀土出口通用许可申请",
+            "url": "https://www.cls.cn/detail/2234103",
+            "platform": "cls-hot",
+            "platform_name": "财联社热门",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233836,
+            "title": "吴清：稳步扩大制度型高水平对外开放，持续提高资本市场制度包容性吸引力",
+            "url": "https://www.cls.cn/detail/2233836",
+            "platform": "cls-hot",
+            "platform_name": "财联社热门",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233842,
+            "title": "海南自贸港全岛正式封关，多类金融机构抢滩落子，跨境支付想象空间巨大|现场直击",
+            "url": "https://www.cls.cn/detail/2233842",
+            "platform": "cls-hot",
+            "platform_name": "财联社热门",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2234084,
+            "title": "美股收盘：11月CPI提振市场 三大指数集体收涨 纳指涨超1%",
+            "url": "https://www.cls.cn/detail/2234084",
+            "platform": "cls-hot",
+            "platform_name": "财联社热门",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233723,
+            "title": "机器人年终盘点⑤：欢迎来到“机器人”纪元 一图看懂产业星图",
+            "url": "https://www.cls.cn/detail/2233723",
+            "platform": "cls-hot",
+            "platform_name": "财联社热门",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233937,
+            "title": "特朗普+核聚变概念股诞生 美国CPI刺激期指拉涨 | 今夜看点",
+            "url": "https://www.cls.cn/detail/2233937",
+            "platform": "cls-hot",
+            "platform_name": "财联社热门",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233747,
+            "title": "香港发生10亿日元劫案",
+            "url": "https://www.cls.cn/detail/2233747",
+            "platform": "cls-hot",
+            "platform_name": "财联社热门",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233965,
+            "title": "合肥警方通报一46岁男子办公室内身亡：已排除案件",
+            "url": "https://www.cls.cn/detail/2233965",
+            "platform": "cls-hot",
+            "platform_name": "财联社热门",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233868,
+            "title": "中国光伏行业协会罕见未预测下一年度新增装机 业内关注组件何时重回“1元”时代",
+            "url": "https://www.cls.cn/detail/2233868",
+            "platform": "cls-hot",
+            "platform_name": "财联社热门",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233766,
+            "title": "海南封关首日，iPhone最高可减2140元",
+            "url": "https://www.cls.cn/detail/2233766",
+            "platform": "cls-hot",
+            "platform_name": "财联社热门",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233818,
+            "title": "湖北舰，最新训练画面",
+            "url": "https://www.cls.cn/detail/2233818",
+            "platform": "cls-hot",
+            "platform_name": "财联社热门",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233962,
+            "title": "红利落地！海南自贸港今起封关运作，相关上市公司展开业务布局“竞速赛”",
+            "url": "https://www.cls.cn/detail/2233962",
+            "platform": "cls-hot",
+            "platform_name": "财联社热门",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": 2233997,
+            "title": "特朗普商业帝国再扩张！DJT并购TAE转型为聚变能源公司",
+            "url": "https://www.cls.cn/detail/2233997",
+            "platform": "cls-hot",
+            "platform_name": "财联社热门",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219080913706800",
+            "title": "中信证券：美国CPI大幅低于预期 仍预计美联储明年降息两次",
+            "pubDate": "2025-12-19 08:09:13",
+            "url": "https://flash.jin10.com/detail/20251219080913706800",
+            "extra": {
+                "hover": "金十数据12月19日讯，中信证券研报称，美国11月CPI大幅低于预期，核心服务通胀明显降温，但数据噪音较大、质量存疑。我们认为美国通胀前景确实正在趋于缓和，关税对物价的扰动或会逐步减弱，租金通胀和超级核心通胀都可能在明年维持较理想的中低增速。本次CPI报告对美元流动性构成短期利好，但数据质量的硬伤和就业市场的平静状态使其不足以明显提振降息预期，我们仍预计美联储明年全年降息两次各25bps。",
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219080801921800",
+            "title": "金十图示：2025年12月19日（周五）白银ETF持仓报告",
+            "pubDate": "2025-12-19 08:08:01",
+            "url": "https://flash.jin10.com/detail/20251219080801921800",
+            "extra": {
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219080759276800",
+            "title": "中信证券：日本央行即将再次加息 “黑色星期一”不太可能重演",
+            "pubDate": "2025-12-19 08:07:59",
+            "url": "https://flash.jin10.com/detail/20251219080759276800",
+            "extra": {
+                "hover": "金十数据12月19日讯，中信证券研报称，日本良性通胀循环已较稳固，日本央行即将再次加息。去年夏季日本加息后的全球市场动荡主要是由衰退预期升温和AI叙事动摇等美国因素造成，套息交易逆转只是加剧彼时避险情绪的次要因素，去年的“黑色星期一”不太可能在今年重演。在美日央行政策分歧的背景下，美国因素才是当前全球流动性与美元资产定价的核心主线。目前市场对AI叙事的质疑集中体现于业务模式较激进的少数企业，而多数财务状况较稳健的AI龙头仍能维持市场信任，产业智能化热潮应能在中短期继续支持美股龙头的业绩表现。长端美债在本轮风险管理式降息周期内的配置性价比不高，短端美债则可能受益于准备金管理购买操作对流动性的技术性改善，后者较前者更好。",
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219080228338800",
+            "title": "美总统特朗普签署2026财年国防授权法案",
+            "pubDate": "2025-12-19 08:02:28",
+            "url": "https://flash.jin10.com/detail/20251219080228338800",
+            "extra": {
+                "hover": "金十数据12月19日讯，当地时间12月18日，美国总统特朗普签署总额达9010亿美元的2026财年国防授权法案。",
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219080125323800",
+            "title": "英国汽车制造商和贸易商协会（SMMT）：11月英国汽车产量同比下降14.3%，共有65,932辆乘用车和商用车出厂。",
+            "pubDate": "2025-12-19 08:01:25",
+            "url": "https://flash.jin10.com/detail/20251219080125323800",
+            "extra": {
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219080102435800",
+            "title": "英国12月Gfk消费者信心指数 -17，预期-18，前值-19。",
+            "pubDate": "2025-12-19 08:01:02",
+            "url": "https://flash.jin10.com/detail/20251219080102435800",
+            "extra": {
+                "info": "✰"
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219075827418800",
+            "title": "国联民生宏观：美国11月CPI难改美联储下次暂缓降息",
+            "pubDate": "2025-12-19 07:58:27",
+            "url": "https://flash.jin10.com/detail/20251219075827418800",
+            "extra": {
+                "hover": "金十数据12月19日讯，国联民生宏观研报称，对于美联储来说，虽然美国的11月CPI不太能改变明年1月暂缓降息的决策，但无疑会增加联储内部的鸽派声音。如果12月数据延续当前的低速上涨态势，可能会促使美联储重新审视明年的降息路径，“经济放缓+通胀不高”的组合将有助于美联储做出比12月点阵图中值（2026年仅有1次降息）更多的降息抉择，不过一切还要等到12月更这份“干净”数据的出炉后才能下定论。",
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219075455522800",
+            "title": "华泰证券：11月美国CPI大幅低于预期但噪音较大",
+            "pubDate": "2025-12-19 07:54:55",
+            "url": "https://flash.jin10.com/detail/20251219075455522800",
+            "extra": {
+                "hover": "金十数据12月19日讯，华泰证券指出，虽然11月CPI数据边际推高美联储降息预期，但由于通胀和劳工数据噪音较大，美联储可能暂停降息进行观察（以及明年下半年降息1-2次的预测）。由于关税税率未进一步上行，且关税对通胀传导没有明显时滞，关税对通胀的影响较为温和，美国高通胀的风险可控，但11月通胀的下行或因扰动因素而被放大。明年1月会议前将公布的12月非农和CPI数据受政府关门影响较小，能够提供对于经济更加可靠的信息。因此，美联储当前处于观察期，由于就业市场或逐步改善，明年1月联储将暂缓降息的基准判断，待新任联储主席上任后的明年下半年降息1-2次。",
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219075436492800",
+            "title": "金十数据整理：每日期货市场要闻速递（2025-12-19）",
+            "pubDate": "2025-12-19 07:54:36",
+            "url": "https://flash.jin10.com/detail/20251219075436492800",
+            "extra": {
+                "info": "✰"
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219075434524800",
+            "title": "金十数据中心工具",
+            "pubDate": "2025-12-19 07:54:34",
+            "url": "https://flash.jin10.com/detail/20251219075434524800",
+            "extra": {
+                "hover": "零售外汇经纪商客户仓位报告正实时更新，助你一览市场多空情绪！欢迎点击查看",
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219075100001800",
+            "title": "英国12月Gfk消费者信心指数将于十分钟后公布。",
+            "pubDate": "2025-12-19 07:51:00",
+            "url": "https://flash.jin10.com/detail/20251219075100001800",
+            "extra": {
+                "info": "✰"
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219074902899800",
+            "title": "奥利再次当选尼共（联合马列）主席",
+            "pubDate": "2025-12-19 07:49:02",
+            "url": "https://flash.jin10.com/detail/20251219074902899800",
+            "extra": {
+                "hover": "金十数据12月19日讯，尼泊尔共产党（联合马列）第11次全国代表大会18日闭幕。大会选举卡·普·夏尔马·奥利为该党主席。奥利曾4次担任尼泊尔总理。今年9月初，尼泊尔首都加德满都和其他地区爆发示威游行，奥利于9月9日向总统递交辞呈，辞去总理职务。9月12日，尼泊尔总统府宣布解散联邦议会众议院，并计划于2026年3月5日举行大选。尼泊尔共产党（联合马列）此次会议被认为是为明年参加大选作准备。",
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219073511867800",
+            "title": "日本11月全国未季调CPI月率 0.3%，前值0.7%。",
+            "pubDate": "2025-12-19 07:35:11",
+            "url": "https://flash.jin10.com/detail/20251219073511867800",
+            "extra": {
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219073003374800",
+            "title": "日本11月全国CPI年率 2.9%，预期2.9%，前值3%。",
+            "pubDate": "2025-12-19 07:30:03",
+            "url": "https://flash.jin10.com/detail/20251219073003374800",
+            "extra": {
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219073003353800",
+            "title": "日本11月核心CPI年率 3%，预期3%，前值3%。",
+            "pubDate": "2025-12-19 07:30:03",
+            "url": "https://flash.jin10.com/detail/20251219073003353800",
+            "extra": {
+                "info": "✰"
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219073002384800",
+            "title": "也门胡塞武装扣押10名联合国工作人员",
+            "pubDate": "2025-12-19 07:30:02",
+            "url": "https://flash.jin10.com/detail/20251219073002384800",
+            "extra": {
+                "hover": "金十数据12月19日讯，联合国秘书长副发言人哈克18日表示，也门胡塞武装当天在首都萨那扣押了10名联合国工作人员，该组织目前扣押的联合国工作人员总数升至69人。",
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219072217576800",
+            "title": "全球最大的黄金ETF SPDR Gold Trust持仓量为1052.54吨，较前一个交易日维持不变。",
+            "pubDate": "2025-12-19 07:22:17",
+            "url": "https://flash.jin10.com/detail/20251219072217576800",
+            "extra": {
+                "info": "✰"
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219072000000800",
+            "title": "日本11月核心CPI年率将于十分钟后公布。",
+            "pubDate": "2025-12-19 07:20:00",
+            "url": "https://flash.jin10.com/detail/20251219072000000800",
+            "extra": {
+                "info": "✰"
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219071347328800",
+            "title": "金十数据整理：每日科技要闻速递（12月19日）",
+            "pubDate": "2025-12-19 07:13:47",
+            "url": "https://flash.jin10.com/detail/20251219071347328800",
+            "extra": {
+                "hover": "<br/><span class=\"section-news\">1. OpenAI：推出GPT-5.2-Codex。</span><br/><span class=\"section-news\">2. 豆包大模型日均tokens调用量超过50万亿。</span><br/><span class=\"section-news\">3. 特朗普签署行政命令 重申2028年登月目标。</span><br/><span class=\"section-news\">4. 据悉OpenAI和Anthropic寻求扩大欧洲办公空间。</span><br/><span class=\"section-news\">5. 微软、谷歌等24家公司加入美国人工智能“创世纪计划”。</span><br/><span class=\"section-news\">6. Meta正在开发代号为“Mango”的新型人工智能图像及视频模型。</span><br/><span class=\"section-news\">7. Meta前首席AI科学家Yann LeCun为其新的人工智能初创公司设定了30亿欧元的估值。</span><br/><span class=\"section-news\">8. 特朗普媒体科技集团拟并购核聚变初创公司TAE，合并后将于2026年开始选址并建造聚变电站。 </span>",
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219071018839800",
+            "title": "泰国总检察长：加快推动重点引渡案件，与中方共同打击电诈等跨国犯罪",
+            "pubDate": "2025-12-19 07:10:18",
+            "url": "https://flash.jin10.com/detail/20251219071018839800",
+            "extra": {
+                "hover": "金十数据12月19日讯，12月18日，驻泰国大使张建卫会见泰国总检察长易提蓬，祝贺对方履新并就中泰司法合作交换意见。易提蓬总检察长欢迎张大使到访，表示愿学习借鉴中方依法治国经验，密切交流合作与人员往来，加快推动重点引渡案件，共同打击电诈等跨国犯罪，并期待早日访问中国。",
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219070016391800",
+            "title": "金十图示：2025年12月19日（周五）各大货币对表现",
+            "pubDate": "2025-12-19 07:00:16",
+            "url": "https://flash.jin10.com/detail/20251219070016391800",
+            "extra": {
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219070000000800",
+            "title": "今日重点关注的财经数据与事件：2025年12月19日 周五",
+            "pubDate": "2025-12-19 07:00:00",
+            "url": "https://flash.jin10.com/detail/20251219070000000800",
+            "extra": {
+                "hover": "<br/>① 待定 摩尔线程举行首届MUSA开发者大会<br/>② 待定 日本央行公布利率决<br/>③ 07:30 日本11月核心CPI年率<br/>④ 08:01 英国12月Gfk消费者信心指数<br/>⑤ 14:30 日本央行行长植田和男召开新闻发布会<br/>⑥ 15:00 德国1月Gfk消费者信心指数<br/>⑦ 15:00 德国11月PPI月率<br/>⑧ 15:00 英国11月公共部门净借款<br/>⑨ 15:00 英国11月季调后零售销售月率<br/>⑩ 17:00 欧元区10月季调后经常帐<br/>⑪ 19:00 英国12月CBI零售销售差值<br/>⑫ 21:30 加拿大10月零售销售月率<br/>⑬ 21:30 美联储威廉姆斯接受CNBC的采访<br/>⑭ 23:00 欧元区12月消费者信心指数初值<br/>⑮ 23:00 美国12月密歇根大学消费者信心指数终值<br/>⑯ 23:00 美国12月一年期通胀率预期终值<br/>⑰ 23:00 美国11月成屋销售总数年化<br/>⑱ 次日02:00 美国至12月19日当周石油钻井总数<br/>⑲ 次日03:30 纽约原油1月期货完成场内最后交易",
+                "info": "✰"
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219064439572800",
+            "title": "耐克(NKE.N)盘后跌近10%。",
+            "pubDate": "2025-12-19 06:44:39",
+            "url": "https://flash.jin10.com/detail/20251219064439572800",
+            "extra": {
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219063748060800",
+            "title": "美国国防部表示，美国国务院已批准向北约支持与采购局出售“毒刺”导弹的零部件及相关设备，预计价值1.361亿美元。",
+            "pubDate": "2025-12-19 06:37:48",
+            "url": "https://flash.jin10.com/detail/20251219063748060800",
+            "extra": {
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219063522841800",
+            "title": "环球时报：中国科技进步，路透社本不必焦虑",
+            "pubDate": "2025-12-19 06:35:22",
+            "url": "https://flash.jin10.com/detail/20251219063522841800",
+            "extra": {
+                "hover": "金十数据12月19日讯，文章称，路透社近日“爆料”了一个所谓的中国“曼哈顿计划”，称中国科学家建造出了华盛顿多年来一直试图阻止的东西：一台极紫外（EUV）光刻机原型机。且不论通篇“知情人士透露”的报道是不是“烟雾弹”，其字里行间对中国科技进步的焦虑显而易见。这种焦虑恰恰让世人看到，一种在西方时常出现的不健康心态。光刻机是重大技术装备，被一些国家认为是西方技术领先的“最后堡垒”，目前全世界只有荷兰企业阿斯麦可以生产EUV光刻机。事实上，外媒不必进行各种猜测，中国深紫外（DUV）光刻机有官方公布的进展。2024年9月，工信部在《首台（套）重大技术装备推广应用指导目录》中公布了国产DUV光刻机的技术参数：分辨率65纳米、套刻精度8纳米。国产光刻机未来的技术路线很清晰，就是朝着自主可控的方向持续努力。",
+                "info": "✰"
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219063215748800",
+            "title": "耐克(NKE.N) CFO：预计第三财季营收将出现较低个位数的（百分比）下降。",
+            "pubDate": "2025-12-19 06:32:15",
+            "url": "https://flash.jin10.com/detail/20251219063215748800",
+            "extra": {
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219063057047800",
+            "title": "金十数据整理：昨日今晨重要新闻汇总（2025-12-19）",
+            "pubDate": "2025-12-19 06:30:57",
+            "url": "https://flash.jin10.com/detail/20251219063057047800",
+            "extra": {
+                "info": "✰"
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219063054225800",
+            "title": "耐克(NKE.N) CFO：在过去几年中，大中华地区一直面临流量持续下降和库存上升的问题。",
+            "pubDate": "2025-12-19 06:30:54",
+            "url": "https://flash.jin10.com/detail/20251219063054225800",
+            "extra": {
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219061747684800",
+            "title": "耐克(NKE.N) CEO：有望将息税前利润率恢复至两位数水平。",
+            "pubDate": "2025-12-19 06:17:47",
+            "url": "https://flash.jin10.com/detail/20251219061747684800",
+            "extra": {
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "id": "20251219061408238800",
+            "title": "文件显示：特朗普媒体科技集团(DJT.O)与TAE签署了无担保可转换本票，据此TMTG同意向TAE提供2亿美元资金。",
+            "pubDate": "2025-12-19 06:14:08",
+            "url": "https://flash.jin10.com/detail/20251219061408238800",
+            "extra": {
+                "info": false
+            },
+            "platform": "jin10",
+            "platform_name": "金十数据",
+            "category": "finance",
+            "source": "newsnow"
+        },
+        {
+            "title": "美元/人民币: 7.0403000000",
+            "url": "https://finance.sina.com.cn/money/forex/hq/USDCNY.shtml",
+            "platform": "sina_forex",
+            "platform_name": "新浪财经外汇",
+            "category": "finance",
+            "rank": 0,
+            "timestamp": "2025-12-19T08:40:54.006605",
+            "extra": {
+                "buy_price": "7.0403000000",
+                "sell_price": "7.0423000000",
+                "code": "fx_susdcny"
+            },
+            "source": "custom"
+        },
+        {
+            "title": "欧元/人民币: 8.253600",
+            "url": "https://finance.sina.com.cn/money/forex/hq/EURCNY.shtml",
+            "platform": "sina_forex",
+            "platform_name": "新浪财经外汇",
+            "category": "finance",
+            "rank": 0,
+            "timestamp": "2025-12-19T08:40:54.006605",
+            "extra": {
+                "buy_price": "8.253600",
+                "sell_price": "8.256500",
+                "code": "fx_seurcny"
+            },
+            "source": "custom"
+        },
+        {
+            "title": "英镑/人民币: 9.4250706880",
+            "url": "https://finance.sina.com.cn/money/forex/hq/GBPCNY.shtml",
+            "platform": "sina_forex",
+            "platform_name": "新浪财经外汇",
+            "category": "finance",
+            "rank": 0,
+            "timestamp": "2025-12-19T08:40:54.006605",
+            "extra": {
+                "buy_price": "9.4250706880",
+                "sell_price": "9.4250706880",
+                "code": "fx_sgbpcny"
+            },
+            "source": "custom"
+        },
+        {
+            "title": "日元/人民币: 0.0452275852",
+            "url": "https://finance.sina.com.cn/money/forex/hq/JPYCNY.shtml",
+            "platform": "sina_forex",
+            "platform_name": "新浪财经外汇",
+            "category": "finance",
+            "rank": 0,
+            "timestamp": "2025-12-19T08:40:54.006605",
+            "extra": {
+                "buy_price": "0.0452275852",
+                "sell_price": "0.0452275852",
+                "code": "fx_sjpycny"
+            },
+            "source": "custom"
+        },
+        {
+            "title": "港币/人民币: 0.9051084320",
+            "url": "https://finance.sina.com.cn/money/forex/hq/HKDCNY.shtml",
+            "platform": "sina_forex",
+            "platform_name": "新浪财经外汇",
+            "category": "finance",
+            "rank": 0,
+            "timestamp": "2025-12-19T08:40:54.006605",
+            "extra": {
+                "buy_price": "0.9051084320",
+                "sell_price": "0.9051084320",
+                "code": "fx_shkdcny"
+            },
+            "source": "custom"
+        },
+        {
+            "title": "[苹果] 苹果宣布：大幅降低日本“苹果税”，专家：中国被区别对待，抽成比例高于美欧日韩",
+            "url": "https://wallstreetcn.com/articles/3761673",
+            "platform": "eastmoney_supply_chain",
+            "platform_name": "东方财富",
+            "category": "finance",
+            "rank": 0,
+            "timestamp": "2025-12-19T08:41:53.086086",
+            "extra": {
+                "company": "苹果",
+                "original_platform": "wallstreetcn-news"
+            },
+            "source": "custom"
+        },
+        {
+            "title": "[苹果] 海南封关首日，iPhone最高可减2140元",
+            "url": "https://www.cls.cn/detail/2233766",
+            "platform": "eastmoney_supply_chain",
+            "platform_name": "东方财富",
+            "category": "finance",
+            "rank": 0,
+            "timestamp": "2025-12-19T08:41:53.086086",
+            "extra": {
+                "company": "苹果",
+                "original_platform": "cls-hot"
+            },
+            "source": "custom"
+        }
+    ],
+    "timestamp": "2025-12-19T08:41:53.087071",
+    "total": 181,
+    "cached": false,
+    "scheduled_refresh": true
+}
+
+
+
+

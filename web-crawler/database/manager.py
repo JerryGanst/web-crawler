@@ -101,6 +101,11 @@ class DatabaseManager:
         return MongoKeywordMatchRepository(self._require_mongo())
     
     @property
+    def commodity_repo(self):
+        from database.repositories.commodity_repo import CommodityRepository
+        return CommodityRepository(self._require_mongo())
+
+    @property
     def platform_repo(self):
         from database.repositories.platform_repo import MongoPlatformRepository
 

@@ -33,18 +33,28 @@ def _load_mysql_config() -> dict:
 
     # config/database.yaml
     try:
-        config_path = Path(__file__).resolve().parent.parent.parent / "config" / "database.yaml"
+        # 获取项目根目录 (假设当前文件在 database/mysql/connection.py)
+        root_dir = Path(__file__).resolve().parent.parent.parent
+        config_path = root_dir / "config" / "database.yaml"
+        
         if config_path.exists():
             with open(config_path, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f) or {}
+            
+            # 从 mysql 节点读取配置
             mysql_cfg = data.get("mysql", {}) or {}
-            cfg.update({
-                'host': mysql_cfg.get('host', cfg['host']),
-                'port': mysql_cfg.get('port', cfg['port']),
-                'user': mysql_cfg.get('user', cfg['user']),
-                'password': mysql_cfg.get('password', cfg['password']),
-                'database': mysql_cfg.get('database', cfg['database']),
-            })
+            
+            # 更新配置 (如果 yaml 中有值则覆盖默认值)
+            if mysql_cfg.get('host'): cfg['host'] = mysql_cfg['host']
+            if mysql_cfg.get('port'): cfg['port'] = int(mysql_cfg['port'])
+            if mysql_cfg.get('user'): cfg['user'] = mysql_cfg['user']
+            if mysql_cfg.get('password'): cfg['password'] = mysql_cfg['password']
+            if mysql_cfg.get('database'): cfg['database'] = mysql_cfg['database']
+            if mysql_cfg.get('charset'): cfg['charset'] = mysql_cfg['charset']
+            
+            print(f"✅ 已加载 MySQL 配置: {cfg['host']}:{cfg['port']} ({cfg['database']})")
+        else:
+            print(f"⚠️ 配置文件不存在: {config_path}")
     except Exception as e:
         print(f"⚠️ 加载 database.yaml 失败: {e}")
 

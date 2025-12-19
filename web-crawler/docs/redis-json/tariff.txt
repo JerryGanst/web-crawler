@@ -1,0 +1,22 @@
+key:trendradar:news:tariff
+value:
+{
+    "status": "success",
+    "data": [
+        {
+            "title": "耐克(NKE.US)“直面消费者”战略遇挫：Q2净利暴跌32%!大中华区失速、关税重创毛利，盘后重挫10%",
+            "url": "https://finance.sina.com.cn/stock/hkstock/hkstocknews/2025-12-19/doc-inhchsqt7896884.shtml",
+            "source": "新浪财经",
+            "publish_time": "2025-12-19 08:41",
+            "matched_keyword": ""
+        }
+    ],
+    "timestamp": "2025-12-19T08:41:01.123642",
+    "total": 1,
+    "cached": false,
+    "scheduled_refresh": true,
+    "category": "tariff"
+}
+
+
+

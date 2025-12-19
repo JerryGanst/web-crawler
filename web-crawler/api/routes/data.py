@@ -12,6 +12,8 @@ from threading import Lock
 
 from ..cache import cache, CACHE_TTL
 from database.manager import db_manager
+from database.mysql.connection import get_connection
+import pymysql
 
 router = APIRouter()
 
@@ -91,6 +93,20 @@ def _background_fetch_commodity_data(cache_key: str):
         }
         cache.set(cache_key, result, ttl=CACHE_TTL)
         
+        # 写入 MongoDB
+        try:
+            from database.manager import db_manager
+            if db_manager.mongodb_enabled:
+                # 全量归档
+                count = db_manager.commodity_repo.save_batch(data)
+                print(f"✅ [后台] 已归档 {count} 条商品数据到 MongoDB")
+                
+                # 快照保存
+                db_manager.news_repo.save_snapshot(cache_key, result)
+                print(f"✅ [后台] 商品数据快照已保存")
+        except Exception as e:
+            print(f"⚠️ [后台] MongoDB 归档失败: {e}")
+
         # 写入 MySQL（如果已启用），按来源分组以保留真实来源
         try:
             stats_by_source = {}
@@ -164,17 +180,51 @@ async def get_data(refresh: bool = False):
     
     if cached:
         cached["cached"] = True
-        cached["cache_ttl"] = cache.get_ttl(cache_key)
         return cached
+
+    # 缓存未命中，尝试从 MongoDB 快照获取 (快照回源)
+    try:
+        from database.manager import db_manager
+        if db_manager.mongodb_enabled:
+            snapshot = db_manager.news_repo.get_snapshot(cache_key)
+            if snapshot and snapshot.get("data"):
+                print("🔄 [API] Commodity Redis Miss，从 MongoDB 快照恢复")
+                result = snapshot["data"]
+                result["from_snapshot"] = True
+                result["cached"] = False
+                
+                # 回写 Redis
+                cache.set(cache_key, result, ttl=CACHE_TTL)
+                return result
+    except Exception as e:
+        print(f"⚠️ [API] MongoDB 快照恢复失败: {e}")
+
+    # 快照缺失，尝试从历史归档获取 (降级读取)
+    try:
+        from database.manager import db_manager
+        if db_manager.mongodb_enabled:
+            latest_data = db_manager.commodity_repo.get_latest_batch()
+            if latest_data:
+                print("🔄 [API] 快照缺失，从历史归档加载最新商品数据")
+                
+                # 重新构建缓存结构
+                result = {
+                    "data": latest_data,
+                    "source": "TrendRadar Commodity (Archive)",
+                    "timestamp": datetime.now().isoformat(),
+                    "cached": False,
+                    "from_archive": True,
+                    "categories": list(set(item.get('category', '其他') for item in latest_data))
+                }
+                
+                # 回写 Redis (Cache-Aside)
+                cache.set(cache_key, result, ttl=CACHE_TTL)
+                return result
+    except Exception as e:
+        print(f"⚠️ [API] MongoDB 降级读取失败: {e}")
     
-    return {
-        "data": [],
-        "source": "TrendRadar Commodity",
-        "timestamp": None,
-        "cached": False,
-        "categories": [],
-        "message": "暂无缓存数据，请点击刷新按钮获取最新数据"
-    }
+    # 缓存未命中且DB无数据，触发后台爬取
+    _background_fetch_commodity_data(cache_key)
 
 
 @router.get("/api/price-history")
@@ -443,7 +493,80 @@ async def get_status():
     }
 
 
+
+def _create_exchange_rate_table():
+    sql = """
+    CREATE TABLE IF NOT EXISTS exchange_rates (
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+        base_currency VARCHAR(3) NOT NULL COMMENT '基础货币 (如 USD)',
+        target_currency VARCHAR(3) NOT NULL COMMENT '目标货币 (如 CNY)',
+        rate DECIMAL(10, 6) NOT NULL COMMENT '汇率值',
+        source VARCHAR(64) COMMENT '数据来源 (如 api.exchangerate-api.com)',
+        timestamp DATETIME(3) COMMENT '数据时间戳 (来源提供的时间)',
+        created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
+        INDEX idx_currency_pair (base_currency, target_currency),
+        INDEX idx_created_at (created_at DESC)
+    ) ENGINE=InnoDB COMMENT='汇率历史表';
+    """
+    try:
+        conn = get_connection()
+        with conn.cursor() as cursor:
+            cursor.execute(sql)
+            conn.commit()
+            print("✅ Created exchange_rates table")
+    except Exception as e:
+        print(f"❌ Failed to create exchange_rates table: {e}")
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+def _save_exchange_rate_to_mysql(data: dict):
+    sql = """
+        INSERT INTO exchange_rates 
+        (base_currency, target_currency, rate, source, timestamp)
+        VALUES (%s, %s, %s, %s, %s)
+    """
+    # 处理 timestamp 格式，确保 MySQL 能识别
+    ts = data['timestamp']
+    if 'T' in ts:
+        ts = ts.replace('T', ' ')
+        
+    params = (
+        data['base'],
+        data['target'],
+        data['rate'],
+        data['source'],
+        ts
+    )
+    
+    conn = None
+    try:
+        conn = get_connection()
+        with conn.cursor() as cursor:
+            cursor.execute(sql, params)
+            conn.commit()
+            print(f"✅ Exchange rate saved to MySQL: {data['rate']}")
+    except pymysql.err.ProgrammingError as e:
+        if e.args[0] == 1146: # Table doesn't exist
+            print("⚠️ Table exchange_rates does not exist, creating...")
+            _create_exchange_rate_table()
+            # Retry once
+            if conn: conn.close()
+            conn = get_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(sql, params)
+                conn.commit()
+                print(f"✅ Exchange rate saved to MySQL (after create): {data['rate']}")
+        else:
+            raise
+    except Exception as e:
+        print(f"❌ MySQL Error: {e}")
+    finally:
+        if conn:
+            conn.close()
+
 @router.get("/api/exchange-rate")
+
 def get_exchange_rate(refresh: bool = False):
     """
     获取实时汇率（USD/CNY）
@@ -489,6 +612,9 @@ def get_exchange_rate(refresh: bool = False):
                         "cached": False
                     }
                     
+                    # 写入 MySQL (缓存前)
+                    _save_exchange_rate_to_mysql(result)
+                    
                     # 写入缓存 (20分钟 = 1200秒)
                     cache.set(cache_key, result, ttl=1200)
                     return result
@@ -506,6 +632,9 @@ def get_exchange_rate(refresh: bool = False):
         "cached": False
     }
     
+    # 写入 MySQL (缓存前)
+    _save_exchange_rate_to_mysql(fallback_result)
+
     # 备用数据也缓存较短时间 (5分钟)
     cache.set(cache_key, fallback_result, ttl=300)
     return fallback_result

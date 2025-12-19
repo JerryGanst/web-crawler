@@ -1,0 +1,11 @@
+key:trendradar:data:exchange_rate:usd_cny
+value
+{
+    "status": "success",
+    "base": "USD",
+    "target": "CNY",
+    "rate": 7.05,
+    "timestamp": "2025-12-19T08:13:28.607315",
+    "source": "api.exchangerate-api.com",
+    "cached": false
+}
