@@ -551,6 +551,23 @@ class MongoNewsRepository:
         )
         return _news_from_mongo_doc(doc) if doc else None
 
+    def find_latest(
+        self,
+        category: str = None,
+        limit: int = 100,
+    ) -> List[News]:
+        """获取最新新闻（不限日期）"""
+        query: Dict[str, Any] = {}
+        if category:
+            query["category"] = category
+        
+        cursor = (
+            self._col.find(query)
+            .sort([("crawled_at", -1), ("published_at", -1)])
+            .limit(int(limit))
+        )
+        return [_news_from_mongo_doc(d) for d in cursor]
+
     def find_by_date(
         self,
         crawl_date: str = None,

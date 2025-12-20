@@ -953,12 +953,37 @@ const Dashboard = () => {
                                                     const countryInfo = dataSources.sources?.[country.code];
                                                     if (countryInfo) {
                                                         const countryCommodities = new Set();
-                                                        countryInfo.websites?.forEach(w => w.commodities?.forEach(c => countryCommodities.add(c)));
+                                                        countryInfo.websites?.forEach(w => w.commodities?.forEach(c => {
+                                                            countryCommodities.add(c);
+                                                            const normalized = getNormalizedName(c);
+                                                            if (normalized) countryCommodities.add(normalized);
+                                                        }));
+                                                        
+                                                        // 修改筛选逻辑：不强制使用 slice(0, 6) 限制，而是尝试保留用户之前感兴趣的商品类型
+                                                        // 或者至少确保当前 Tab 下的商品被选中
+                                                        
                                                         const matchedCommodities = allCommodities.filter(c => 
                                                             c.rawNames?.some(name => countryCommodities.has(name)) || countryCommodities.has(c.name)
                                                         );
+                                                        
                                                         if (matchedCommodities.length > 0) {
-                                                            setSelectedCommodities(new Set(matchedCommodities.slice(0, 6).map(c => c.name)));
+                                                            // 1. 优先选择符合当前 Tab 分类的商品
+                                                            let priorityCommodities = matchedCommodities.filter(c => {
+                                                                if (activeCommodityTab === 'all') return true;
+                                                                const category = getCommodityCategory(c.name, c.category);
+                                                                return category === activeCommodityTab;
+                                                            });
+                                                            
+                                                            // 如果当前 Tab 下没有商品，则降级显示所有匹配商品
+                                                            if (priorityCommodities.length === 0) {
+                                                                priorityCommodities = matchedCommodities;
+                                                            }
+                                                            
+                                                            // 选中这些商品（最多显示 6 个，避免图表过于拥挤，但确保是相关的）
+                                                            setSelectedCommodities(new Set(priorityCommodities.slice(0, 6).map(c => c.name)));
+                                                        } else {
+                                                            // 如果该国家完全没有商品，清空选择
+                                                            setSelectedCommodities(new Set());
                                                         }
                                                     }
                                                 }, 50);

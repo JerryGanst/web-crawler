@@ -444,6 +444,58 @@ def _trigger_background_refresh(cache_key: str, task_func, *args):
     return True
 
 
+def _try_get_from_snapshot(cache_key: str, category: str) -> Dict:
+    """
+    尝试从 MongoDB 快照获取数据 (快照回源)
+    如果成功，会自动回写到 Redis
+    """
+    try:
+        from database.manager import db_manager
+        if db_manager.mongodb_enabled:
+            # 优先尝试读取快照
+            snapshot = db_manager.news_repo.get_snapshot(cache_key)
+            if snapshot and snapshot.get("data"):
+                print(f"🔄 [API] {category} Redis Miss，从 MongoDB 快照恢复")
+                result = snapshot["data"]
+                
+                # 修复: 确保 snapshot 格式正确
+                if isinstance(result, list):
+                    result = {
+                        "status": "success",
+                        "category": category,
+                        "data": result,
+                        "timestamp": datetime.now().isoformat(),
+                        "total": len(result),
+                        "cached": False,
+                        "from_snapshot": True
+                    }
+                else:
+                    result["from_snapshot"] = True
+                    result["cached"] = False
+                
+                # 补充 sources 统计
+                if "sources" not in result or not result["sources"]:
+                    sources = {}
+                    for item in result.get("data", []):
+                        source_name = item.get('platform_name') or item.get('source') or item.get('platform') or '未知'
+                        sources[source_name] = sources.get(source_name, 0) + 1
+                    result["sources"] = sources
+                
+                # 回写 Redis
+                try:
+                    cache.set(cache_key, result, ttl=CACHE_TTL)
+                    print(f"✅ [API] {category} 快照数据已回写 Redis")
+                except Exception as redis_err:
+                    print(f"⚠️ [API] 快照回写 Redis 失败: {redis_err}")
+                    
+                return result
+            else:
+                 print(f"⚠️ [API] {category} MongoDB 快照不存在或为空")
+    except Exception as e:
+        print(f"⚠️ [API] MongoDB 快照恢复失败: {e}")
+    return None
+
+
 @router.get("/api/commodity-news")
 def get_commodity_news(refresh: bool = False):
     """
@@ -485,6 +537,11 @@ def get_commodity_news(refresh: bool = False):
         cached["cached"] = True
         cached["cache_ttl"] = cache.get_ttl(cache_key)
         return cached
+    
+    # 缓存未命中，尝试从 MongoDB 快照获取最新数据 (快照回源)
+    snapshot_data = _try_get_from_snapshot(cache_key, "commodity")
+    if snapshot_data:
+        return snapshot_data
     
     # 无缓存且未强制刷新时，自动触发后台刷新
     triggered = _trigger_background_refresh(cache_key, _background_crawl_news, "commodity", True)
@@ -536,6 +593,11 @@ def get_supply_chain_news(refresh: bool = False):
         cached["cached"] = True
         cached["cache_ttl"] = cache.get_ttl(cache_key)
         return cached
+
+    # 缓存未命中，尝试从 MongoDB 快照获取最新数据 (快照回源)
+    snapshot_data = _try_get_from_snapshot(cache_key, "supply-chain")
+    if snapshot_data:
+        return snapshot_data
     
     return {
         "status": "success",
@@ -583,6 +645,11 @@ def get_tariff_news(refresh: bool = False):
         cached["cached"] = True
         cached["cache_ttl"] = cache.get_ttl(cache_key)
         return cached
+
+    # 缓存未命中，尝试从 MongoDB 快照获取最新数据 (快照回源)
+    snapshot_data = _try_get_from_snapshot(cache_key, "tariff")
+    if snapshot_data:
+        return snapshot_data
     
     return {
         "status": "success",
@@ -631,6 +698,11 @@ def get_plastics_news(refresh: bool = False):
         cached["cached"] = True
         cached["cache_ttl"] = cache.get_ttl(cache_key)
         return cached
+
+    # 缓存未命中，尝试从 MongoDB 快照获取最新数据 (快照回源)
+    snapshot_data = _try_get_from_snapshot(cache_key, "plastics")
+    if snapshot_data:
+        return snapshot_data
     
     # 无缓存且未强制刷新时，自动触发后台刷新
     triggered = _trigger_background_refresh(cache_key, _background_fetch_realtime, PLASTICS_KEYWORDS, "plastics")
@@ -698,65 +770,9 @@ def get_news(category: str, include_custom: bool = True, refresh: bool = False):
         return cached
     
     # 缓存未命中，尝试从 MongoDB 快照获取最新数据 (快照回源)
-    try:
-        from database.manager import db_manager
-        if db_manager.mongodb_enabled:
-            snapshot = db_manager.news_repo.get_snapshot(cache_key)
-            if snapshot and snapshot.get("data"):
-                print(f"🔄 [API] {category} Redis Miss，从 MongoDB 快照恢复")
-                result = snapshot["data"]
-                result["from_snapshot"] = True
-                result["cached"] = False
-                
-                # 回写 Redis (Cache-Aside)
-                cache.set(cache_key, result, ttl=CACHE_TTL)
-                return result
-    except Exception as e:
-        print(f"⚠️ [API] MongoDB 快照恢复失败: {e}")
-
-    # 快照也无数据，尝试从历史归档获取 (降级读取)
-    try:
-        from database.manager import db_manager
-        if db_manager.mongodb_enabled:
-            # 从 MongoDB 获取当天或最新的一批新闻
-            latest_news = db_manager.get_news(category=category, limit=50)
-            
-            if latest_news:
-                print(f"🔄 [API] {category} 快照缺失，从历史归档加载 {len(latest_news)} 条数据")
-                
-                # 重新构建缓存结构 (保持与爬虫结果一致)
-                # 统计来源
-                sources = {}
-                data_list = []
-                for news in latest_news:
-                    item = news.to_dict()
-                    # 兼容前端字段
-                    item['time'] = news.published_at.isoformat() if news.published_at else news.crawled_at.isoformat()
-                    # 优先使用 explicit source/platform_name, 降级使用 extra_data, 最后使用 platform_id
-                    item['source'] = news.source or news.platform_name or news.extra_data.get('source', '') or news.platform_id
-                    data_list.append(item)
-                    
-                    src_name = item['source'] or '未知'
-                    sources[src_name] = sources.get(src_name, 0) + 1
-                
-                result = {
-                    "status": "success",
-                    "category": category,
-                    "data": data_list,
-                    "sources": sources,
-                    "timestamp": datetime.now().isoformat(),
-                    "total": len(data_list),
-                    "cached": False,
-                    "from_archive": True,
-                    "refreshing": False,
-                    "message": "数据加载自历史归档"
-                }
-                
-                # 回写 Redis (Cache-Aside)
-                cache.set(cache_key, result, ttl=CACHE_TTL)
-                return result
-    except Exception as e:
-        print(f"⚠️ [API] MongoDB 降级读取失败: {e}")
+    snapshot_data = _try_get_from_snapshot(cache_key, category)
+    if snapshot_data:
+        return snapshot_data
 
     # 无缓存且未强制刷新时，自动触发后台刷新
     triggered = _trigger_background_refresh(cache_key, _background_crawl_news, category, include_custom)
