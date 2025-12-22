@@ -10,7 +10,7 @@ import os
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict
 from urllib.parse import quote
@@ -284,57 +284,69 @@ def _background_crawl_news(cache_key: str, category: str, include_custom: bool =
         result["cached"] = False
         result["background_refresh"] = True
         
-        # 1. 写入 Redis
-        cache.set(cache_key, result, ttl=CACHE_TTL)
-        
-        # 2. 同步写入 MongoDB
+        # 1. 先同步写入 MongoDB 历史归档（确保数据先入库，这样 _try_get_from_mongodb_daily 才能查到最新）
         try:
             from database.manager import db_manager
             if db_manager.mongodb_enabled:
-                # 2.1 写入快照
-                db_manager.news_repo.save_snapshot(cache_key, result)
-                print(f"✅ [后台] {category} 快照已保存到 MongoDB")
-                
-                # 2.2 写入历史归档
                 if result.get("data"):
                     from database.models import News
                     news_objects = []
-                for item in result["data"]:
-                    # 处理时间
-                    p_time = item.get("time") or item.get("publish_time")
-                    published_at = None
-                    if p_time:
-                        try:
-                            if isinstance(p_time, str):
-                                # 尝试处理不同格式
-                                try:
-                                    published_at = datetime.fromisoformat(p_time.replace('Z', '+00:00'))
-                                except:
-                                    # 尝试解析 "YYYY-MM-DD HH:MM" 格式
-                                    published_at = datetime.strptime(p_time, "%Y-%m-%d %H:%M")
-                            else:
-                                published_at = p_time
-                        except:
+                    for item in result["data"]:
+                        # 处理时间
+                        p_time = item.get("time") or item.get("publish_time")
+                        published_at = None
+                        if p_time:
+                            try:
+                                if isinstance(p_time, str):
+                                    # 尝试处理不同格式
+                                    try:
+                                        published_at = datetime.fromisoformat(p_time.replace('Z', '+00:00'))
+                                    except:
+                                        # 尝试解析 "YYYY-MM-DD HH:MM" 格式
+                                        published_at = datetime.strptime(p_time, "%Y-%m-%d %H:%M")
+                                else:
+                                    published_at = p_time
+                            except:
+                                published_at = datetime.now()
+                        else:
                             published_at = datetime.now()
-                    else:
-                        published_at = datetime.now()
 
-                    news_objects.append(News(
-                        platform_id=item.get("platform", "unknown"),
-                        title=item.get("title", ""),
-                        url=item.get("url", ""),
-                        published_at=published_at,
-                        category=category,
-                        extra_data=item,
-                        source=item.get("source", ""),
-                        platform_name=item.get("platform_name", ""),
-                        summary=item.get("summary", "") or item.get("content", "")[:200]
-                    ))
-                
-                inserted, updated = db_manager.news_repo.insert_batch(news_objects)
-                print(f"✅ [后台] {category} 归档到 MongoDB: 新增 {inserted}, 更新 {updated}")
+                        news_objects.append(News(
+                            platform_id=item.get("platform", "unknown"),
+                            title=item.get("title", ""),
+                            url=item.get("url", ""),
+                            published_at=published_at,
+                            category=category,
+                            extra_data=item,
+                            source=item.get("source", ""),
+                            platform_name=item.get("platform_name") or item.get("source", ""),
+                            summary=item.get("summary", "") or item.get("content", "")[:200]
+                        ))
+                    
+                    inserted, updated = db_manager.news_repo.insert_batch(news_objects)
+                    print(f"✅ [后台] {category} 归档到 MongoDB: 新增 {inserted}, 更新 {updated}")
         except Exception as e:
             print(f"⚠️ [后台] MongoDB 归档失败: {e}")
+        
+        # 默认先设置当前抓取结果为缓存
+        final_result = result
+        
+        # 2. 尝试从 MongoDB 获取最近 7 天的全量数据（此时已经包含了刚刚入库的数据）
+        daily_data = _try_get_from_mongodb_daily(category)
+        if daily_data and daily_data.get("total", 0) > len(result.get("data", [])):
+            print(f"🔄 [后台] {category} 使用 MongoDB 最近7天全量数据更新缓存 ({daily_data.get('total')} 条)")
+            final_result = daily_data
+        
+        # 3. 写入 MongoDB 快照 (使用全量数据)
+        try:
+            if db_manager.mongodb_enabled:
+                db_manager.news_repo.save_snapshot(cache_key, final_result)
+                print(f"✅ [后台] {category} 快照已保存到 MongoDB (包含 {final_result.get('total', 0)} 条)")
+        except Exception as e:
+            print(f"⚠️ [后台] MongoDB 快照保存失败: {e}")
+
+        # 4. 最后写入 Redis (使用全量数据)
+        cache.set(cache_key, final_result, ttl=CACHE_TTL)
             
         print(f"✅ [后台] {category} 爬取完成: {result['total']} 条")
     except Exception as e:
@@ -351,6 +363,11 @@ def _background_fetch_realtime(cache_key: str, keywords: list, category: str = N
         news = fetch_realtime_news(keywords)
         # 过滤不需要的来源
         news = [n for n in news if n.get("source") not in ["雪球", "百度"]]
+        
+        # 补全 platform_name (确保入库和缓存都有该字段)
+        for item in news:
+            if not item.get("platform_name") and item.get("source"):
+                item["platform_name"] = item["source"]
         
         # 针对 supply-chain 增补电源友商定向抓取（带正文）
         if category == "supply-chain":
@@ -420,8 +437,28 @@ def _background_fetch_realtime(cache_key: str, keywords: list, category: str = N
         }
         if category:
             result["category"] = category
-        cache.set(cache_key, result, ttl=CACHE_TTL)
-        print(f"✅ [后台] {cache_key} 拓取完成: {len(news)} 条")
+        
+        # 默认先设置当前抓取结果为缓存
+        final_result = result
+        
+        # 2. 尝试从 MongoDB 获取最近 7 天的全量数据（此时已经包含了刚刚入库的数据）
+        daily_data = _try_get_from_mongodb_daily(category, keywords)
+        if daily_data and daily_data.get("total", 0) > len(news):
+            print(f"🔄 [后台] {cache_key} 使用 MongoDB 最近7天全量数据更新缓存 ({daily_data.get('total')} 条)")
+            final_result = daily_data
+        
+        # 3. 写入 MongoDB 快照 (使用全量数据)
+        try:
+            if db_manager.mongodb_enabled:
+                db_manager.news_repo.save_snapshot(cache_key, final_result)
+                print(f"✅ [后台] {cache_key} 快照已保存到 MongoDB (包含 {final_result.get('total', 0)} 条)")
+        except Exception as e:
+            print(f"⚠️ [后台] MongoDB 快照保存失败: {e}")
+
+        # 4. 最后写入 Redis (使用全量数据)
+        cache.set(cache_key, final_result, ttl=CACHE_TTL)
+        print(f"✅ [后台] {cache_key} 拓取完成: {len(news)} 条 (最终缓存: {final_result.get('total')} 条)")
+                    
     except Exception as e:
         print(f"❌ [后台] {cache_key} 拓取失败: {e}")
     finally:
@@ -477,9 +514,19 @@ def _try_get_from_snapshot(cache_key: str, category: str) -> Dict:
                 if "sources" not in result or not result["sources"]:
                     sources = {}
                     for item in result.get("data", []):
+                        # 补全 platform_name
+                        if not item.get("platform_name") and item.get("source"):
+                            item["platform_name"] = item["source"]
+                            
                         source_name = item.get('platform_name') or item.get('source') or item.get('platform') or '未知'
                         sources[source_name] = sources.get(source_name, 0) + 1
                     result["sources"] = sources
+                else:
+                    # 即使 sources 存在，也检查一遍 data 中的 platform_name
+                    if result.get("data"):
+                        for item in result["data"]:
+                            if not item.get("platform_name") and item.get("source"):
+                                item["platform_name"] = item["source"]
                 
                 # 回写 Redis
                 try:
@@ -493,6 +540,89 @@ def _try_get_from_snapshot(cache_key: str, category: str) -> Dict:
                  print(f"⚠️ [API] {category} MongoDB 快照不存在或为空")
     except Exception as e:
         print(f"⚠️ [API] MongoDB 快照恢复失败: {e}")
+    return None
+
+
+def _try_get_from_mongodb_daily(category: str, keywords: list = None, days: int = 7) -> Dict:
+    """
+    尝试从 MongoDB news 集合查询最近 N 天的数据
+    """
+    try:
+        from database.manager import db_manager
+        if db_manager.mongodb_enabled:
+            print(f"🔄 [API] {category} 尝试查询 MongoDB 最近 {days} 天数据...")
+            
+            # 获取起始时间（最近 N 天的零点）
+            start_date = (datetime.now() - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
+            
+            # 构建查询条件
+            query = {
+                "category": category,
+                "published_at": {"$gte": start_date}
+            }
+            
+            # 如果提供了关键词，可以增加标题匹配（可选，视需求而定，这里暂时只按 category 查）
+            # if keywords:
+            #     query["title"] = {"$regex": "|".join(keywords)}
+
+            # 查询数据，按时间倒序，限制 500 条
+            news_items = list(db_manager.news_repo._col.find(
+                query, 
+                {"_id": 0}  # 不返回 _id
+            ).sort("published_at", -1).limit(500))  # 扩大限制以容纳多天数据
+            
+            if news_items:
+                print(f"✅ [API] {category} 从 MongoDB 查到 {len(news_items)} 条最近数据")
+                
+                # 格式化数据以匹配 API 返回格式
+                data = []
+                seen_titles = set()  # 用于去重
+                sources = {}
+                
+                for item in news_items:
+                    # 去重逻辑
+                    title = item.get("title", "")
+                    if title in seen_titles:
+                        continue
+                    seen_titles.add(title)
+
+                    # 转换 datetime 对象为 ISO 格式字符串
+                    if isinstance(item.get("published_at"), datetime):
+                        item["published_at"] = item["published_at"].isoformat()
+                    
+                    # 补全 platform_name
+                    extra_data = item.get('extra_data', {}) or {}  # 确保 extra_data 是字典
+                    platform_name = item.get('platform_name') or extra_data.get('platform_name')
+                    source = item.get('source') or extra_data.get('source')
+                     
+                    if not platform_name and source:
+                        platform_name = source
+                    
+                    if platform_name:
+                        item["platform_name"] = platform_name
+                    
+
+                    data.append(item)
+                    
+                    # 统计来源
+                    source_name = item.get('platform_name') or item.get('source') or item.get('platform') or '未知'
+                    sources[source_name] = sources.get(source_name, 0) + 1
+                
+                result = {
+                    "status": "success",
+                    "category": category,
+                    "data": data,
+                    "timestamp": datetime.now().isoformat(),
+                    "total": len(data),
+                    "sources": sources,
+                    "cached": False,
+                    "from_mongodb_daily": True
+                }
+                return result
+            else:
+                print(f"⚠️ [API] {category} MongoDB 当日无数据")
+    except Exception as e:
+        print(f"⚠️ [API] MongoDB 当日数据查询失败: {e}")
     return None
 
 
@@ -536,6 +666,13 @@ def get_commodity_news(refresh: bool = False):
     if cached:
         cached["cached"] = True
         cached["cache_ttl"] = cache.get_ttl(cache_key)
+
+        # 检查并补全 platform_name
+        if cached.get("data"):
+            for item in cached["data"]:
+                if not item.get("platform_name") and item.get("source"):
+                    item["platform_name"] = item["source"]
+
         return cached
     
     # 缓存未命中，尝试从 MongoDB 快照获取最新数据 (快照回源)
@@ -576,6 +713,18 @@ def get_supply_chain_news(refresh: bool = False):
             cached["cached"] = True
             cached["refreshing"] = triggered
             cached["message"] = "数据正在后台刷新" if triggered else "刷新任务已在进行中"
+            
+            # 补全 platform_name
+            if cached.get("data"):
+                for item in cached["data"]:
+                    extra = item.get("extra_data", {}) or {}
+                    p_name = item.get("platform_name") or extra.get("platform_name")
+                    src = item.get("source") or extra.get("source")
+                    if not p_name and src:
+                        p_name = src
+                    if p_name:
+                        item["platform_name"] = p_name
+
             return cached
         
         return {
@@ -680,6 +829,18 @@ def get_plastics_news(refresh: bool = False):
             cached["cached"] = True
             cached["refreshing"] = triggered
             cached["message"] = "数据正在后台刷新" if triggered else "刷新任务已在进行中"
+            
+            # 补全 platform_name
+            if cached.get("data"):
+                for item in cached["data"]:
+                    extra = item.get("extra_data", {}) or {}
+                    p_name = item.get("platform_name") or extra.get("platform_name")
+                    src = item.get("source") or extra.get("source")
+                    if not p_name and src:
+                        p_name = src
+                    if p_name:
+                        item["platform_name"] = p_name
+
             return cached
         
         return {
@@ -697,13 +858,17 @@ def get_plastics_news(refresh: bool = False):
     if cached:
         cached["cached"] = True
         cached["cache_ttl"] = cache.get_ttl(cache_key)
-        return cached
 
-    # 缓存未命中，尝试从 MongoDB 快照获取最新数据 (快照回源)
-    snapshot_data = _try_get_from_snapshot(cache_key, "plastics")
-    if snapshot_data:
-        return snapshot_data
+                    
+        return cached
     
+    # 从 MongoDB 查询当日数据
+    daily_data = _try_get_from_mongodb_daily("plastics", PLASTICS_KEYWORDS)
+    if daily_data:
+        # 回写 Redis
+        cache.set(cache_key, daily_data, ttl=CACHE_TTL)
+        return daily_data
+
     # 无缓存且未强制刷新时，自动触发后台刷新
     triggered = _trigger_background_refresh(cache_key, _background_fetch_realtime, PLASTICS_KEYWORDS, "plastics")
     
@@ -756,17 +921,17 @@ def get_news(category: str, include_custom: bool = True, refresh: bool = False):
         cached["cached"] = True
         cached["cache_ttl"] = cache.get_ttl(cache_key)
         
-        # 强制重新计算 sources，修复旧缓存数据缺失问题
+        # 补全 platform_name (防止缓存数据缺失)
         if cached.get("data"):
-            sources = {}
             for item in cached["data"]:
-                # 按照优先级提取来源：platform_name > source > platform > 未知
-                source_name = item.get('platform_name') or item.get('source') or item.get('platform') or '未知'
-                sources[source_name] = sources.get(source_name, 0) + 1
-            cached["sources"] = sources
-        elif "sources" not in cached:
-            cached["sources"] = {}
-            
+                extra = item.get("extra_data", {}) or {}
+                p_name = item.get("platform_name") or extra.get("platform_name")
+                src = item.get("source") or extra.get("source")
+                if not p_name and src:
+                    p_name = src
+                if p_name:
+                    item["platform_name"] = p_name
+        
         return cached
     
     # 缓存未命中，尝试从 MongoDB 快照获取最新数据 (快照回源)

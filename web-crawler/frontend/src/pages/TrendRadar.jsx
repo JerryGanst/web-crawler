@@ -424,7 +424,7 @@ const TrendRadar = () => {
                                 数据状态
                             </h3>
                             <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>
-                                数据缓存2分钟，点击刷新按钮获取最新数据
+                                数据缓存一个小时，点击刷新按钮获取最新数据
                             </p>
                         </div>
                     </div>

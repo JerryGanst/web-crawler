@@ -68,10 +68,12 @@ class BackgroundScheduler:
                             platform_id=item.get("platform", "unknown"),
                             title=item.get("title", ""),
                             url=item.get("url", ""),
-                            # source 字段在 News 模型中不存在，放入 extra_data
                             published_at=published_at,
                             category=category,
-                            extra_data=item
+                            extra_data=item,
+                            source=item.get("source", ""),
+                            platform_name=item.get("platform_name") or item.get("source", ""),
+                            summary=item.get("summary", "") or item.get("content", "")[:200]
                         ))
                     
                     inserted, updated = db_manager.news_repo.insert_batch(news_objects)
@@ -88,18 +90,34 @@ class BackgroundScheduler:
                 "cached": False,
                 "scheduled_refresh": True
             }
-            cache.set(f"news:{category}", result, ttl=CACHE_TTL)
+            
+            # 默认先设置当前抓取结果为缓存
+            final_result = result
+            cache_key = f"news:{category}"
+
+            # 尝试从 MongoDB 获取最近 7 天的全量数据
+            # 只要启用了 MongoDB，就尝试合并历史数据，确保展示完整
+            from api.routes.news import _try_get_from_mongodb_daily
+            daily_data = _try_get_from_mongodb_daily(category)
+            
+            if daily_data and daily_data.get("total", 0) > len(data):
+                print(f"🔄 [定时] {category} 使用 MongoDB 最近7天全量数据更新缓存 ({daily_data.get('total')} 条)")
+                final_result = daily_data
             
             # 2. 写入 MongoDB 快照 (作为 Redis 的持久化备份)
             try:
                 from database.manager import db_manager
                 if db_manager.mongodb_enabled:
-                    db_manager.news_repo.save_snapshot(f"news:{category}", result)
-                    print(f"✅ [定时] {category} 快照已保存到 MongoDB")
+                    # 快照也使用 final_result (全量数据)
+                    db_manager.news_repo.save_snapshot(cache_key, final_result)
+                    print(f"✅ [定时] {category} 快照已保存到 MongoDB (包含 {final_result.get('total', 0)} 条)")
             except Exception as e:
                 print(f"⚠️ [定时] MongoDB 快照保存失败: {e}")
+            
+            # 3. 写入 Redis
+            cache.set(cache_key, final_result, ttl=CACHE_TTL)
                 
-            print(f"⏰ [定时] {category} 完成: {len(data)} 条")
+            print(f"⏰ [定时] {category} 完成: {len(data)} 条 (最终缓存: {final_result.get('total', 0)} 条)")
         except Exception as e:
             print(f"⏰ [定时] {category} 失败: {e}")
     
@@ -135,15 +153,15 @@ class BackgroundScheduler:
             }
             cache.set("data:commodity", result, ttl=CACHE_TTL)
             
-            # 3. 写入 MongoDB 快照 (作为 Redis 的持久化备份)
-            try:
-                from database.manager import db_manager
-                if db_manager.mongodb_enabled:
-                    # 使用 news_repo 统一管理快照
-                    db_manager.news_repo.save_snapshot("data:commodity", result)
-                    print(f"✅ [定时] 大宗商品数据快照已保存到 MongoDB")
-            except Exception as e:
-                print(f"⚠️ [定时] MongoDB 快照保存失败: {e}")
+            # # 3. 写入 MongoDB 快照 (作为 Redis 的持久化备份)
+            # try:
+            #     from database.manager import db_manager
+            #     if db_manager.mongodb_enabled:
+            #         # 使用 news_repo 统一管理快照
+            #         db_manager.news_repo.save_snapshot("data:commodity", result)
+            #         print(f"✅ [定时] 大宗商品数据快照已保存到 MongoDB")
+            # except Exception as e:
+            #     print(f"⚠️ [定时] MongoDB 快照保存失败: {e}")
 
             # 保存价格历史
             try:
@@ -173,6 +191,11 @@ class BackgroundScheduler:
                     if item.get("title") and item["title"] not in seen:
                         seen.add(item["title"])
                         news.append(item)
+            
+            # 补全 platform_name (确保入库和缓存都有该字段)
+            for item in news:
+                if not item.get("platform_name") and item.get("source"):
+                    item["platform_name"] = item["source"]
             
             # 统计数据来源分布
             sources = {}
@@ -230,20 +253,30 @@ class BackgroundScheduler:
                 "cached": False,
                 "scheduled_refresh": True
             }
-            if category:
-                result["category"] = category
-            cache.set(cache_key, result, ttl=CACHE_TTL)
+
+            # 尝试从 MongoDB 获取最近 7 天的全量数据
+            # 只要启用了 MongoDB，就尝试合并历史数据，确保展示完整
+            from api.routes.news import _try_get_from_mongodb_daily
+            daily_data = _try_get_from_mongodb_daily(category, keywords) # keywords 可能为空，但在 _try_get_from_mongodb_daily 内部处理了
+            
+            if daily_data and daily_data.get("total", 0) > len(news):
+                print(f"🔄 [定时] {cache_key} 使用 MongoDB 最近7天全量数据更新缓存 ({daily_data.get('total')} 条)")
+                final_result = daily_data
             
             # 2. 写入 MongoDB 快照 (作为 Redis 的持久化备份)
             try:
                 from database.manager import db_manager
                 if db_manager.mongodb_enabled:
-                    db_manager.news_repo.save_snapshot(cache_key, result)
-                    print(f"✅ [定时] {cache_key} 快照已保存到 MongoDB")
+                    # 快照也使用 final_result (全量数据)
+                    db_manager.news_repo.save_snapshot(cache_key, final_result)
+                    print(f"✅ [定时] {cache_key} 快照已保存到 MongoDB (包含 {final_result.get('total', 0)} 条)")
             except Exception as e:
                 print(f"⚠️ [定时] MongoDB 快照保存失败: {e}")
 
-            print(f"⏰ [定时] {cache_key} 完成: {len(news)} 条")
+            # 3. 写入 Redis
+            cache.set(cache_key, final_result, ttl=CACHE_TTL)
+            
+            print(f"⏰ [定时] {cache_key} 完成: {len(news)} 条 (最终缓存: {final_result.get('total', 0)} 条)")
         except Exception as e:
             print(f"⏰ [定时] {cache_key} 失败: {e}")
     
