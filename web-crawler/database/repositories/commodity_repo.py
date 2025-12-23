@@ -69,7 +69,7 @@ class CommodityRepository:
 
     def get_latest_batch(self) -> List[Dict[str, Any]]:
         """
-        获取最新的一批数据
+        获取commodities最新的一批数据
         :return: 商品列表
         """
         # 1. 先查最新的 batch_id

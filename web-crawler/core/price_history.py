@@ -159,20 +159,42 @@ class PriceHistoryManager:
             all_data = self.client.hgetall(key)
             cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
             
+            # Bug修复: 检查数据完整性 (Read Repair)
+            # 如果 Redis 数据量明显少于预期（例如少于 days 且少于 4 条），则认为缓存不完整，继续走 MySQL 补全
+            
+            redis_history = []
             if all_data:
                 for date, data_str in all_data.items():
+                    # 兼容 bytes 类型
+                    if isinstance(date, bytes):
+                        date = date.decode('utf-8')
+                    if isinstance(data_str, bytes):
+                        data_str = data_str.decode('utf-8')
+                        
                     if date >= cutoff:
                         data = json.loads(data_str)
-                        history.append({
+                        redis_history.append({
                             "date": date,
                             "price": data.get("price", 0),
                             "change_percent": data.get("change_percent", 0),
                             "source": data.get("source", "")
                         })
-                history.sort(key=lambda x: x["date"])
-                return history
+                
+                redis_history.sort(key=lambda x: x["date"])
+                
+                # 简单判定策略：
+                # 如果 Redis 返回的数据条数足够多（>= days 或 >= 4），则认为缓存命中且完整
+                # 否则视为“部分缺失”，穿透到 MySQL 进行合并和回写
+                if len(redis_history) >= days or (redis_history and len(redis_history) >= 4):
+                     return redis_history
+            
+            if redis_history:
+                print(f"ℹ️ Redis 数据可能不完整 ({len(redis_history)} 条), 尝试从 MySQL 补全...")
+
         except Exception as e:
             print(f"⚠️ Redis 获取价格历史失败: {e}")
+            redis_history = []
+
 
         # 2. Redis 未命中或失败，尝试从 MySQL 获取 (降级策略)
         try:
@@ -188,6 +210,8 @@ class PriceHistoryManager:
             """
             
             mysql_history = []
+            redis_mapping = {}  # 用于批量更新 Redis
+            
             with get_cursor() as cursor:
                 cursor.execute(sql, (commodity_name, cutoff_date))
                 rows = cursor.fetchall()
@@ -203,17 +227,22 @@ class PriceHistoryManager:
                     }
                     mysql_history.append(item)
                     
-                    # 3. 回写 Redis (Cache-Aside)
-                    try:
-                        cache_data = {
-                            "price": item["price"],
-                            "change_percent": item["change_percent"],
-                            "source": item["source"],
-                            "timestamp": datetime.now().isoformat()
-                        }
-                        self.client.hset(key, date_str, json.dumps(cache_data, ensure_ascii=False))
-                    except Exception as re:
-                        print(f"⚠️ 回写 Redis 失败: {re}")
+                    # 准备 Redis 数据
+                    cache_data = {
+                        "price": item["price"],
+                        "change_percent": item["change_percent"],
+                        "source": item["source"],
+                        "timestamp": datetime.now().isoformat()
+                    }
+                    redis_mapping[date_str] = json.dumps(cache_data, ensure_ascii=False)
+            
+            # 3. 批量回写 Redis (Cache-Aside)
+            if redis_mapping and self.client:
+                try:
+                    # 使用 hset 的 mapping 参数进行批量写入 (redis-py 3.0+)
+                    self.client.hset(key, mapping=redis_mapping)
+                except Exception as re:
+                    print(f"⚠️ 批量回写 Redis 失败: {re}")
             
             if mysql_history:
                 print(f"✅ 从 MySQL 恢复了 {len(mysql_history)} 条记录 ({commodity_name})")
@@ -235,45 +264,43 @@ class PriceHistoryManager:
             {商品名称: 历史数据列表} 的字典
         """
         result = {}
+        commodity_names = set()
         
-        # 1. 首先尝试从 Redis 获取所有 Key
-        if self.client:
-            try:
-                # 获取所有历史数据的 key
-                pattern = f"{self.prefix}*"
-                keys = self.client.keys(pattern)
-                
-                for key in keys:
-                    commodity_name = key.replace(self.prefix, "")
-                    history = self.get_history(commodity_name, days)
-                    if history:
-                        result[commodity_name] = history
-            except Exception as e:
-                print(f"⚠️ Redis 获取所有商品失败: {e}")
+        # 1. 获取商品名单 (优先从 MySQL 获取全量名单，确保不漏掉 Redis 中缺失的商品)
+        # 修复 Bug: 之前只遍历 Redis keys，导致 Redis 丢失 key 时无法触发 get_history 的 MySQL 降级回写
+        try:
+            from database.mysql.connection import get_cursor
+            with get_cursor() as cursor:
+                cursor.execute("SELECT DISTINCT name FROM commodity_price_history")
+                rows = cursor.fetchall()
+                for row in rows:
+                    commodity_names.add(row['name'])
+        except Exception as e:
+            print(f"⚠️ MySQL 获取商品列表失败: {e}")
+            
+            # MySQL 失败时，降级从 Redis Keys 获取
+            if self.client:
+                try:
+                    pattern = f"{self.prefix}*"
+                    keys = self.client.keys(pattern)
+                    for key in keys:
+                        if isinstance(key, bytes):
+                            key = key.decode('utf-8')
+                        name = key.replace(self.prefix, "")
+                        commodity_names.add(name)
+                except Exception as re:
+                    print(f"❌ Redis 获取 Keys 失败: {re}")
 
-        # 2. 如果结果为空（Redis 数据丢失），尝试从 MySQL 恢复
-        if not result:
+        # 2. 遍历获取数据
+        # get_history 方法内部实现了 "Redis 优先 -> MySQL 降级 -> 回写 Redis" 的逻辑
+        # 只要这里传入了商品名，就能自动修复 Redis 中缺失的数据
+        for name in commodity_names:
             try:
-                from database.mysql.connection import get_cursor
-                print("🔄 Redis 全量 Miss -> 尝试从 MySQL 恢复所有商品历史...")
-                
-                # 获取 MySQL 中所有的商品名称
-                with get_cursor() as cursor:
-                    cursor.execute("SELECT DISTINCT name FROM commodity_price_history")
-                    rows = cursor.fetchall()
-                    names = [row['name'] for row in rows]
-                
-                # 逐个获取历史（get_history 会自动处理回写 Redis）
-                for name in names:
-                    history = self.get_history(name, days)
-                    if history:
-                        result[name] = history
-                
-                if result:
-                    print(f"✅ 从 MySQL 恢复了 {len(result)} 个商品的历史数据")
-                    
+                history = self.get_history(name, days)
+                if history:
+                    result[name] = history
             except Exception as e:
-                print(f"❌ MySQL 获取所有商品失败: {e}")
+                print(f"⚠️ 获取商品 {name} 历史失败: {e}")
                 
         return result
     

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Bot, Sparkles, RefreshCw, Clock, Loader2, AlertCircle } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import api from '../services/api';
 
 const AIAnalysis = () => {
@@ -57,28 +58,28 @@ const AIAnalysis = () => {
     };
 
     const renderContent = (text) => {
-        return text.split('\n').map((line, index) => {
-            // 标题 (加粗)
-            if (line.startsWith('**') && line.endsWith('**')) {
-                return <h4 key={index} style={{ margin: '12px 0 6px', color: '#111827', fontWeight: '600' }}>{line.replace(/\*\*/g, '')}</h4>;
-            }
-            // 列表项 (以 * 或 - 开头)
-            if (line.match(/^[\*\-]\s/)) {
-                return <li key={index} style={{ marginLeft: '20px', marginBottom: '4px', color: '#4b5563', listStyleType: 'disc' }}>{line.replace(/^[\*\-]\s/, '').trim()}</li>;
-            }
-            // 分隔线
-            if (line.startsWith('---')) {
-                return <hr key={index} style={{ border: 'none', borderTop: '1px solid #e5e7eb', margin: '12px 0' }} />;
-            }
-            // 斜体文本 (时间戳等)
-            if (line.startsWith('*') && line.endsWith('*') && !line.startsWith('**')) {
-                return <p key={index} style={{ margin: '8px 0', fontSize: '12px', color: '#9ca3af', fontStyle: 'italic' }}>{line.replace(/\*/g, '')}</p>;
-            }
-            // 空行
-            if (line.trim() === '') return null;
-            // 普通段落
-            return <p key={index} style={{ margin: '0 0 8px', lineHeight: '1.6', color: '#4b5563' }}>{line}</p>;
-        });
+        return (
+            <div className="markdown-content">
+                <ReactMarkdown
+                    components={{
+                        h1: ({node, ...props}) => <h1 style={{ fontSize: '1.5em', fontWeight: 'bold', margin: '16px 0 8px', color: '#111827' }} {...props} />,
+                        h2: ({node, ...props}) => <h2 style={{ fontSize: '1.3em', fontWeight: 'bold', margin: '14px 0 8px', color: '#1f2937' }} {...props} />,
+                        h3: ({node, ...props}) => <h3 style={{ fontSize: '1.1em', fontWeight: 'bold', margin: '12px 0 6px', color: '#374151' }} {...props} />,
+                        h4: ({node, ...props}) => <h4 style={{ fontSize: '1em', fontWeight: 'bold', margin: '10px 0 6px', color: '#4b5563' }} {...props} />,
+                        p: ({node, ...props}) => <p style={{ margin: '0 0 8px', lineHeight: '1.6', color: '#4b5563' }} {...props} />,
+                        ul: ({node, ...props}) => <ul style={{ paddingLeft: '20px', margin: '0 0 12px' }} {...props} />,
+                        ol: ({node, ...props}) => <ol style={{ paddingLeft: '20px', margin: '0 0 12px' }} {...props} />,
+                        li: ({node, ...props}) => <li style={{ marginBottom: '4px', color: '#4b5563' }} {...props} />,
+                        blockquote: ({node, ...props}) => <blockquote style={{ borderLeft: '4px solid #e5e7eb', paddingLeft: '16px', margin: '12px 0', color: '#6b7280', fontStyle: 'italic' }} {...props} />,
+                        hr: ({node, ...props}) => <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', margin: '16px 0' }} {...props} />,
+                        strong: ({node, ...props}) => <strong style={{ fontWeight: '600', color: '#111827' }} {...props} />,
+                        em: ({node, ...props}) => <em style={{ fontStyle: 'italic', color: '#4b5563' }} {...props} />,
+                    }}
+                >
+                    {text}
+                </ReactMarkdown>
+            </div>
+        );
     };
 
     const formatTime = (date) => {

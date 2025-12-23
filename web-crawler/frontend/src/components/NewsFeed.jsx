@@ -18,7 +18,8 @@ const NewsFeed = () => {
             setLoading(true);
             const response = await api.getCommodityNews(false);
             const data = response.data || response;
-            setNews((data.data || []).slice(0, 8));
+            // 移除 slice(0, 8)，显示更多数据，让用户可以滚动
+            setNews(data.data || []);
             setCacheInfo({
                 cached: data.cached,
                 ttl: data.cache_ttl,
@@ -39,7 +40,8 @@ const NewsFeed = () => {
             setMessage(null);
             const response = await api.getCommodityNews(true);
             const data = response.data || response;
-            setNews((data.data || []).slice(0, 8));
+            // 移除 slice(0, 8)
+            setNews(data.data || []);
             setCacheInfo({
                 cached: false,
                 ttl: data.cache_ttl,
@@ -102,7 +104,7 @@ const NewsFeed = () => {
                     </button>
                 </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', maxHeight: '500px', paddingRight: '5px' }}>
                 {loading || refreshing ? (
                     <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>
                         <RefreshCw size={24} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 10px' }} />

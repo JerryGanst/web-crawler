@@ -265,8 +265,8 @@ async def get_price_history(commodity: Optional[str] = None, days: int = 7):
                 "cached": False
             }
         
-        # 缓存 5 分钟
-        cache.set(cache_key, result, ttl=300)
+        # 缓存 半小时
+        cache.set(cache_key, result, ttl=1800)
         return result
         
     except Exception as e:
