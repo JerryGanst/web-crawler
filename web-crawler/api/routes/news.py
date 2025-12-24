@@ -589,6 +589,8 @@ def _try_get_from_mongodb_daily(category: str, keywords: list = None, days: int 
                     # 转换 datetime 对象为 ISO 格式字符串
                     if isinstance(item.get("published_at"), datetime):
                         item["published_at"] = item["published_at"].isoformat()
+                    if isinstance(item.get("crawled_at"), datetime):
+                        item["crawled_at"] = item["crawled_at"].isoformat()
                     
                     # 补全 platform_name
                     extra_data = item.get('extra_data', {}) or {}  # 确保 extra_data 是字典
@@ -1063,7 +1065,9 @@ def _match_news(news_list, entity_config, website_map=None):
                         "url": news.get("url", ""),
                         "source": news.get("source", ""),
                         "publish_time": news.get("publish_time", ""),
-                        "matched_keyword": kw
+                        "crawled_at": news.get("crawled_at", ""),
+                        "platform_name": news.get("platform_name", ""),
+                        "matched_keyword": kw,
                     })
                     break
         
@@ -1073,7 +1077,7 @@ def _match_news(news_list, entity_config, website_map=None):
         stats[name] = {
             "keywords": keywords,
             "news_count": count,
-            "news": matched_news[:10],  # 最多返回10条
+            "news": matched_news[:50],  # 最多返回50条
             "website": (website_map or {}).get(name)
         }
     return stats

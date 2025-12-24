@@ -13,7 +13,7 @@ if (-not (Test-Path $PYTHON_PATH)) {
 }
 
 $PROJECT_ROOT = Resolve-Path "."
-$BACKEND_DIR = Join-Path $PROJECT_ROOT "web-crawler"
+$BACKEND_DIR = $PROJECT_ROOT
 $FRONTEND_DIR = Join-Path $BACKEND_DIR "frontend"
 
 Write-Host "╔════════════════════════════════════════╗" -ForegroundColor Cyan

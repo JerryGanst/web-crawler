@@ -49,7 +49,7 @@ const TrendRadar = () => {
     const [loading, setLoading] = useState(true);
     const [pushing, setPushing] = useState(false);
     const [stats, setStats] = useState({ total: 0, sources: {} });
-    
+
     // 数据缓存（用于切换分类时快速回显）
     const dataCache = useRef({});
 
@@ -83,7 +83,7 @@ const TrendRadar = () => {
                 const response = await api.getCategories();
                 const data = response.data || response;
                 const apiCategories = data.categories || DEFAULT_CATEGORIES.slice(0, 4);
-                
+
                 // 确保供应链分类始终存在
                 const hasSupplyChain = apiCategories.some(c => c.id === 'supply_chain');
                 if (isMountedRef.current) {
@@ -118,35 +118,35 @@ const TrendRadar = () => {
         // 生成请求 ID
         const requestId = `${category}-${Date.now()}`;
         currentRequestRef.current = requestId;
-        
+
         setLoading(true);
-        
+
         try {
             const response = await api.getNews(category, true, forceRefresh);
-            
+
             // 检查请求是否已过期（被新请求取代）
             if (currentRequestRef.current !== requestId) {
                 console.log('[Request STALE] Ignoring response for:', category);
                 return;
             }
-            
+
             const data = response.data || response;
-            
+
             // 如果缓存为空且不是强制刷新，自动触发一次后台刷新（不阻塞UI）
             if (!data.data?.length && !forceRefresh && !data.refreshing) {
                 console.log('缓存为空，触发后台爬取...');
                 // 异步触发刷新，不等待结果
                 api.getNews(category, true, true).catch(e => console.warn('后台刷新失败:', e));
             }
-            
+
             if (isMountedRef.current) {
                 const newNewsData = data.data || [];
                 const newStats = { total: data.total || 0, sources: data.sources || {} };
-                
+
                 // 更新状态
                 setNewsData(newNewsData);
                 setStats(newStats);
-                
+
                 // 写入缓存
                 dataCache.current[category] = {
                     newsData: newNewsData,
@@ -202,7 +202,7 @@ const TrendRadar = () => {
         const config = CATEGORY_CONFIG[cat.id] || { icon: Newspaper, color: '#64748b' };
         const IconComponent = config.icon;
         const isSelected = selectedCategory === cat.id;
-        
+
         return (
             <button
                 key={cat.id}
@@ -234,7 +234,7 @@ const TrendRadar = () => {
         if (loading) {
             return Array(8).fill(0).map((_, i) => <NewsSkeleton key={i} />);
         }
-        
+
         if (newsData.length === 0) {
             return (
                 <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94a3b8' }}>
@@ -242,8 +242,8 @@ const TrendRadar = () => {
                 </div>
             );
         }
-        
-        return newsData.slice(0, 50).map((item, i) => (
+
+        return newsData.map((item, i) => (
             <a
                 key={`${item.url || i}-${i}`}
                 href={item.url}
@@ -280,9 +280,28 @@ const TrendRadar = () => {
                         {item.title}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#94a3b8' }}>
-                        <span style={{ background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px' }}>
+                        <span style={{ background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold' }}>
                             {item.platform_name || item.platform}
                         </span>
+
+                        {/* 显示时间 */}
+                        {(item.crawled_at || item.publish_time) && (
+                            <span style={{ color: '#94a3b8', fontSize: '11px', fontFamily: 'monospace' }}>
+                                {(() => {
+                                    try {
+                                        const date = new Date(item.crawled_at || item.publish_time);
+                                        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                                        const day = date.getDate().toString().padStart(2, '0');
+                                        const hour = date.getHours().toString().padStart(2, '0');
+                                        const minute = date.getMinutes().toString().padStart(2, '0');
+                                        return `${month}-${day} ${hour}:${minute}`;
+                                    } catch (e) {
+                                        return '';
+                                    }
+                                })()}
+                            </span>
+                        )}
+
                         {item.source === 'custom' && (
                             <span style={{ background: '#dbeafe', color: '#3b82f6', padding: '2px 8px', borderRadius: '4px' }}>
                                 自定义
@@ -304,7 +323,7 @@ const TrendRadar = () => {
                     50% { opacity: 0.5; }
                 }
             `}</style>
-            
+
             {/* 头部 */}
             <div style={{ marginBottom: '30px' }}>
                 <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#1e293b', margin: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -359,10 +378,10 @@ const TrendRadar = () => {
                                 style={{ background: 'none', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', padding: '8px' }}
                                 title="刷新数据"
                             >
-                                <RefreshCw 
-                                    size={18} 
-                                    color={loading ? '#94a3b8' : '#64748b'} 
-                                    style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} 
+                                <RefreshCw
+                                    size={18}
+                                    color={loading ? '#94a3b8' : '#64748b'}
+                                    style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }}
                                 />
                             </button>
                         </div>

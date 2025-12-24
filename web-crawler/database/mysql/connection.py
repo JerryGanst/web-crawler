@@ -58,23 +58,10 @@ def _load_mysql_config() -> dict:
     except Exception as e:
         print(f"⚠️ 加载 database.yaml 失败: {e}")
 
-    # 环境变量覆盖
-    env_host = os.getenv('MYSQL_HOST')
-    env_port = os.getenv('MYSQL_PORT')
-    env_user = os.getenv('MYSQL_USER')
-    env_pwd = os.getenv('MYSQL_PASSWORD')
-    env_db = os.getenv('MYSQL_DATABASE')
-
-    if env_host:
-        cfg['host'] = env_host
-    if env_port:
-        cfg['port'] = int(env_port)
-    if env_user:
-        cfg['user'] = env_user
-    if env_pwd:
-        cfg['password'] = env_pwd
-    if env_db:
-        cfg['database'] = env_db
+    # 环境变量代码移除，严格遵循 yaml 配置
+    # env_host = os.getenv('MYSQL_HOST')
+    # env_port = os.getenv('MYSQL_PORT') 
+    # ... (removed for strict compliance)
 
     return cfg
 

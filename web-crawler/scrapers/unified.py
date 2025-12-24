@@ -126,6 +126,11 @@ class UnifiedDataSource:
                             item["platform_name"] = pname
                             item["category"] = category
                             item["source"] = "newsnow"
+                            # 补全时间字段
+                            if "crawled_at" not in item:
+                                item["crawled_at"] = datetime.now().isoformat()
+                            if "publish_time" not in item:
+                                item["publish_time"] = item.get("time") or item.get("crawled_at")
                         all_data.extend(items)
                         print(f"  ✅ {pname} ({pid}) {len(items)} 条")
                     else:
@@ -217,7 +222,14 @@ class UnifiedDataSource:
             else:
                 print("❌ 失败")
         
-        print(f"\n📊 共获取 {len(all_data)} 条数据")
+        # 统一补全时间字段
+        current_time = datetime.now().isoformat()
+        for item in all_data:
+            if "crawled_at" not in item:
+                item["crawled_at"] = current_time
+            if "publish_time" not in item:
+                # 尝试查找常见的时间字段变体
+                item["publish_time"] = item.get("time") or item.get("pubDate") or item.get("date") or item["crawled_at"]
         return all_data
     
     def push_to_wework(self, data: List[Dict], category: str, webhook_url):

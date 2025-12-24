@@ -56,7 +56,8 @@ const Dashboard = () => {
     // Visibility State - 改为显示所有商品
     const [visibleCommodities, setVisibleCommodities] = useState({});
 
-    const EXCHANGE_RATE = 7.2;
+    // Exchange Rate State
+    const [exchangeRate, setExchangeRate] = useState(7.2); // Default fallback
     const hasFetchedData = useRef(false);
     const intervalRef = useRef(null);
 
@@ -88,7 +89,7 @@ const Dashboard = () => {
 
         fetchData();
         intervalRef.current = setInterval(fetchData, 30000);
-        
+
         return () => {
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
@@ -97,6 +98,19 @@ const Dashboard = () => {
     }, []);
 
     useEffect(() => {
+        // Fetch Exchange Rate
+        const fetchExchangeRate = async () => {
+            try {
+                const response = await api.getExchangeRate();
+                if (response && response.rate) {
+                    setExchangeRate(response.rate);
+                }
+            } catch (err) {
+                console.error("Error fetching exchange rate:", err);
+            }
+        };
+        fetchExchangeRate();
+
         if (showSettings) {
             const fetchConfig = async () => {
                 try {
@@ -156,7 +170,8 @@ const Dashboard = () => {
     const loadPriceHistory = async () => {
         try {
             const response = await api.getPriceHistory(null, timeRange === 'week' ? 7 : 1);
-            const historyData = response.data?.commodities || {};
+            // Fix: Read 'data' field instead of 'commodities'
+            const historyData = response.data?.data || {};
             setPriceHistory(historyData);
         } catch (err) {
             console.error('加载历史数据失败:', err);
@@ -169,7 +184,7 @@ const Dashboard = () => {
 
     const getHistoryData = (commodityName, basePrice, points) => {
         let historyRecords = priceHistory[commodityName] || [];
-        
+
         if (historyRecords.length === 0) {
             const lowerName = commodityName.toLowerCase();
             for (const [key, records] of Object.entries(priceHistory)) {
@@ -179,7 +194,7 @@ const Dashboard = () => {
                 }
             }
         }
-        
+
         if (historyRecords.length > 0) {
             return historyRecords.map((record, i) => ({
                 time: i,
@@ -188,7 +203,7 @@ const Dashboard = () => {
                 isReal: true
             }));
         }
-        
+
         let current = basePrice;
         const volatility = basePrice * 0.02;
         const isWeek = timeRange === 'week';
@@ -199,7 +214,7 @@ const Dashboard = () => {
             return {
                 time: i,
                 price: current,
-                date: isWeek 
+                date: isWeek
                     ? dateObj.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
                     : dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 isReal: false
@@ -217,7 +232,7 @@ const Dashboard = () => {
             return {
                 time: i,
                 price: current,
-                date: isWeek 
+                date: isWeek
                     ? dateObj.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
                     : dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
@@ -228,7 +243,7 @@ const Dashboard = () => {
         if (!price) return '0.00';
         const val = parseFloat(price);
         if (currency === 'CNY') {
-            return (val * EXCHANGE_RATE).toFixed(2);
+            return (val * exchangeRate).toFixed(2);
         }
         return val.toFixed(2);
     };
@@ -262,18 +277,18 @@ const Dashboard = () => {
     const filteredUrlStats = useMemo(() => {
         if (!urlInputValue) return urlStats;
         const searchLower = urlInputValue.toLowerCase();
-        return urlStats.filter(stat => 
+        return urlStats.filter(stat =>
             stat.hostname.toLowerCase().includes(searchLower)
         );
     }, [urlStats, urlInputValue]);
 
     const groupedByUrl = useMemo(() => {
         if (!selectedUrl && !urlInputValue) return null;
-        
+
         const filtered = data.filter(item => {
             const hostname = safeGetHostname(item.url);
             const matchesUrl = !selectedUrl || hostname === selectedUrl;
-            const matchesInput = !urlInputValue || 
+            const matchesInput = !urlInputValue ||
                 hostname.toLowerCase().includes(urlInputValue.toLowerCase());
             return matchesUrl && matchesInput;
         });
@@ -300,201 +315,201 @@ const Dashboard = () => {
 
     // 扩展的商品定义 - 包含更多商品类型
     const commodities = [
-        { 
-            id: 'gold', 
-            name: '黄金 (Gold)', 
-            basePrice: 2000, 
-            color: '#ffc658', 
+        {
+            id: 'gold',
+            name: '黄金 (Gold)',
+            basePrice: 2000,
+            color: '#ffc658',
             matchPatterns: [/^Gold$/i, /黄金/, /COMEX黄金/, /Gold Spot/i, /XAU/i],
             excludePatterns: [/Gold Futures/i],
             unit: 'oz',
             category: '贵金属'
         },
-        { 
-            id: 'silver', 
-            name: '白银 (Silver)', 
-            basePrice: 25, 
-            color: '#a4a9ad', 
+        {
+            id: 'silver',
+            name: '白银 (Silver)',
+            basePrice: 25,
+            color: '#a4a9ad',
             matchPatterns: [/^Silver$/i, /白银/, /COMEX白银/, /Silver Spot/i, /XAG/i],
             excludePatterns: [],
             unit: 'oz',
             category: '贵金属'
         },
-        { 
-            id: 'platinum', 
-            name: '铂金 (Platinum)', 
-            basePrice: 1000, 
-            color: '#c0c0c0', 
+        {
+            id: 'platinum',
+            name: '铂金 (Platinum)',
+            basePrice: 1000,
+            color: '#c0c0c0',
             matchPatterns: [/^Platinum$/i, /铂金/, /白金/, /Platinum Spot/i],
             excludePatterns: [],
             unit: 'oz',
             category: '贵金属'
         },
-        { 
-            id: 'palladium', 
-            name: '钯金 (Palladium)', 
-            basePrice: 1500, 
-            color: '#e5e4e2', 
+        {
+            id: 'palladium',
+            name: '钯金 (Palladium)',
+            basePrice: 1500,
+            color: '#e5e4e2',
             matchPatterns: [/^Palladium$/i, /钯金/, /Palladium Spot/i],
             excludePatterns: [],
             unit: 'oz',
             category: '贵金属'
         },
-        { 
-            id: 'copper', 
-            name: '铜 (Copper)', 
-            basePrice: 500, 
-            color: '#b87333', 
+        {
+            id: 'copper',
+            name: '铜 (Copper)',
+            basePrice: 500,
+            color: '#b87333',
             matchPatterns: [/^Copper$/i, /^铜$/, /COMEX铜/, /Copper Futures/i, /SMM铜/],
             excludePatterns: [],
             unit: 'lb',
             category: '基础金属'
         },
-        { 
-            id: 'aluminum', 
-            name: '铝 (Aluminum)', 
-            basePrice: 2500, 
-            color: '#848789', 
+        {
+            id: 'aluminum',
+            name: '铝 (Aluminum)',
+            basePrice: 2500,
+            color: '#848789',
             matchPatterns: [/^Alum/i, /^铝$/, /SMM铝/],
             excludePatterns: [],
             unit: 'ton',
             category: '基础金属'
         },
-        { 
-            id: 'zinc', 
-            name: '锌 (Zinc)', 
-            basePrice: 2800, 
-            color: '#7c7c7c', 
+        {
+            id: 'zinc',
+            name: '锌 (Zinc)',
+            basePrice: 2800,
+            color: '#7c7c7c',
             matchPatterns: [/^Zinc$/i, /^锌$/, /SMM锌/],
             excludePatterns: [],
             unit: 'ton',
             category: '基础金属'
         },
-        { 
-            id: 'nickel', 
-            name: '镍 (Nickel)', 
-            basePrice: 18000, 
-            color: '#8a9597', 
+        {
+            id: 'nickel',
+            name: '镍 (Nickel)',
+            basePrice: 18000,
+            color: '#8a9597',
             matchPatterns: [/^Nickel$/i, /^镍$/, /SMM镍/],
             excludePatterns: [],
             unit: 'ton',
             category: '基础金属'
         },
-        { 
-            id: 'lead', 
-            name: '铅 (Lead)', 
-            basePrice: 2000, 
-            color: '#54585a', 
+        {
+            id: 'lead',
+            name: '铅 (Lead)',
+            basePrice: 2000,
+            color: '#54585a',
             matchPatterns: [/^Lead$/i, /^铅$/, /SMM铅/],
             excludePatterns: [],
             unit: 'ton',
             category: '基础金属'
         },
-        { 
-            id: 'tin', 
-            name: '锡 (Tin)', 
-            basePrice: 25000, 
-            color: '#d4d4d4', 
+        {
+            id: 'tin',
+            name: '锡 (Tin)',
+            basePrice: 25000,
+            color: '#d4d4d4',
             matchPatterns: [/^Tin$/i, /^锡$/, /SMM锡/],
             excludePatterns: [],
             unit: 'ton',
             category: '基础金属'
         },
-        { 
-            id: 'crude_oil', 
-            name: '原油 (Crude Oil)', 
-            basePrice: 70, 
-            color: '#2d2d2d', 
+        {
+            id: 'crude_oil',
+            name: '原油 (Crude Oil)',
+            basePrice: 70,
+            color: '#2d2d2d',
             matchPatterns: [/Crude Oil/i, /^原油$/, /WTI原油/, /WTI Crude/i, /Brent/i, /布伦特/],
             excludePatterns: [/Heating Oil/i, /取暖油/],
             unit: 'barrel',
             category: '能源'
         },
-        { 
-            id: 'natural_gas', 
-            name: '天然气 (Natural Gas)', 
-            basePrice: 4, 
-            color: '#4a90e2', 
+        {
+            id: 'natural_gas',
+            name: '天然气 (Natural Gas)',
+            basePrice: 4,
+            color: '#4a90e2',
             matchPatterns: [/Natural Gas/i, /天然气/, /Henry Hub/i],
             excludePatterns: [],
             unit: 'MMBtu',
             category: '能源'
         },
-        { 
-            id: 'heating_oil', 
-            name: '取暖油 (Heating Oil)', 
-            basePrice: 2.5, 
-            color: '#8b4513', 
+        {
+            id: 'heating_oil',
+            name: '取暖油 (Heating Oil)',
+            basePrice: 2.5,
+            color: '#8b4513',
             matchPatterns: [/Heating Oil/i, /取暖油/],
             excludePatterns: [],
             unit: 'gallon',
             category: '能源'
         },
-        { 
-            id: 'gasoline', 
-            name: '汽油 (Gasoline)', 
-            basePrice: 2.2, 
-            color: '#ff6b6b', 
+        {
+            id: 'gasoline',
+            name: '汽油 (Gasoline)',
+            basePrice: 2.2,
+            color: '#ff6b6b',
             matchPatterns: [/Gasoline/i, /汽油/, /RBOB/i],
             excludePatterns: [],
             unit: 'gallon',
             category: '能源'
         },
-        { 
-            id: 'corn', 
-            name: '玉米 (Corn)', 
-            basePrice: 450, 
-            color: '#ffd700', 
+        {
+            id: 'corn',
+            name: '玉米 (Corn)',
+            basePrice: 450,
+            color: '#ffd700',
             matchPatterns: [/^Corn$/i, /^玉米$/],
             excludePatterns: [],
             unit: 'bushel',
             category: '农产品'
         },
-        { 
-            id: 'wheat', 
-            name: '小麦 (Wheat)', 
-            basePrice: 550, 
-            color: '#daa520', 
+        {
+            id: 'wheat',
+            name: '小麦 (Wheat)',
+            basePrice: 550,
+            color: '#daa520',
             matchPatterns: [/^Wheat$/i, /^小麦$/],
             excludePatterns: [],
             unit: 'bushel',
             category: '农产品'
         },
-        { 
-            id: 'soybeans', 
-            name: '大豆 (Soybeans)', 
-            basePrice: 1200, 
-            color: '#8b7355', 
+        {
+            id: 'soybeans',
+            name: '大豆 (Soybeans)',
+            basePrice: 1200,
+            color: '#8b7355',
             matchPatterns: [/Soybean/i, /大豆/],
             excludePatterns: [],
             unit: 'bushel',
             category: '农产品'
         },
-        { 
-            id: 'sugar', 
-            name: '糖 (Sugar)', 
-            basePrice: 18, 
-            color: '#ffb6c1', 
+        {
+            id: 'sugar',
+            name: '糖 (Sugar)',
+            basePrice: 18,
+            color: '#ffb6c1',
             matchPatterns: [/^Sugar$/i, /^糖$/],
             excludePatterns: [],
             unit: 'lb',
             category: '农产品'
         },
-        { 
-            id: 'coffee', 
-            name: '咖啡 (Coffee)', 
-            basePrice: 180, 
-            color: '#6f4e37', 
+        {
+            id: 'coffee',
+            name: '咖啡 (Coffee)',
+            basePrice: 180,
+            color: '#6f4e37',
             matchPatterns: [/Coffee/i, /咖啡/],
             excludePatterns: [],
             unit: 'lb',
             category: '农产品'
         },
-        { 
-            id: 'cotton', 
-            name: '棉花 (Cotton)', 
-            basePrice: 80, 
-            color: '#f5f5f5', 
+        {
+            id: 'cotton',
+            name: '棉花 (Cotton)',
+            basePrice: 80,
+            color: '#f5f5f5',
             matchPatterns: [/Cotton/i, /棉花/],
             excludePatterns: [],
             unit: 'lb',
@@ -529,7 +544,7 @@ const Dashboard = () => {
     const filteredCommodities = useMemo(() => {
         if (!commoditySearchTerm) return commodities;
         const searchLower = commoditySearchTerm.toLowerCase();
-        return commodities.filter(comm => 
+        return commodities.filter(comm =>
             comm.name.toLowerCase().includes(searchLower) ||
             comm.category.toLowerCase().includes(searchLower)
         );
@@ -578,7 +593,7 @@ const Dashboard = () => {
 
     const commoditiesWithMultiSource = useMemo(() => {
         const sourceColors = ['#0284c7', '#dc2626', '#16a34a', '#9333ea', '#ea580c', '#0891b2'];
-        
+
         return commodities.map(comm => {
             const matchingItems = data.filter(d => {
                 const itemName = d.name || d.chinese_name || '';
@@ -623,10 +638,10 @@ const Dashboard = () => {
     }, [data, timeRange, priceHistory]);
 
     if (loading) return (
-        <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
+        <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             height: '100vh',
             fontSize: '18px',
             color: '#6b7280'
@@ -635,12 +650,12 @@ const Dashboard = () => {
             加载数据中...
         </div>
     );
-    
+
     if (error) return (
-        <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
+        <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             height: '100vh',
             fontSize: '18px',
             color: '#ef4444'
@@ -680,40 +695,40 @@ const Dashboard = () => {
     const visibleCount = Object.values(visibleCommodities).filter(Boolean).length;
 
     return (
-        <div className="dashboard-container" style={{ 
-            paddingBottom: '40px', 
+        <div className="dashboard-container" style={{
+            paddingBottom: '40px',
             position: 'relative',
             maxWidth: '1920px',
             margin: '0 auto'
         }}>
-            <div className="header" style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
+            <div className="header" style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
                 marginBottom: '24px',
                 flexWrap: 'wrap',
                 gap: '16px'
             }}>
                 <div>
-                    <h1 style={{ 
-                        margin: 0, 
-                        fontSize: '32px', 
+                    <h1 style={{
+                        margin: 0,
+                        fontSize: '32px',
                         fontWeight: '700',
                         color: '#111827',
                         letterSpacing: '-0.02em'
                     }}>
                         市场概览
                     </h1>
-                    <p style={{ 
-                        color: '#6b7280', 
+                    <p style={{
+                        color: '#6b7280',
                         marginTop: '8px',
                         fontSize: '15px'
                     }}>
                         实时大宗商品价格监控
                         {lastUpdate && (
-                            <span style={{ 
-                                marginLeft: '12px', 
-                                fontSize: '13px', 
+                            <span style={{
+                                marginLeft: '12px',
+                                fontSize: '13px',
                                 color: '#9ca3af',
                                 fontWeight: '500'
                             }}>
@@ -723,21 +738,21 @@ const Dashboard = () => {
                     </p>
                 </div>
 
-                <div className="controls" style={{ 
-                    display: 'flex', 
-                    gap: '12px', 
+                <div className="controls" style={{
+                    display: 'flex',
+                    gap: '12px',
                     alignItems: 'center',
                     flexWrap: 'wrap'
                 }}>
                     {/* 搜索输入框 */}
-                    <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '8px', 
-                        background: '#fff', 
-                        border: '1px solid #e5e7eb', 
-                        padding: '10px 14px', 
-                        borderRadius: '10px', 
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        background: '#fff',
+                        border: '1px solid #e5e7eb',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
                         minWidth: '220px',
                         boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                     }}>
@@ -747,25 +762,25 @@ const Dashboard = () => {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder="搜索商品..."
-                            style={{ 
-                                border: 'none', 
-                                outline: 'none', 
-                                fontSize: '15px', 
-                                color: '#374151', 
-                                background: 'transparent', 
-                                padding: 0, 
+                            style={{
+                                border: 'none',
+                                outline: 'none',
+                                fontSize: '15px',
+                                color: '#374151',
+                                background: 'transparent',
+                                padding: 0,
                                 width: '100%',
                                 fontWeight: '500'
                             }}
                         />
                         {searchTerm && (
-                            <button 
-                                onClick={() => setSearchTerm('')} 
-                                style={{ 
-                                    border: 'none', 
-                                    background: 'none', 
-                                    padding: 0, 
-                                    cursor: 'pointer', 
+                            <button
+                                onClick={() => setSearchTerm('')}
+                                style={{
+                                    border: 'none',
+                                    background: 'none',
+                                    padding: 0,
+                                    cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center'
                                 }}
@@ -778,13 +793,13 @@ const Dashboard = () => {
                     {/* URL 筛选器 */}
                     {urlStats.length > 0 && (
                         <div ref={urlFilterRef} style={{ position: 'relative' }}>
-                            <div style={{ 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                gap: '8px', 
-                                background: '#fff', 
-                                border: '1px solid #e5e7eb', 
-                                padding: '10px 14px', 
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                background: '#fff',
+                                border: '1px solid #e5e7eb',
+                                padding: '10px 14px',
                                 borderRadius: '10px',
                                 minWidth: '240px',
                                 boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
@@ -800,13 +815,13 @@ const Dashboard = () => {
                                     }}
                                     onFocus={() => setShowUrlDropdown(true)}
                                     placeholder="筛选来源..."
-                                    style={{ 
-                                        border: 'none', 
-                                        outline: 'none', 
-                                        fontSize: '15px', 
-                                        color: '#374151', 
-                                        background: 'transparent', 
-                                        padding: 0, 
+                                    style={{
+                                        border: 'none',
+                                        outline: 'none',
+                                        fontSize: '15px',
+                                        color: '#374151',
+                                        background: 'transparent',
+                                        padding: 0,
                                         flex: 1,
                                         minWidth: '120px',
                                         fontWeight: '500'
@@ -818,11 +833,11 @@ const Dashboard = () => {
                                             setSelectedUrl('');
                                             setUrlInputValue('');
                                         }}
-                                        style={{ 
-                                            border: 'none', 
-                                            background: 'none', 
-                                            padding: '2px', 
-                                            cursor: 'pointer', 
+                                        style={{
+                                            border: 'none',
+                                            background: 'none',
+                                            padding: '2px',
+                                            cursor: 'pointer',
                                             display: 'flex',
                                             alignItems: 'center'
                                         }}
@@ -831,7 +846,7 @@ const Dashboard = () => {
                                     </button>
                                 )}
                             </div>
-                            
+
                             {showUrlDropdown && (
                                 <div style={{
                                     position: 'absolute',
@@ -869,8 +884,8 @@ const Dashboard = () => {
                                         onMouseLeave={e => e.currentTarget.style.background = !selectedUrl && !urlInputValue ? '#f9fafb' : 'transparent'}
                                     >
                                         <span>全部来源</span>
-                                        <span style={{ 
-                                            fontSize: '13px', 
+                                        <span style={{
+                                            fontSize: '13px',
                                             color: '#fff',
                                             background: '#6b7280',
                                             padding: '2px 10px',
@@ -903,26 +918,26 @@ const Dashboard = () => {
                                             onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
                                             onMouseLeave={e => e.currentTarget.style.background = selectedUrl === stat.hostname ? '#f0f9ff' : 'transparent'}
                                         >
-                                            <div style={{ 
-                                                display: 'flex', 
-                                                flexDirection: 'column', 
+                                            <div style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
                                                 gap: '4px',
                                                 flex: 1
                                             }}>
                                                 <span>{stat.hostname}</span>
-                                                <span style={{ 
-                                                    fontSize: '12px', 
-                                                    color: '#9ca3af', 
-                                                    maxWidth: '200px', 
-                                                    overflow: 'hidden', 
-                                                    textOverflow: 'ellipsis', 
+                                                <span style={{
+                                                    fontSize: '12px',
+                                                    color: '#9ca3af',
+                                                    maxWidth: '200px',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
                                                     whiteSpace: 'nowrap'
                                                 }}>
                                                     {stat.items.slice(0, 3).join(', ')}{stat.items.length > 3 ? '...' : ''}
                                                 </span>
                                             </div>
-                                            <span style={{ 
-                                                fontSize: '13px', 
+                                            <span style={{
+                                                fontSize: '13px',
                                                 color: '#fff',
                                                 background: '#0284c7',
                                                 padding: '2px 10px',
@@ -934,10 +949,10 @@ const Dashboard = () => {
                                         </div>
                                     ))}
                                     {filteredUrlStats.length === 0 && urlInputValue && (
-                                        <div style={{ 
-                                            padding: '24px', 
-                                            textAlign: 'center', 
-                                            color: '#9ca3af', 
+                                        <div style={{
+                                            padding: '24px',
+                                            textAlign: 'center',
+                                            color: '#9ca3af',
                                             fontSize: '15px'
                                         }}>
                                             未找到匹配的来源
@@ -949,13 +964,13 @@ const Dashboard = () => {
                     )}
 
                     {/* 日期选择器 */}
-                    <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '8px', 
-                        background: '#fff', 
-                        border: '1px solid #e5e7eb', 
-                        padding: '10px 14px', 
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        background: '#fff',
+                        border: '1px solid #e5e7eb',
+                        padding: '10px 14px',
                         borderRadius: '10px',
                         boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                     }}>
@@ -964,23 +979,23 @@ const Dashboard = () => {
                             type="date"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
-                            style={{ 
-                                border: 'none', 
-                                outline: 'none', 
-                                fontSize: '15px', 
+                            style={{
+                                border: 'none',
+                                outline: 'none',
+                                fontSize: '15px',
                                 fontWeight: '500',
-                                color: '#374151', 
-                                background: 'transparent', 
+                                color: '#374151',
+                                background: 'transparent',
                                 padding: 0
                             }}
                         />
                     </div>
 
                     {/* 时间范围切换 */}
-                    <div className="toggle-group" style={{ 
-                        background: '#f3f4f6', 
-                        padding: '4px', 
-                        borderRadius: '10px', 
+                    <div className="toggle-group" style={{
+                        background: '#f3f4f6',
+                        padding: '4px',
+                        borderRadius: '10px',
                         display: 'flex',
                         boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                     }}>
@@ -1107,7 +1122,7 @@ const Dashboard = () => {
                                 {visibleCount}/{commodities.length}
                             </span>
                         </button>
-                        
+
                         {showCommoditySelector && (
                             <div style={{
                                 position: 'absolute',
@@ -1125,19 +1140,19 @@ const Dashboard = () => {
                                 flexDirection: 'column'
                             }}>
                                 {/* 标题和搜索 */}
-                                <div style={{ 
+                                <div style={{
                                     padding: '16px',
                                     borderBottom: '1px solid #e5e7eb'
                                 }}>
-                                    <div style={{ 
-                                        display: 'flex', 
-                                        justifyContent: 'space-between', 
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
                                         alignItems: 'center',
                                         marginBottom: '12px'
                                     }}>
-                                        <h3 style={{ 
-                                            margin: 0, 
-                                            fontSize: '16px', 
+                                        <h3 style={{
+                                            margin: 0,
+                                            fontSize: '16px',
                                             fontWeight: '700',
                                             color: '#111827'
                                         }}>
@@ -1158,15 +1173,15 @@ const Dashboard = () => {
                                             {commodities.every(c => visibleCommodities[c.id]) ? '全不选' : '全选'}
                                         </button>
                                     </div>
-                                    
+
                                     {/* 搜索框 */}
-                                    <div style={{ 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        gap: '8px', 
-                                        background: '#f9fafb', 
-                                        border: '1px solid #e5e7eb', 
-                                        padding: '8px 12px', 
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        background: '#f9fafb',
+                                        border: '1px solid #e5e7eb',
+                                        padding: '8px 12px',
                                         borderRadius: '8px'
                                     }}>
                                         <Search size={16} color="#9ca3af" />
@@ -1175,13 +1190,13 @@ const Dashboard = () => {
                                             value={commoditySearchTerm}
                                             onChange={(e) => setCommoditySearchTerm(e.target.value)}
                                             placeholder="搜索商品或类别..."
-                                            style={{ 
-                                                border: 'none', 
-                                                outline: 'none', 
-                                                fontSize: '14px', 
+                                            style={{
+                                                border: 'none',
+                                                outline: 'none',
+                                                fontSize: '14px',
                                                 fontWeight: '500',
-                                                color: '#374151', 
-                                                background: 'transparent', 
+                                                color: '#374151',
+                                                background: 'transparent',
                                                 padding: 0,
                                                 width: '100%'
                                             }}
@@ -1189,11 +1204,11 @@ const Dashboard = () => {
                                         {commoditySearchTerm && (
                                             <button
                                                 onClick={() => setCommoditySearchTerm('')}
-                                                style={{ 
-                                                    border: 'none', 
-                                                    background: 'none', 
-                                                    padding: 0, 
-                                                    cursor: 'pointer', 
+                                                style={{
+                                                    border: 'none',
+                                                    background: 'none',
+                                                    padding: 0,
+                                                    cursor: 'pointer',
                                                     display: 'flex'
                                                 }}
                                             >
@@ -1204,7 +1219,7 @@ const Dashboard = () => {
                                 </div>
 
                                 {/* 商品列表 - 按类别分组 */}
-                                <div style={{ 
+                                <div style={{
                                     flex: 1,
                                     overflowY: 'auto',
                                     padding: '8px'
@@ -1307,11 +1322,11 @@ const Dashboard = () => {
                                             ))}
                                         </div>
                                     ))}
-                                    
+
                                     {Object.keys(filteredCommoditiesByCategory).length === 0 && (
-                                        <div style={{ 
-                                            padding: '40px 20px', 
-                                            textAlign: 'center', 
+                                        <div style={{
+                                            padding: '40px 20px',
+                                            textAlign: 'center',
                                             color: '#9ca3af',
                                             fontSize: '14px'
                                         }}>
@@ -1402,17 +1417,17 @@ const Dashboard = () => {
                     border: '2px solid #bae6fd',
                     boxShadow: '0 4px 6px -1px rgba(56, 189, 248, 0.1)'
                 }}>
-                    <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '12px', 
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
                         marginBottom: '20px'
                     }}>
                         <Globe size={24} color="#0369a1" />
-                        <h3 style={{ 
-                            margin: 0, 
-                            fontSize: '18px', 
-                            fontWeight: '700', 
+                        <h3 style={{
+                            margin: 0,
+                            fontSize: '18px',
+                            fontWeight: '700',
                             color: '#0c4a6e'
                         }}>
                             按来源分组显示
@@ -1428,9 +1443,9 @@ const Dashboard = () => {
                             {groupedByUrl.reduce((sum, g) => sum + g.items.length, 0)} 条数据，{groupedByUrl.length} 个来源
                         </span>
                     </div>
-                    <div style={{ 
-                        display: 'flex', 
-                        flexDirection: 'column', 
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
                         gap: '16px'
                     }}>
                         {groupedByUrl.map((group, gIdx) => (
@@ -1441,10 +1456,10 @@ const Dashboard = () => {
                                 border: '1px solid #e0f2fe',
                                 boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                             }}>
-                                <div style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: '10px', 
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
                                     marginBottom: '16px',
                                     paddingBottom: '12px',
                                     borderBottom: '2px solid #f0f9ff'
@@ -1477,9 +1492,9 @@ const Dashboard = () => {
                                         {group.items.length} 条
                                     </span>
                                 </div>
-                                <div style={{ 
-                                    display: 'grid', 
-                                    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', 
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
                                     gap: '12px'
                                 }}>
                                     {group.items.map((item, iIdx) => {
@@ -1494,28 +1509,28 @@ const Dashboard = () => {
                                                 fontSize: '14px',
                                                 border: '1px solid #f3f4f6'
                                             }}>
-                                                <div style={{ 
-                                                    fontWeight: '600', 
-                                                    color: '#374151', 
+                                                <div style={{
+                                                    fontWeight: '600',
+                                                    color: '#374151',
                                                     marginBottom: '8px',
                                                     fontSize: '15px'
                                                 }}>
                                                     {item.name || item.chinese_name}
                                                 </div>
-                                                <div style={{ 
-                                                    display: 'flex', 
-                                                    justifyContent: 'space-between', 
+                                                <div style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
                                                     alignItems: 'center'
                                                 }}>
-                                                    <span style={{ 
-                                                        fontWeight: '700', 
+                                                    <span style={{
+                                                        fontWeight: '700',
                                                         color: '#111',
                                                         fontSize: '16px'
                                                     }}>
                                                         {getCurrencySymbol()}{formatPrice(price)}
                                                         {item.unit && (
-                                                            <span style={{ 
-                                                                fontSize: '12px', 
+                                                            <span style={{
+                                                                fontSize: '12px',
                                                                 color: '#6b7280',
                                                                 fontWeight: '500'
                                                             }}>
@@ -1544,35 +1559,35 @@ const Dashboard = () => {
                 </div>
             )}
 
-            <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: '3fr 1fr', 
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: '3fr 1fr',
                 gap: '24px'
             }}>
                 <div className="main-content">
                     {/* 概览卡片 - 改进为4列布局 */}
-                    <div className="grid-cards" style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: 'repeat(4, 1fr)', 
-                        gap: '20px', 
+                    <div className="grid-cards" style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(4, 1fr)',
+                        gap: '20px',
                         marginBottom: '30px'
                     }}>
                         {/* 汇率卡片 */}
-                        <div style={{ 
-                            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', 
-                            padding: '24px', 
-                            borderRadius: '16px', 
-                            boxShadow: '0 8px 16px -4px rgba(59, 130, 246, 0.3)', 
+                        <div style={{
+                            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                            padding: '24px',
+                            borderRadius: '16px',
+                            boxShadow: '0 8px 16px -4px rgba(59, 130, 246, 0.3)',
                             color: '#fff'
                         }}>
-                            <div style={{ 
-                                display: 'flex', 
-                                justifyContent: 'space-between', 
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
                                 marginBottom: '12px'
                             }}>
-                                <span style={{ 
-                                    fontSize: '15px', 
-                                    fontWeight: '600', 
+                                <span style={{
+                                    fontSize: '15px',
+                                    fontWeight: '600',
                                     opacity: 0.95
                                 }}>
                                     USD/CNY 汇率
@@ -1587,23 +1602,23 @@ const Dashboard = () => {
                                     实时
                                 </span>
                             </div>
-                            <div style={{ 
-                                fontSize: '36px', 
+                            <div style={{
+                                fontSize: '36px',
                                 fontWeight: '800',
                                 letterSpacing: '-0.02em'
                             }}>
                                 ¥{EXCHANGE_RATE.toFixed(4)}
                             </div>
-                            <div style={{ 
-                                fontSize: '13px', 
-                                opacity: 0.85, 
+                            <div style={{
+                                fontSize: '13px',
+                                opacity: 0.85,
                                 marginTop: '6px',
                                 fontWeight: '500'
                             }}>
-                                1 USD = {EXCHANGE_RATE} CNY
+                                1 USD = {exchangeRate} CNY
                             </div>
                         </div>
-                        
+
                         {data.slice(0, 3).map((item, index) => {
                             const price = item.price || item.current_price || item.last_price || 0;
                             const change = item.change || item.change_percent || 0;
@@ -1615,26 +1630,26 @@ const Dashboard = () => {
                                 .trim();
 
                             return (
-                                <div key={index} style={{ 
-                                    background: '#fff', 
-                                    padding: '24px', 
-                                    borderRadius: '16px', 
+                                <div key={index} style={{
+                                    background: '#fff',
+                                    padding: '24px',
+                                    borderRadius: '16px',
                                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
                                     border: '1px solid #f3f4f6'
                                 }}>
-                                    <div style={{ 
-                                        display: 'flex', 
-                                        justifyContent: 'space-between', 
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
                                         marginBottom: '12px'
                                     }}>
-                                        <div style={{ 
-                                            display: 'flex', 
-                                            flexDirection: 'column', 
+                                        <div style={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
                                             gap: '4px'
                                         }}>
-                                            <span style={{ 
-                                                color: '#374151', 
-                                                fontSize: '15px', 
+                                            <span style={{
+                                                color: '#374151',
+                                                fontSize: '15px',
                                                 fontWeight: '600'
                                             }}>
                                                 {item.name || item.currency_pair || item.chinese_name || 'Unknown'}
@@ -1679,17 +1694,17 @@ const Dashboard = () => {
                                             {Math.abs(change)}%
                                         </span>
                                     </div>
-                                    <div style={{ 
-                                        fontSize: '36px', 
-                                        fontWeight: '800', 
+                                    <div style={{
+                                        fontSize: '36px',
+                                        fontWeight: '800',
                                         color: '#111827',
                                         letterSpacing: '-0.02em'
                                     }}>
                                         {getCurrencySymbol()}{formatPrice(price)}
-                                        <span style={{ 
-                                            fontSize: '18px', 
-                                            color: '#6b7280', 
-                                            marginLeft: '6px', 
+                                        <span style={{
+                                            fontSize: '18px',
+                                            color: '#6b7280',
+                                            marginLeft: '6px',
                                             fontWeight: '600'
                                         }}>
                                             {cleanUnit ? `/${cleanUnit}` : ''}
@@ -1713,8 +1728,8 @@ const Dashboard = () => {
                                 const currentPrice = realItem ? (realItem.price || realItem.current_price) : comm.basePrice;
                                 const unit = (realItem && realItem.unit) ? realItem.unit : comm.unit;
                                 const historyData = generateHistory(
-                                    parseFloat(currentPrice || 0), 
-                                    timeRange === 'day' ? 24 : 7, 
+                                    parseFloat(currentPrice || 0),
+                                    timeRange === 'day' ? 24 : 7,
                                     parseFloat(currentPrice || 100) * 0.02
                                 );
                                 const isLastOdd = index === displayItems.length - 1 && displayItems.length % 2 !== 0;
@@ -1731,6 +1746,7 @@ const Dashboard = () => {
                                         formatPrice={formatPrice}
                                         isLastOdd={isLastOdd}
                                         currency={currency}
+                                        exchangeRate={exchangeRate}
                                     />
                                 );
                             })
@@ -1752,6 +1768,7 @@ const Dashboard = () => {
                                             formatPrice={formatPrice}
                                             isLastOdd={isLastOdd}
                                             currency={currency}
+                                            exchangeRate={exchangeRate}
                                         />
                                     );
                                 })
@@ -1791,27 +1808,27 @@ const Dashboard = () => {
                         flexDirection: 'column',
                         boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)'
                     }}>
-                        <div style={{ 
-                            padding: '24px', 
-                            borderBottom: '1px solid #e5e7eb', 
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
+                        <div style={{
+                            padding: '24px',
+                            borderBottom: '1px solid #e5e7eb',
+                            display: 'flex',
+                            justifyContent: 'space-between',
                             alignItems: 'center'
                         }}>
-                            <h2 style={{ 
-                                margin: 0, 
-                                fontSize: '22px', 
+                            <h2 style={{
+                                margin: 0,
+                                fontSize: '22px',
                                 fontWeight: '700',
                                 color: '#111827'
                             }}>
                                 配置设置
                             </h2>
-                            <button 
-                                onClick={() => setShowSettings(false)} 
-                                style={{ 
-                                    background: 'none', 
-                                    border: 'none', 
-                                    padding: '6px', 
+                            <button
+                                onClick={() => setShowSettings(false)}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    padding: '6px',
                                     cursor: 'pointer',
                                     borderRadius: '8px'
                                 }}
@@ -1823,48 +1840,48 @@ const Dashboard = () => {
                         </div>
 
                         <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
-                            <h3 style={{ 
-                                fontSize: '16px', 
-                                fontWeight: '700', 
-                                color: '#374151', 
+                            <h3 style={{
+                                fontSize: '16px',
+                                fontWeight: '700',
+                                color: '#374151',
                                 marginBottom: '16px'
                             }}>
                                 爬取目标 URL
                             </h3>
 
-                            <div className="url-list" style={{ 
-                                display: 'flex', 
-                                flexDirection: 'column', 
-                                gap: '12px', 
+                            <div className="url-list" style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '12px',
                                 marginBottom: '24px'
                             }}>
                                 {(config.target_urls || []).map((url, index) => (
-                                    <div key={index} style={{ 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        gap: '12px', 
-                                        padding: '14px', 
-                                        background: '#f9fafb', 
-                                        borderRadius: '10px', 
+                                    <div key={index} style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '12px',
+                                        padding: '14px',
+                                        background: '#f9fafb',
+                                        borderRadius: '10px',
                                         border: '1px solid #f3f4f6'
                                     }}>
-                                        <span style={{ 
-                                            flex: 1, 
-                                            overflow: 'hidden', 
-                                            textOverflow: 'ellipsis', 
-                                            fontSize: '15px', 
+                                        <span style={{
+                                            flex: 1,
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            fontSize: '15px',
                                             fontWeight: '500',
                                             color: '#4b5563'
                                         }}>
                                             {url}
                                         </span>
-                                        <button 
-                                            onClick={() => handleDeleteUrl(index)} 
-                                            style={{ 
-                                                padding: '8px', 
-                                                color: '#ef4444', 
-                                                background: 'none', 
-                                                border: 'none', 
+                                        <button
+                                            onClick={() => handleDeleteUrl(index)}
+                                            style={{
+                                                padding: '8px',
+                                                color: '#ef4444',
+                                                background: 'none',
+                                                border: 'none',
                                                 cursor: 'pointer',
                                                 borderRadius: '6px'
                                             }}
@@ -1876,10 +1893,10 @@ const Dashboard = () => {
                                     </div>
                                 ))}
                                 {(!config.target_urls || config.target_urls.length === 0) && (
-                                    <p style={{ 
-                                        color: '#9ca3af', 
-                                        fontSize: '15px', 
-                                        textAlign: 'center', 
+                                    <p style={{
+                                        color: '#9ca3af',
+                                        fontSize: '15px',
+                                        textAlign: 'center',
                                         padding: '24px'
                                     }}>
                                         暂无配置的 URL
@@ -1893,11 +1910,11 @@ const Dashboard = () => {
                                     value={newUrl}
                                     onChange={(e) => setNewUrl(e.target.value)}
                                     placeholder="输入新的 URL..."
-                                    style={{ 
-                                        flex: 1, 
-                                        padding: '12px 16px', 
-                                        borderRadius: '10px', 
-                                        border: '1px solid #d1d5db', 
+                                    style={{
+                                        flex: 1,
+                                        padding: '12px 16px',
+                                        borderRadius: '10px',
+                                        border: '1px solid #d1d5db',
                                         fontSize: '15px',
                                         fontWeight: '500',
                                         outline: 'none'
@@ -1932,11 +1949,11 @@ const Dashboard = () => {
                             </div>
                         </div>
 
-                        <div style={{ 
-                            padding: '24px', 
-                            borderTop: '1px solid #e5e7eb', 
-                            display: 'flex', 
-                            justifyContent: 'flex-end', 
+                        <div style={{
+                            padding: '24px',
+                            borderTop: '1px solid #e5e7eb',
+                            display: 'flex',
+                            justifyContent: 'flex-end',
                             gap: '12px'
                         }}>
                             <button

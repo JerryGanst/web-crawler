@@ -30,14 +30,18 @@ def _load_redis_config():
 
 _redis_conf = _load_redis_config()
 
-# Redis 配置（支持环境变量覆盖，优先使用配置文件）
-REDIS_HOST = os.environ.get("REDIS_HOST", _redis_conf.get("host", "localhost"))
-REDIS_PORT = int(os.environ.get("REDIS_PORT", _redis_conf.get("port", 49907)))
-REDIS_DB = int(os.environ.get("REDIS_DB", _redis_conf.get("db", 0)))
-REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD", _redis_conf.get("password", None))
+# Redis 配置（严格从 config/database.yaml 读取）
+REDIS_HOST = _redis_conf.get("host", "localhost")
+REDIS_PORT = int(_redis_conf.get("port", 6379))
+REDIS_DB = int(_redis_conf.get("db", 0))
+REDIS_PASSWORD = _redis_conf.get("password", None)
+# 如果配置文件中明确为空字符串，也视为 None
+if REDIS_PASSWORD == "":
+    REDIS_PASSWORD = None
+    
 REDIS_PREFIX = "trendradar:"
-REDIS_SOCKET_TIMEOUT = float(os.environ.get("REDIS_SOCKET_TIMEOUT", "2"))
-REDIS_CONNECT_TIMEOUT = float(os.environ.get("REDIS_CONNECT_TIMEOUT", "2"))
+REDIS_SOCKET_TIMEOUT = 2.0
+REDIS_CONNECT_TIMEOUT = 5.0
 
 # 缓存 TTL 配置（秒）
 CACHE_TTL = 3600  # 1小时
