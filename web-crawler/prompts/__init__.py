@@ -19,6 +19,7 @@ from .analysis_prompts_v4 import (
     COMPETITOR_MODULE,
     TARIFF_CLASSIFIER_MODULE,
     MATERIAL_ANALYSIS_MODULE,
+    SUMMARY_MODULE
 )
 
 
