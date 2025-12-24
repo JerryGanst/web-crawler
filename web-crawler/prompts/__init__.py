@@ -51,13 +51,13 @@ from .analysis_prompts_v4 import (
 # ============================================================
 # V2 优化版（用于 /api/generate-analysis，向后兼容）
 # ============================================================
-# from .analysis_prompts_v2 import (
-#     get_supply_chain_analysis_prompt,
-#     get_supplier_analysis_prompt,
-#     ANALYSIS_SYSTEM_PROMPT,
-#     MATERIAL_CATEGORIES,
-#     precheck_news_quality
-# )
+from .analysis_prompts_v2 import (
+    get_supply_chain_analysis_prompt,
+    get_supplier_analysis_prompt,
+    ANALYSIS_SYSTEM_PROMPT,
+    MATERIAL_CATEGORIES,
+    precheck_news_quality
+)
 
 # ============================================================
 # V1 原版（如需回退）
