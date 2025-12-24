@@ -153,15 +153,7 @@ class BackgroundScheduler:
             }
             cache.set("data:commodity", result, ttl=CACHE_TTL)
             
-            # # 3. 写入 MongoDB 快照 (作为 Redis 的持久化备份)
-            # try:
-            #     from database.manager import db_manager
-            #     if db_manager.mongodb_enabled:
-            #         # 使用 news_repo 统一管理快照
-            #         db_manager.news_repo.save_snapshot("data:commodity", result)
-            #         print(f"✅ [定时] 大宗商品数据快照已保存到 MongoDB")
-            # except Exception as e:
-            #     print(f"⚠️ [定时] MongoDB 快照保存失败: {e}")
+
 
             # 保存价格历史
             try:

@@ -27,30 +27,30 @@ const safeGetHostname = (url) => {
 // ==================== 商品分类 TAB 配置 ====================
 // 基于后端返回的 category 字段进行分类（贵金属/工业金属/能源/农产品/其他）
 const COMMODITY_TABS = [
-    { 
-        id: 'metals', 
-        name: '金属', 
-        icon: '🪙', 
-        color: '#f59e0b', 
+    {
+        id: 'metals',
+        name: '金属',
+        icon: '🪙',
+        color: '#f59e0b',
         bgColor: '#fffbeb',
         // 匹配后端 category: 贵金属、工业金属
         categories: ['贵金属', '工业金属'],
         keywords: ['黄金', 'Gold', '白银', 'Silver', '铜', 'Copper', '铝', 'Aluminum', '铂金', 'Platinum', '钯金', 'Palladium', '镍', 'Nickel', '锌', 'Zinc', '铅', 'Lead', '锡', 'Tin']
     },
-    { 
-        id: 'energy', 
-        name: '能源', 
-        icon: '⛽', 
-        color: '#3b82f6', 
+    {
+        id: 'energy',
+        name: '能源',
+        icon: '⛽',
+        color: '#3b82f6',
         bgColor: '#eff6ff',
         categories: ['能源'],
         keywords: ['原油', 'Oil', 'Crude', 'WTI', 'Brent', '天然气', 'Natural Gas', '汽油', 'Gasoline', '柴油', 'Diesel']
     },
-    { 
-        id: 'plastics', 
-        name: '塑料', 
-        icon: '🧪', 
-        color: '#10b981', 
+    {
+        id: 'plastics',
+        name: '塑料',
+        icon: '🧪',
+        color: '#10b981',
         bgColor: '#ecfdf5',
         categories: ['塑料', '化工'],
         keywords: ['塑料', 'Plastic', 'PA66', 'PBT', 'PC', 'ABS', 'PP', 'PE', 'PVC', 'HDPE', 'LDPE', '聚丙烯', '聚乙烯', '聚氯乙烯', '尼龙', 'Nylon', '树脂', 'Resin', '改性塑料', '工程塑料'],
@@ -68,11 +68,11 @@ const COMMODITY_TABS = [
             { id: 'PET', name: 'PET', color: '#84cc16', desc: '聚对苯二甲酸乙二醇酯' },
         ]
     },
-    { 
-        id: 'all', 
-        name: '全部', 
-        icon: '📊', 
-        color: '#6b7280', 
+    {
+        id: 'all',
+        name: '全部',
+        icon: '📊',
+        color: '#6b7280',
         bgColor: '#f3f4f6',
         categories: [],
         keywords: []
@@ -263,7 +263,7 @@ const Dashboard = () => {
 
     // 汇率状态（从 API 获取）
     const [exchangeRate, setExchangeRate] = useState(7.2);
-    
+
     // 加载实时汇率
     useEffect(() => {
         const loadExchangeRate = async () => {
@@ -282,7 +282,7 @@ const Dashboard = () => {
         const interval = setInterval(loadExchangeRate, 600000);
         return () => clearInterval(interval);
     }, []);
-    
+
     const EXCHANGE_RATE = exchangeRate;
 
     // 防止 StrictMode 双重请求的标记
@@ -309,7 +309,7 @@ const Dashboard = () => {
                 setData(newData);
                 setLastUpdate(responseData.timestamp || new Date().toISOString());
                 setLoading(false);
-                
+
                 // 初始化选中的商品（默认选中前6个，使用归一化名称）
                 if (newData.length > 0 && selectedCommodities.size === 0) {
                     const normalizedNames = new Set();
@@ -334,7 +334,7 @@ const Dashboard = () => {
 
         fetchData();
         intervalRef.current = setInterval(fetchData, 30000);
-        
+
         return () => {
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
@@ -362,7 +362,7 @@ const Dashboard = () => {
     useEffect(() => {
         if (sourcesLoadedRef.current) return;
         sourcesLoadedRef.current = true;
-        
+
         const fetchSources = async () => {
             try {
                 const response = await api.getDataSources();
@@ -430,11 +430,11 @@ const Dashboard = () => {
         const daysMap = { day: 1, week: 7, month: 30 };
         const days = daysMap[timeRange] || 7;
         const cacheKey = `history-${days}`;
-        
+
         // 防止相同参数重复请求
         if (priceHistoryLoadingRef.current === cacheKey) return;
         priceHistoryLoadingRef.current = cacheKey;
-        
+
         try {
             const response = await api.getPriceHistory(null, days);
             const historyData = response.data?.data || response.data?.commodities || {};
@@ -451,7 +451,7 @@ const Dashboard = () => {
     // 获取商品的历史数据
     const getHistoryData = useCallback((commodityName, basePrice, points) => {
         let historyRecords = priceHistory[commodityName] || [];
-        
+
         if (historyRecords.length === 0) {
             const lowerName = commodityName.toLowerCase();
             for (const [key, records] of Object.entries(priceHistory)) {
@@ -461,7 +461,7 @@ const Dashboard = () => {
                 }
             }
         }
-        
+
         if (historyRecords.length > 0) {
             return historyRecords.map((record, i) => ({
                 time: i,
@@ -470,7 +470,7 @@ const Dashboard = () => {
                 isReal: true
             }));
         }
-        
+
         // 无真实数据时返回空数组（不再生成假数据）
         return [];
     }, [priceHistory, timeRange]);
@@ -480,7 +480,7 @@ const Dashboard = () => {
         let val = parseFloat(price);
         // 判断原始价格是否为人民币（根据单位判断）
         const isOriginalCNY = unit && (unit.includes('元') || unit.includes('CNY') || unit.includes('RMB'));
-        
+
         // 货币转换逻辑:
         // - 如果原始价格是USD，目标是CNY：乘以汇率
         // - 如果原始价格是CNY（元），目标是USD：除以汇率
@@ -491,7 +491,7 @@ const Dashboard = () => {
             // 原价是CNY，转换为USD
             val = val / EXCHANGE_RATE;
         }
-        
+
         return val.toFixed(2);
     };
 
@@ -507,18 +507,18 @@ const Dashboard = () => {
     const allCommodities = useMemo(() => {
         const commodityMap = new Map();
         const regionalColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
-        
+
         (data || []).forEach(item => {
             const rawName = item.name || item.chinese_name;
             let normalizedName = getNormalizedName(rawName);
-            
+
             if (!normalizedName) return;
-            
+
             // 检查是否为区域商品，如果是则使用基础名称作为 key
             const isRegional = isRegionalCommodity(normalizedName);
             const baseName = isRegional ? getBaseCommodityName(normalizedName) : normalizedName;
             const regionName = isRegional ? normalizedName.match(/[\(（](.*)[\)）]/)?.[1] || '默认' : null;
-            
+
             if (!commodityMap.has(baseName)) {
                 commodityMap.set(baseName, {
                     name: baseName,
@@ -560,7 +560,7 @@ const Dashboard = () => {
                         url: item.url,
                         source: safeGetHostname(item.url)
                     });
-                    
+
                     // 如果是区域商品，添加到区域列表
                     if (isRegional && regionName) {
                         const colorIdx = existing.regions.length % regionalColors.length;
@@ -582,27 +582,27 @@ const Dashboard = () => {
     // TAB 切换时联动更新选中的商品
     useEffect(() => {
         if (allCommodities.length === 0) return;
-        
+
         // 获取当前 TAB 下的所有商品
         let tabCommodities = allCommodities.filter(commodity => {
             if (activeCommodityTab === 'all') return true;
             return getCommodityCategory(commodity.name, commodity.category) === activeCommodityTab;
         });
-        
+
         // 如果是塑料分类且选中了子分类，进一步过滤
         if (activeCommodityTab === 'plastics' && activePlasticSubTab !== 'all') {
-            tabCommodities = tabCommodities.filter(c => 
+            tabCommodities = tabCommodities.filter(c =>
                 c.name.toUpperCase().startsWith(activePlasticSubTab)
             );
         }
-        
+
         // 自动选中该分类下的所有商品（塑料子分类通常不多）
         const newSelected = new Set();
         const maxSelect = activeCommodityTab === 'plastics' ? tabCommodities.length : 6;
         for (const commodity of tabCommodities.slice(0, maxSelect)) {
             newSelected.add(commodity.name);
         }
-        
+
         // 只有当选中的商品发生变化时才更新
         if (newSelected.size > 0) {
             setSelectedCommodities(newSelected);
@@ -637,7 +637,7 @@ const Dashboard = () => {
     const filteredUrlStats = useMemo(() => {
         if (!urlInputValue) return urlStats;
         const searchLower = urlInputValue.toLowerCase();
-        return urlStats.filter(stat => 
+        return urlStats.filter(stat =>
             stat.hostname.toLowerCase().includes(searchLower)
         );
     }, [urlStats, urlInputValue]);
@@ -660,7 +660,7 @@ const Dashboard = () => {
         // 智能全选：只选择符合当前数据源过滤的商品
         if (getSourceFilteredCommodities && getSourceFilteredCommodities.size > 0) {
             const filteredCommodities = allCommodities.filter(c => {
-                const hasMatch = c.rawNames?.some(name => getSourceFilteredCommodities.has(name)) 
+                const hasMatch = c.rawNames?.some(name => getSourceFilteredCommodities.has(name))
                     || getSourceFilteredCommodities.has(c.name);
                 return hasMatch;
             });
@@ -681,18 +681,18 @@ const Dashboard = () => {
         if (!dataSources || (selectedCountry === 'all' && selectedWebsites.size === 0)) {
             return null; // 不过滤
         }
-        
+
         // 获取选中网站的商品列表
         const allowedCommodities = new Set();
         const sources = dataSources.sources || {};
-        
+
         for (const [countryCode, countryInfo] of Object.entries(sources)) {
             if (selectedCountry !== 'all' && countryCode !== selectedCountry) continue;
-            
+
             for (const website of countryInfo.websites) {
                 // 多选：检查网站是否在选中列表中，或者选中列表为空（表示全选该国家）
                 if (selectedWebsites.size > 0 && !selectedWebsites.has(website.id)) continue;
-                
+
                 for (const commodity of website.commodities) {
                     allowedCommodities.add(commodity);
                     // 也添加归一化后的名称
@@ -701,7 +701,7 @@ const Dashboard = () => {
                 }
             }
         }
-        
+
         return allowedCommodities;
     }, [dataSources, selectedCountry, selectedWebsites]);
 
@@ -712,7 +712,7 @@ const Dashboard = () => {
         }
         // 只显示当前国家有的商品
         return allCommodities.filter(c => {
-            return c.rawNames?.some(name => getSourceFilteredCommodities.has(name)) 
+            return c.rawNames?.some(name => getSourceFilteredCommodities.has(name))
                 || getSourceFilteredCommodities.has(c.name);
         });
     }, [allCommodities, selectedCountry, getSourceFilteredCommodities]);
@@ -721,18 +721,18 @@ const Dashboard = () => {
     const filteredCommodities = useMemo(() => {
         // 使用级联过滤后的商品列表
         let baseCommodities = commoditiesForSelectedCountry || allCommodities;
-        
+
         // 先按 TAB 分类过滤
         if (activeCommodityTab !== 'all') {
-            baseCommodities = baseCommodities.filter(c => 
+            baseCommodities = baseCommodities.filter(c =>
                 getCommodityCategory(c.name, c.category) === activeCommodityTab
             );
         }
-        
+
         // 再按搜索词过滤
         if (!commoditySearchTerm) return baseCommodities;
         const searchLower = commoditySearchTerm.toLowerCase();
-        return baseCommodities.filter(c => 
+        return baseCommodities.filter(c =>
             c.name.toLowerCase().includes(searchLower) ||
             (c.source && c.source.toLowerCase().includes(searchLower))
         );
@@ -749,7 +749,7 @@ const Dashboard = () => {
     // 获取选中商品的显示数据（使用合并后的商品数据）
     const displayCommodities = useMemo(() => {
         const colors = ['#f59e0b', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#6366f1', '#14b8a6', '#a855f7'];
-        
+
         return allCommodities
             .filter(commodity => {
                 // 先检查TAB分类过滤
@@ -766,7 +766,7 @@ const Dashboard = () => {
                 if (!selectedCommodities.has(commodity.name)) return false;
                 // 再检查来源过滤
                 if (getSourceFilteredCommodities) {
-                    const hasMatch = commodity.rawNames?.some(name => getSourceFilteredCommodities.has(name)) 
+                    const hasMatch = commodity.rawNames?.some(name => getSourceFilteredCommodities.has(name))
                         || getSourceFilteredCommodities.has(commodity.name);
                     if (!hasMatch) return false;
                 }
@@ -783,7 +783,7 @@ const Dashboard = () => {
                 if (!historyData) {
                     historyData = getHistoryData(commodity.name, price, timeRange === 'day' ? 24 : 7);
                 }
-                
+
                 // 为区域商品获取多区域历史数据
                 let multiSourceHistory = null;
                 if (commodity.isRegional && commodity.regions && commodity.regions.length > 0) {
@@ -797,7 +797,7 @@ const Dashboard = () => {
                         };
                     }).filter(s => s.data && s.data.length > 0);
                 }
-                
+
                 return {
                     id: commodity.name,
                     name: commodity.name,
@@ -822,17 +822,17 @@ const Dashboard = () => {
     // if (loading) return ...
 
     return (
-        <div className="dashboard-container" style={{ 
-            padding: '24px 32px 40px', 
+        <div className="dashboard-container" style={{
+            padding: '24px 32px 40px',
             position: 'relative',
             minHeight: '100vh',
             background: '#f8fafc'
         }}>
             {/* Header */}
-            <div className="header" style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
+            <div className="header" style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
                 marginBottom: '24px',
                 flexWrap: 'wrap',
                 gap: '16px'
@@ -850,20 +850,20 @@ const Dashboard = () => {
                 </div>
 
                 {/* Controls */}
-                <div className="controls" style={{ 
-                    display: 'flex', 
-                    gap: '10px', 
+                <div className="controls" style={{
+                    display: 'flex',
+                    gap: '10px',
                     alignItems: 'center',
                     flexWrap: 'wrap'
                 }}>
                     {/* 搜索框 */}
-                    <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '6px', 
-                        background: '#fff', 
-                        border: '1px solid #e5e7eb', 
-                        padding: '7px 12px', 
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        background: '#fff',
+                        border: '1px solid #e5e7eb',
+                        padding: '7px 12px',
                         borderRadius: '8px',
                         minWidth: '160px'
                     }}>
@@ -873,13 +873,13 @@ const Dashboard = () => {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder="搜索..."
-                            style={{ 
-                                border: 'none', 
-                                outline: 'none', 
-                                fontSize: '13px', 
-                                color: '#374151', 
-                                background: 'transparent', 
-                                width: '100%' 
+                            style={{
+                                border: 'none',
+                                outline: 'none',
+                                fontSize: '13px',
+                                color: '#374151',
+                                background: 'transparent',
+                                width: '100%'
                             }}
                         />
                         {searchTerm && (
@@ -911,7 +911,7 @@ const Dashboard = () => {
                             {selectedCountry === 'all' ? '🌍 全部国家' : `${dataSources?.sources?.[selectedCountry]?.flag || ''} ${dataSources?.sources?.[selectedCountry]?.name || selectedCountry}`}
                             <ChevronDown size={14} />
                         </button>
-                        
+
                         {showSourceFilter && dataSources && (
                             <div style={{
                                 position: 'absolute',
@@ -927,7 +927,7 @@ const Dashboard = () => {
                                 overflow: 'hidden'
                             }}>
                                 <div style={{ padding: '8px' }}>
-                                    <div 
+                                    <div
                                         onClick={() => { setSelectedCountry('all'); setSelectedWebsites(new Set()); setShowSourceFilter(false); }}
                                         style={{
                                             padding: '10px 12px',
@@ -942,11 +942,11 @@ const Dashboard = () => {
                                         🌍 全部国家 ({allCommodities.length} 商品)
                                     </div>
                                     {dataSources.cascade?.map(country => (
-                                        <div 
+                                        <div
                                             key={country.code}
-                                            onClick={() => { 
-                                                setSelectedCountry(country.code); 
-                                                setSelectedWebsites(new Set()); 
+                                            onClick={() => {
+                                                setSelectedCountry(country.code);
+                                                setSelectedWebsites(new Set());
                                                 setShowSourceFilter(false);
                                                 // 自动选择该国家的商品
                                                 setTimeout(() => {
@@ -958,14 +958,14 @@ const Dashboard = () => {
                                                             const normalized = getNormalizedName(c);
                                                             if (normalized) countryCommodities.add(normalized);
                                                         }));
-                                                        
+
                                                         // 修改筛选逻辑：不强制使用 slice(0, 6) 限制，而是尝试保留用户之前感兴趣的商品类型
                                                         // 或者至少确保当前 Tab 下的商品被选中
-                                                        
-                                                        const matchedCommodities = allCommodities.filter(c => 
+
+                                                        const matchedCommodities = allCommodities.filter(c =>
                                                             c.rawNames?.some(name => countryCommodities.has(name)) || countryCommodities.has(c.name)
                                                         );
-                                                        
+
                                                         if (matchedCommodities.length > 0) {
                                                             // 1. 优先选择符合当前 Tab 分类的商品
                                                             let priorityCommodities = matchedCommodities.filter(c => {
@@ -973,12 +973,12 @@ const Dashboard = () => {
                                                                 const category = getCommodityCategory(c.name, c.category);
                                                                 return category === activeCommodityTab;
                                                             });
-                                                            
+
                                                             // 如果当前 Tab 下没有商品，则降级显示所有匹配商品
                                                             if (priorityCommodities.length === 0) {
                                                                 priorityCommodities = matchedCommodities;
                                                             }
-                                                            
+
                                                             // 选中这些商品（最多显示 6 个，避免图表过于拥挤，但确保是相关的）
                                                             setSelectedCommodities(new Set(priorityCommodities.slice(0, 6).map(c => c.name)));
                                                         } else {
@@ -1032,7 +1032,7 @@ const Dashboard = () => {
                             商品 ({selectedCommodities.size}/{(commoditiesForSelectedCountry || allCommodities).length})
                             <ChevronDown size={14} />
                         </button>
-                        
+
                         {showCommoditySelector && (
                             <div style={{
                                 position: 'absolute',
@@ -1048,14 +1048,14 @@ const Dashboard = () => {
                                 overflow: 'hidden'
                             }}>
                                 {/* 搜索框 */}
-                                <div style={{ 
-                                    padding: '12px', 
+                                <div style={{
+                                    padding: '12px',
                                     borderBottom: '1px solid #f3f4f6',
                                     background: '#fafafa'
                                 }}>
-                                    <div style={{ 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
                                         gap: '8px',
                                         background: '#fff',
                                         border: '1px solid #e5e7eb',
@@ -1068,10 +1068,10 @@ const Dashboard = () => {
                                             value={commoditySearchTerm}
                                             onChange={(e) => setCommoditySearchTerm(e.target.value)}
                                             placeholder="搜索商品..."
-                                            style={{ 
-                                                border: 'none', 
-                                                outline: 'none', 
-                                                fontSize: '13px', 
+                                            style={{
+                                                border: 'none',
+                                                outline: 'none',
+                                                fontSize: '13px',
                                                 width: '100%',
                                                 background: 'transparent'
                                             }}
@@ -1083,11 +1083,11 @@ const Dashboard = () => {
                                             </button>
                                         )}
                                     </div>
-                                    
+
                                     {/* 快捷操作 */}
-                                    <div style={{ 
-                                        display: 'flex', 
-                                        gap: '8px', 
+                                    <div style={{
+                                        display: 'flex',
+                                        gap: '8px',
                                         marginTop: '10px',
                                         fontSize: '12px'
                                     }}>
@@ -1103,8 +1103,8 @@ const Dashboard = () => {
                                                 fontSize: '12px'
                                             }}
                                         >
-                                            {getSourceFilteredCommodities && getSourceFilteredCommodities.size > 0 
-                                                ? '选择当前源' 
+                                            {getSourceFilteredCommodities && getSourceFilteredCommodities.size > 0
+                                                ? '选择当前源'
                                                 : '全选'}
                                         </button>
                                         <button
@@ -1121,8 +1121,8 @@ const Dashboard = () => {
                                         >
                                             全不选
                                         </button>
-                                        <span style={{ 
-                                            marginLeft: 'auto', 
+                                        <span style={{
+                                            marginLeft: 'auto',
                                             color: '#9ca3af',
                                             alignSelf: 'center'
                                         }}>
@@ -1131,7 +1131,7 @@ const Dashboard = () => {
                                                 <span style={{ color: '#f59e0b', marginLeft: '4px' }}>
                                                     · {filteredCommodities.filter(c => {
                                                         const willBeFiltered = !(
-                                                            c.rawNames?.some(name => getSourceFilteredCommodities.has(name)) 
+                                                            c.rawNames?.some(name => getSourceFilteredCommodities.has(name))
                                                             || getSourceFilteredCommodities.has(c.name)
                                                         );
                                                         return selectedCommodities.has(c.name) && willBeFiltered;
@@ -1141,17 +1141,17 @@ const Dashboard = () => {
                                         </span>
                                     </div>
                                 </div>
-                                
+
                                 {/* 商品列表 - 滚动区域 */}
-                                <div style={{ 
-                                    maxHeight: '360px', 
+                                <div style={{
+                                    maxHeight: '360px',
                                     overflowY: 'auto',
                                     padding: '8px'
                                 }}>
                                     {filteredCommodities.length === 0 ? (
-                                        <div style={{ 
-                                            padding: '24px', 
-                                            textAlign: 'center', 
+                                        <div style={{
+                                            padding: '24px',
+                                            textAlign: 'center',
                                             color: '#9ca3af',
                                             fontSize: '13px'
                                         }}>
@@ -1161,13 +1161,13 @@ const Dashboard = () => {
                                         filteredCommodities.map((comm, idx) => {
                                             const isSelected = selectedCommodities.has(comm.name);
                                             const isUp = (comm.change || 0) >= 0;
-                                            
+
                                             // 检查是否会被数据源过滤
                                             const willBeFiltered = getSourceFilteredCommodities && getSourceFilteredCommodities.size > 0 && !(
-                                                comm.rawNames?.some(name => getSourceFilteredCommodities.has(name)) 
+                                                comm.rawNames?.some(name => getSourceFilteredCommodities.has(name))
                                                 || getSourceFilteredCommodities.has(comm.name)
                                             );
-                                            
+
                                             return (
                                                 <div
                                                     key={idx}
@@ -1208,12 +1208,12 @@ const Dashboard = () => {
                                                     }}>
                                                         {isSelected && <Check size={12} color="#fff" strokeWidth={3} />}
                                                     </div>
-                                                    
+
                                                     {/* 商品信息 */}
                                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                                        <div style={{ 
-                                                            fontSize: '13px', 
-                                                            fontWeight: '500', 
+                                                        <div style={{
+                                                            fontSize: '13px',
+                                                            fontWeight: '500',
                                                             color: '#111827',
                                                             whiteSpace: 'nowrap',
                                                             overflow: 'hidden',
@@ -1237,26 +1237,26 @@ const Dashboard = () => {
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <div style={{ 
-                                                            fontSize: '11px', 
+                                                        <div style={{
+                                                            fontSize: '11px',
                                                             color: '#9ca3af',
                                                             marginTop: '2px'
                                                         }}>
                                                             {comm.source}
                                                         </div>
                                                     </div>
-                                                    
+
                                                     {/* 价格和涨跌 */}
                                                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                                                        <div style={{ 
-                                                            fontSize: '13px', 
-                                                            fontWeight: '600', 
-                                                            color: '#111827' 
+                                                        <div style={{
+                                                            fontSize: '13px',
+                                                            fontWeight: '600',
+                                                            color: '#111827'
                                                         }}>
                                                             ${parseFloat(comm.price || 0).toFixed(2)}
                                                         </div>
-                                                        <div style={{ 
-                                                            fontSize: '11px', 
+                                                        <div style={{
+                                                            fontSize: '11px',
                                                             fontWeight: '500',
                                                             color: isUp ? '#10b981' : '#ef4444'
                                                         }}>
@@ -1273,12 +1273,12 @@ const Dashboard = () => {
                     </div>
 
                     {/* 时间范围切换 */}
-                    <div style={{ 
-                        background: '#fff', 
+                    <div style={{
+                        background: '#fff',
                         border: '1px solid #e5e7eb',
-                        padding: '3px', 
-                        borderRadius: '8px', 
-                        display: 'flex' 
+                        padding: '3px',
+                        borderRadius: '8px',
+                        display: 'flex'
                     }}>
                         <button
                             onClick={() => setTimeRange('day')}
@@ -1439,24 +1439,24 @@ const Dashboard = () => {
             </div>
 
             {/* Main Layout */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '24px' }}>
+            <div className="dashboard-main-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '24px' }}>
                 <div className="main-content">
                     {/* Summary Cards */}
-                    <div style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-                        gap: '16px', 
-                        marginBottom: '24px' 
+                    <div className="summary-cards-grid" style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                        gap: '16px',
+                        marginBottom: '24px'
                     }}>
                         {/* 汇率卡片 */}
-                        <div style={{ 
-                            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', 
-                            padding: '20px', 
-                            borderRadius: '12px', 
-                            boxShadow: '0 4px 12px -2px rgba(59, 130, 246, 0.25)', 
-                            color: '#fff' 
+                        <div className="exchange-rate-card" style={{
+                            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                            padding: '20px',
+                            borderRadius: '12px',
+                            boxShadow: '0 4px 12px -2px rgba(59, 130, 246, 0.25)',
+                            color: '#fff'
                         }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                 <span style={{ fontSize: '13px', fontWeight: '500', opacity: 0.9 }}>USD/CNY 汇率</span>
                                 <span style={{
                                     fontSize: '11px',
@@ -1466,17 +1466,17 @@ const Dashboard = () => {
                                     borderRadius: '999px'
                                 }}>实时</span>
                             </div>
-                            <div style={{ fontSize: '28px', fontWeight: '700' }}>¥{EXCHANGE_RATE.toFixed(4)}</div>
-                            <div style={{ fontSize: '11px', opacity: 0.8, marginTop: '4px' }}>1 USD = {EXCHANGE_RATE} CNY</div>
+                            <div className="rate-value" style={{ fontSize: '28px', fontWeight: '700' }}>¥{EXCHANGE_RATE.toFixed(4)}</div>
+                            <div className="rate-info" style={{ fontSize: '11px', opacity: 0.8, marginTop: '4px' }}>1 USD = {EXCHANGE_RATE} CNY</div>
                         </div>
-                        
+
                         {/* 前4个商品卡片 */}
                         {loading ? (
                             Array(4).fill(0).map((_, i) => (
-                                <div key={i} style={{ 
-                                    background: '#fff', 
-                                    padding: '20px', 
-                                    borderRadius: '12px', 
+                                <div key={i} className="commodity-card-skeleton" style={{
+                                    background: '#fff',
+                                    padding: '20px',
+                                    borderRadius: '12px',
                                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                                     border: '1px solid #f3f4f6',
                                     display: 'flex',
@@ -1489,66 +1489,66 @@ const Dashboard = () => {
                             ))
                         ) : (
                             displayCommodities.slice(0, 4).map((comm, index) => {
-                            const isUp = (comm.change || 0) >= 0;
-                            return (
-                                <div key={index} style={{ 
-                                    background: '#fff', 
-                                    padding: '20px', 
-                                    borderRadius: '12px', 
-                                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-                                    border: '1px solid #f3f4f6'
-                                }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                        <div>
-                                            <span style={{ color: '#374151', fontSize: '13px', fontWeight: '500' }}>
-                                                {comm.name}
+                                const isUp = (comm.change || 0) >= 0;
+                                return (
+                                    <div key={index} className="commodity-card" style={{
+                                        background: '#fff',
+                                        padding: '20px',
+                                        borderRadius: '12px',
+                                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                                        border: '1px solid #f3f4f6'
+                                    }}>
+                                        <div className="card-content-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                            <div className="commodity-info">
+                                                <span style={{ color: '#374151', fontSize: '13px', fontWeight: '500' }}>
+                                                    {comm.name}
+                                                </span>
+                                                {comm.source && (
+                                                    <div className="commodity-source" style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>
+                                                        {comm.source}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <span style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                fontSize: '11px',
+                                                fontWeight: '600',
+                                                color: isUp ? '#10b981' : '#ef4444',
+                                                background: isUp ? '#d1fae5' : '#fee2e2',
+                                                padding: '2px 8px',
+                                                borderRadius: '999px',
+                                                height: 'fit-content'
+                                            }}>
+                                                {isUp ? <ArrowUp size={10} /> : <ArrowDown size={10} />}
+                                                {Math.abs(comm.change || 0).toFixed(2)}%
                                             </span>
-                                            {comm.source && (
-                                                <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>
-                                                    {comm.source}
-                                                </div>
+                                        </div>
+                                        <div className="commodity-price" style={{ fontSize: '24px', fontWeight: '700', color: '#111827' }}>
+                                            {getCurrencySymbol()}{formatPrice(comm.currentPrice, comm.unit)}
+                                            {comm.unit && (
+                                                <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '4px', fontWeight: '500' }}>
+                                                    /{comm.unit.replace(/USD|CNY|RMB|美元|人民币|\$|¥|\//gi, '').trim()}
+                                                </span>
                                             )}
                                         </div>
-                                        <span style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            fontSize: '11px',
-                                            fontWeight: '600',
-                                            color: isUp ? '#10b981' : '#ef4444',
-                                            background: isUp ? '#d1fae5' : '#fee2e2',
-                                            padding: '2px 8px',
-                                            borderRadius: '999px',
-                                            height: 'fit-content'
-                                        }}>
-                                            {isUp ? <ArrowUp size={10} /> : <ArrowDown size={10} />}
-                                            {Math.abs(comm.change || 0).toFixed(2)}%
-                                        </span>
                                     </div>
-                                    <div style={{ fontSize: '24px', fontWeight: '700', color: '#111827' }}>
-                                        {getCurrencySymbol()}{formatPrice(comm.currentPrice, comm.unit)}
-                                        {comm.unit && (
-                                            <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '4px', fontWeight: '500' }}>
-                                                /{comm.unit.replace(/USD|CNY|RMB|美元|人民币|\$|¥|\//gi, '').trim()}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        }))}
+                                );
+                            }))}
                     </div>
 
                     {/* ==================== 商品分类 TAB 区域 ==================== */}
-                    <div style={{ 
-                        background: '#fff', 
-                        borderRadius: '16px', 
+                    <div className="commodity-tabs-container" style={{
+                        background: '#fff',
+                        borderRadius: '16px',
                         boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                         marginBottom: '24px',
                         overflow: 'hidden'
                     }}>
                         {/* Tab栏标题 */}
-                        <div style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
                             justifyContent: 'space-between',
                             padding: '16px 20px',
                             borderBottom: '1px solid #e2e8f0'
@@ -1595,7 +1595,7 @@ const Dashboard = () => {
                                     <Settings size={14} />
                                     表头配置
                                 </button>
-                                
+
                                 {/* 表头配置弹窗 */}
                                 {showColumnSettings && (
                                     <div style={{
@@ -1668,10 +1668,10 @@ const Dashboard = () => {
                                 )}
                             </div>
                         </div>
-                        
+
                         {/* Tab栏 - 参考供应商展示形式 */}
-                        <div style={{ 
-                            display: 'flex', 
+                        <div style={{
+                            display: 'flex',
                             borderBottom: '1px solid #e2e8f0',
                             background: '#f8fafc'
                         }}>
@@ -1715,11 +1715,11 @@ const Dashboard = () => {
                                 );
                             })}
                         </div>
-                        
+
                         {/* 塑料子分类TAB - 仅在塑料分类下显示 */}
                         {activeCommodityTab === 'plastics' && COMMODITY_TABS.find(t => t.id === 'plastics')?.subTabs && (
-                            <div style={{ 
-                                display: 'flex', 
+                            <div style={{
+                                display: 'flex',
                                 alignItems: 'center',
                                 gap: '8px',
                                 padding: '12px 20px',
@@ -1731,11 +1731,11 @@ const Dashboard = () => {
                                 {COMMODITY_TABS.find(t => t.id === 'plastics').subTabs.map(subTab => {
                                     const isActive = activePlasticSubTab === subTab.id;
                                     // 计算该子分类的商品数量（基于所有塑料商品）
-                                    const plasticCommodities = allCommodities.filter(c => 
+                                    const plasticCommodities = allCommodities.filter(c =>
                                         getCommodityCategory(c.name, c.category) === 'plastics'
                                     );
-                                    const subCount = subTab.id === 'all' 
-                                        ? plasticCommodities.length 
+                                    const subCount = subTab.id === 'all'
+                                        ? plasticCommodities.length
                                         : plasticCommodities.filter(c => c.name.toUpperCase().startsWith(subTab.id)).length;
                                     return (
                                         <button
@@ -1775,7 +1775,7 @@ const Dashboard = () => {
                                 })}
                             </div>
                         )}
-                        
+
                         {/* 可配置表头的数据表格 */}
                         <div style={{ padding: '16px 20px', overflowX: 'auto' }}>
                             {loading ? (
@@ -1792,10 +1792,10 @@ const Dashboard = () => {
                                     <thead>
                                         <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
                                             {tableColumns.filter(col => col.visible).map(col => (
-                                                <th key={col.id} style={{ 
-                                                    padding: '10px 12px', 
-                                                    textAlign: 'left', 
-                                                    fontWeight: '600', 
+                                                <th key={col.id} style={{
+                                                    padding: '10px 12px',
+                                                    textAlign: 'left',
+                                                    fontWeight: '600',
                                                     color: '#374151',
                                                     width: col.width,
                                                     whiteSpace: 'nowrap'
@@ -1809,12 +1809,12 @@ const Dashboard = () => {
                                         {displayCommodities.slice(0, 10).map((comm, idx) => {
                                             const isUp = (comm.change || 0) >= 0;
                                             return (
-                                                <tr key={comm.id || idx} style={{ 
+                                                <tr key={comm.id || idx} style={{
                                                     borderBottom: '1px solid #f3f4f6',
                                                     transition: 'background 0.15s'
                                                 }}
-                                                onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
-                                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                    onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+                                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                                                 >
                                                     {tableColumns.filter(col => col.visible).map(col => (
                                                         <td key={col.id} style={{ padding: '12px', color: '#374151' }}>
@@ -1876,11 +1876,11 @@ const Dashboard = () => {
                         alignItems: 'start'
                     }}>
                         {loading ? (
-                            <div style={{ 
+                            <div style={{
                                 gridColumn: '1 / -1',
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center', 
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
                                 height: '200px',
                                 fontSize: '16px',
                                 color: '#6b7280',
@@ -1891,11 +1891,11 @@ const Dashboard = () => {
                                 加载商品数据...
                             </div>
                         ) : error ? (
-                            <div style={{ 
+                            <div style={{
                                 gridColumn: '1 / -1',
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center', 
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
                                 height: '200px',
                                 fontSize: '16px',
                                 color: '#ef4444',
@@ -1905,10 +1905,10 @@ const Dashboard = () => {
                                 错误: {error}
                             </div>
                         ) : displayCommodities.length === 0 ? (
-                            <div style={{ 
+                            <div style={{
                                 gridColumn: '1 / -1',
-                                background: '#fff', 
-                                padding: '48px', 
+                                background: '#fff',
+                                padding: '48px',
                                 borderRadius: '12px',
                                 textAlign: 'center',
                                 color: '#6b7280'

@@ -90,31 +90,96 @@ class PriceHistoryManager:
             except Exception as e:
                 print(f"⚠️ 保存价格历史到 Redis 失败: {e}")
         
-        # 2. 保存到 MySQL (新增)
+        
+        # 2. 保存到 MySQL commodity_history 表（改为新架构）
         try:
             from database.mysql.connection import get_cursor
+            import re
+            import uuid
+            
+            # 生成 commodity_id（从commodity_name推断或查询commodity_latest）
+            commodity_id = None
+            chinese_name = commodity_name
+            english_name = None
+            category = None
+            
+            # 先尝试从 commodity_latest 查询元数据
+            with get_cursor() as cursor:
+                cursor.execute("""
+                    SELECT id, name, chinese_name, category
+                    FROM commodity_latest
+                    WHERE name = %s OR chinese_name = %s
+                    LIMIT 1
+                """, (commodity_name, commodity_name))
+                
+                row = cursor.fetchone()
+                if row:
+                    commodity_id = row['id']
+                    english_name = row['name']
+                    chinese_name = row['chinese_name'] or commodity_name
+                    category = row['category']
+            
+            # 如果找不到，生成commodity_id
+            if not commodity_id:
+                # 判断是中文还是英文
+                is_chinese = bool(re.search(r'[\u4e00-\u9fff]', commodity_name))
+                if is_chinese:
+                    # 中文映射
+                    id_map = {
+                        '钯金': 'palladium', '铂金': 'platinum', '黄金': 'gold',
+                        '白银': 'silver', '铜': 'copper', '铝': 'aluminum',
+                        '锌': 'zinc', '镍': 'nickel', '铅': 'lead', '锡': 'tin'
+                    }
+                    commodity_id = next((v for k, v in id_map.items() if k in commodity_name), 
+                                       commodity_name.lower().replace(' ', '_'))
+                    chinese_name = commodity_name
+                else:
+                    commodity_id = commodity_name.lower().replace(' ', '_').replace('-', '_')
+                    english_name = commodity_name
+            
+            # 构建 version_ts (日期 + 当前时间)
+            if isinstance(date, str):
+                date_obj = datetime.strptime(date, "%Y-%m-%d").date()
+            else:
+                date_obj = date
+            version_ts = datetime.combine(date_obj, datetime.now().time())
+            
+            # 生成 request_id
+            request_id = f"price_history_{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:8]}"
+            
+            # 插入 commodity_history
             sql = """
-                INSERT INTO commodity_price_history 
-                (name, price, change_percent, source, record_date)
-                VALUES (%s, %s, %s, %s, %s)
-                ON DUPLICATE KEY UPDATE
-                price = VALUES(price),
-                change_percent = VALUES(change_percent),
-                source = VALUES(source),
-                created_at = CURRENT_TIMESTAMP(3)
+                INSERT INTO commodity_history 
+                (commodity_id, name, chinese_name, category,
+                 price, price_unit, change_percent,
+                 source, version_ts, request_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE 
+                    price = VALUES(price),
+                    change_percent = VALUES(change_percent),
+                    source = VALUES(source),
+                    recorded_at = CURRENT_TIMESTAMP(3)
             """
+            
             with get_cursor(commit=True) as cursor:
                 cursor.execute(sql, (
-                    commodity_name, 
-                    price, 
-                    change_percent, 
-                    source, 
-                    date
+                    commodity_id,
+                    english_name or commodity_name,
+                    chinese_name,
+                    category,
+                    price,
+                    'USD',  # 默认USD
+                    change_percent,
+                    source or 'price_history',
+                    version_ts,
+                    request_id
                 ))
             success = True
-            # print(f"✅ 价格历史已存入 MySQL: {commodity_name} ({date})")
+            # print(f"✅ 价格历史已存入 commodity_history: {commodity_name} ({date})")
         except Exception as e:
             print(f"⚠️ 保存价格历史到 MySQL 失败: {e}")
+            import traceback
+            traceback.print_exc()
             # 如果 Redis 成功，视为整体成功，但记录 MySQL 错误
             if not success:
                 return False
@@ -201,11 +266,28 @@ class PriceHistoryManager:
             from database.mysql.connection import get_cursor
             print(f"🔄 Redis Miss ({commodity_name}) -> 从 MySQL 读取历史数据...")
             
-            cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+            cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d 00:00:00")
+            
+            # 使用窗口函数，每天取最新版本
             sql = """
-                SELECT record_date, price, change_percent, source 
-                FROM commodity_price_history 
-                WHERE name = %s AND record_date >= %s
+                WITH ranked_records AS (
+                    SELECT 
+                        DATE(version_ts) as record_date,
+                        price,
+                        change_percent,
+                        source,
+                        version_ts,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY DATE(version_ts)
+                            ORDER BY version_ts DESC
+                        ) as rn
+                    FROM commodity_history
+                    WHERE (name = %s OR chinese_name = %s)
+                      AND version_ts >= %s
+                )
+                SELECT record_date, price, change_percent, source
+                FROM ranked_records
+                WHERE rn = 1
                 ORDER BY record_date ASC
             """
             
@@ -213,7 +295,7 @@ class PriceHistoryManager:
             redis_mapping = {}  # 用于批量更新 Redis
             
             with get_cursor() as cursor:
-                cursor.execute(sql, (commodity_name, cutoff_date))
+                cursor.execute(sql, (commodity_name, commodity_name, cutoff_date))
                 rows = cursor.fetchall()
                 
                 for row in rows:
@@ -250,6 +332,8 @@ class PriceHistoryManager:
                 
         except Exception as e:
             print(f"❌ MySQL 获取价格历史失败: {e}")
+            import traceback
+            traceback.print_exc()
             
         return []
     
@@ -271,10 +355,10 @@ class PriceHistoryManager:
         try:
             from database.mysql.connection import get_cursor
             with get_cursor() as cursor:
-                cursor.execute("SELECT DISTINCT name FROM commodity_price_history")
+                cursor.execute("SELECT DISTINCT chinese_name FROM commodity_history")
                 rows = cursor.fetchall()
                 for row in rows:
-                    commodity_names.add(row['name'])
+                    commodity_names.add(row['chinese_name'])
         except Exception as e:
             print(f"⚠️ MySQL 获取商品列表失败: {e}")
             

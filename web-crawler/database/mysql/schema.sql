@@ -253,20 +253,3 @@ CREATE TABLE IF NOT EXISTS exchange_rates (
     INDEX idx_currency_pair (base_currency, target_currency),
     INDEX idx_created_at (created_at DESC)
 ) ENGINE=InnoDB COMMENT='汇率历史表';
-
--- ============================================================
--- 9. 商品每日价格历史表: commodity_price_history
--- 说明: 简单的每日价格记录，替代 Redis 存储，防止数据丢失
--- ============================================================
-CREATE TABLE IF NOT EXISTS commodity_price_history (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(128) NOT NULL COMMENT '商品名称',
-    price DECIMAL(20, 6) NOT NULL COMMENT '价格',
-    change_percent DECIMAL(10, 4) COMMENT '涨跌幅',
-    source VARCHAR(64) COMMENT '数据来源',
-    record_date DATE NOT NULL COMMENT '记录日期',
-    created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
-    UNIQUE KEY uk_name_date (name, record_date),
-    INDEX idx_name (name),
-    INDEX idx_record_date (record_date)
-) ENGINE=InnoDB COMMENT='商品每日价格历史表';

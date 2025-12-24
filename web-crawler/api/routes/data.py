@@ -12,7 +12,7 @@ from threading import Lock
 
 from ..cache import cache, CACHE_TTL
 from database.manager import db_manager
-from database.mysql.connection import get_connection
+from database.mysql.connection import get_connection, get_cursor
 import pymysql
 
 router = APIRouter()
@@ -123,14 +123,6 @@ def _background_fetch_commodity_data(cache_key: str):
         except Exception as e:
             print(f"⚠️ MySQL 入库失败: {e}")
         
-        # 保存价格历史
-        try:
-            from core.price_history import PriceHistoryManager
-            history_manager = PriceHistoryManager()
-            history_manager.save_current_prices(data)
-        except Exception as e:
-            print(f"⚠️ 保存价格历史失败: {e}")
-        
         print(f"✅ [后台] 商品数据完成: {len(data)} 条")
     except Exception as e:
         print(f"❌ [后台] 商品数据失败: {e}")
@@ -230,7 +222,7 @@ async def get_data(refresh: bool = False):
 @router.get("/api/price-history")
 async def get_price_history(commodity: Optional[str] = None, days: int = 7):
     """
-    获取价格历史数据
+    获取价格历史数据（从 commodity_history 表）
     
     优化：使用缓存（价格历史不常变）
     """
@@ -270,6 +262,8 @@ async def get_price_history(commodity: Optional[str] = None, days: int = 7):
         return result
         
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return {
             "status": "error",
             "message": str(e),
