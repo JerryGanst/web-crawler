@@ -390,7 +390,7 @@ def build_material_section(
             return "📉"    # 下跌
         else:
             return "➡️"    # 横盘
-    
+    days = 7 #默认七天的趋势图
     # 金属类
     if metals:
         lines.append("### 🔩 金属类\n")
@@ -407,11 +407,16 @@ def build_material_section(
             month_change = calc_period_change(name, 30)
             
             trend = get_trend_icon(day_change, week_change)
-            days = 7
-            chart_path = name+'.png'
+
+            
             
             lines.append(f"| {name} | {price} {unit} | {format_change(day_change)} | {format_change(week_change)} | {format_change(month_change)} | {trend} |")
-            lines.append(f'![]({plot_price_trend_from_prices(name,days,chart_path)})')
+            
+        lines.append("")
+        for n in sorted(metals, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
+            name = m.get('chinese_name') or m.get('name', '')
+            chart_path = name+'.png'
+            lines.append(f'![]({plot_price_trend_from_prices(name,days,save_path=chart_path)})')
         lines.append("")
 
     
@@ -432,9 +437,15 @@ def build_material_section(
             
             trend = get_trend_icon(day_change, week_change)
             
+            
             lines.append(f"| {name} | {price} {unit} | {format_change(day_change)} | {format_change(week_change)} | {format_change(month_change)} | {trend} |")
         lines.append("")
-    
+        for n in sorted(metals, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
+            name = m.get('chinese_name') or m.get('name', '')
+            chart_path = name+'.png'
+            lines.append(f'![]({plot_price_trend_from_prices(name,days,save_path=chart_path)})')
+        lines.append("")
+
     # 能源类
     if energy:
         lines.append("### ⛽ 能源类\n")
@@ -452,9 +463,16 @@ def build_material_section(
             
             trend = get_trend_icon(day_change, week_change)
             
+            
             lines.append(f"| {name} | {price} {unit} | {format_change(day_change)} | {format_change(week_change)} | {format_change(month_change)} | {trend} |")
+            
         lines.append("")
-    
+        for n in sorted(metals, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
+            name = m.get('chinese_name') or m.get('name', '')
+            chart_path = name+'.png'
+            lines.append(f'![]({plot_price_trend_from_prices(name,days,save_path=chart_path)})')
+        lines.append("")
+
     # 数据统计摘要（纯数据，不做解读）
     lines.append("### 📊 数据统计\n")
     
