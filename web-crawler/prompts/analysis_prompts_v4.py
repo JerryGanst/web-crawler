@@ -764,7 +764,6 @@ def build_material_section(
             lines.append('|------|------|')
             for p in prices_s:
                 lines.append(f'| {p[0]} | {p[1]} {unit}|')
-        lines.append("")
 
     #按类型生成所有商品图表
     def generate_chart(category:List[Dict]):
