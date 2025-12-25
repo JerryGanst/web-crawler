@@ -174,7 +174,12 @@ const CommodityChart = ({
             },
             formatter: function (params) {
                 if (!params || params.length === 0) return '';
-                const date = params[0].axisValue;
+                let date = params[0].axisValue;
+                // Format date if it's long ISO string
+                if (date && typeof date === 'string' && date.length > 10) {
+                    date = date.substring(0, 10);
+                }
+
                 const unitSuffix = displayUnitLabel ? `/${displayUnitLabel}` : '';
                 let html = `<div style="font-weight:600;margin-bottom:8px;color:#111827;font-size:13px">${date}</div>`;
                 params.forEach(p => {
@@ -237,7 +242,14 @@ const CommodityChart = ({
             axisLabel: {
                 color: '#9ca3af',
                 fontSize: 11,
-                margin: 12
+                margin: 12,
+                formatter: (value) => {
+                    // Format date to YYYY-MM-DD
+                    if (value && typeof value === 'string' && value.length > 10) {
+                        return value.substring(0, 10);
+                    }
+                    return value;
+                }
             }
         },
         yAxis: {
