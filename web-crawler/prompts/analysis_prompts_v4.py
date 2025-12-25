@@ -755,7 +755,8 @@ def build_material_section(
         for n in sorted(category, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
             name = n.get('chinese_name') or n.get('name', '')
             prices_s=get_price_with_dates(name,days)
-            lines.append(f'### {name}前{days}天内价格\n| 日期 | 价格 |')
+            lines.append(f'### {name}前{days}天内价格\n|  日期  |  价格  |')
+            lines.append(f'|------|------|')
             for p in prices_s:
                 lines.append(f'| {p[0]} | {p[1]}|')
         lines.append("")
