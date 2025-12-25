@@ -14,7 +14,7 @@
     最终：拼装报告
 """
 
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
@@ -610,7 +610,7 @@ def build_material_section(
             return f"{name}暂无图表"
         
     # 获取日期价格元组
-    def get_price_with_dates(name: str, days: int) -> Optional[List[(str, float)]]:
+    def get_price_with_dates(name: str, days: int) -> Optional[List[Tuple[str, float]]]:
     # """
     # 获取指定名称资产在最近N天内的价格列表（包含对应日期）
     
