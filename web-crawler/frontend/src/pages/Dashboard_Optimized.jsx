@@ -1152,19 +1152,7 @@ const Dashboard = () => {
         });
     }, [data, timeRange, priceHistory]);
 
-    if (loading) return (
-        <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '100vh',
-            fontSize: '18px',
-            color: '#6b7280'
-        }}>
-            <RefreshCw size={24} className="animate-spin" style={{ marginRight: '12px' }} />
-            加载数据中...
-        </div>
-    );
+
 
     if (error) return (
         <div style={{
@@ -1885,100 +1873,119 @@ const Dashboard = () => {
                             </div>
                         </div>
 
-                        {data.slice(0, 3).map((item, index) => {
-                            const price = item.price || item.current_price || item.last_price || 0;
-                            const change = item.change || item.change_percent || 0;
-                            const isUp = change >= 0;
-                            const hostname = safeGetHostname(item.url);
-                            const cleanUnit = (item.unit || '')
-                                .replace(/USD|CNY|RMB|美元|人民币/gi, '')
-                                .replace(/[$¥/]/g, '')
-                                .trim();
-
-                            return (
-                                <div key={index} className="commodity-card" style={{
+                        {loading ? (
+                            // Skeleton for Top Cards
+                            Array.from({ length: 3 }).map((_, idx) => (
+                                <div key={`skel-${idx}`} style={{
                                     background: '#fff',
                                     padding: '24px',
                                     borderRadius: '16px',
                                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-                                    border: '1px solid #f3f4f6'
+                                    border: '1px solid #f3f4f6',
+                                    height: '140px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between'
                                 }}>
-                                    <div className="card-content-header" style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        marginBottom: '12px'
+                                    <div style={{ height: '20px', width: '60%', background: '#f3f4f6', borderRadius: '4px' }} className="animate-pulse"></div>
+                                    <div style={{ height: '40px', width: '80%', background: '#e5e7eb', borderRadius: '4px' }} className="animate-pulse"></div>
+                                </div>
+                            ))
+                        ) : (
+                            data.slice(0, 3).map((item, index) => {
+                                const price = item.price || item.current_price || item.last_price || 0;
+                                const change = item.change || item.change_percent || 0;
+                                const isUp = change >= 0;
+                                const hostname = safeGetHostname(item.url);
+                                const cleanUnit = (item.unit || '')
+                                    .replace(/USD|CNY|RMB|美元|人民币/gi, '')
+                                    .replace(/[$¥/]/g, '')
+                                    .trim();
+
+                                return (
+                                    <div key={index} className="commodity-card" style={{
+                                        background: '#fff',
+                                        padding: '24px',
+                                        borderRadius: '16px',
+                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+                                        border: '1px solid #f3f4f6'
                                     }}>
-                                        <div className="commodity-info" style={{
+                                        <div className="card-content-header" style={{
                                             display: 'flex',
-                                            flexDirection: 'column',
-                                            gap: '4px'
+                                            justifyContent: 'space-between',
+                                            marginBottom: '12px'
                                         }}>
+                                            <div className="commodity-info" style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '4px'
+                                            }}>
+                                                <span style={{
+                                                    color: '#374151',
+                                                    fontSize: '15px',
+                                                    fontWeight: '600'
+                                                }}>
+                                                    {item.name || item.currency_pair || item.chinese_name || 'Unknown'}
+                                                </span>
+                                                {item.url && (
+                                                    <a
+                                                        href={item.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        style={{
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: '4px',
+                                                            fontSize: '12px',
+                                                            color: '#9ca3af',
+                                                            textDecoration: 'none',
+                                                            maxWidth: '140px',
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            whiteSpace: 'nowrap',
+                                                            fontWeight: '500'
+                                                        }}
+                                                        title={item.url}
+                                                    >
+                                                        <ExternalLink size={11} />
+                                                        {hostname}
+                                                    </a>
+                                                )}
+                                            </div>
                                             <span style={{
-                                                color: '#374151',
-                                                fontSize: '15px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                fontSize: '13px',
+                                                fontWeight: '700',
+                                                color: isUp ? '#10b981' : '#ef4444',
+                                                background: isUp ? '#d1fae5' : '#fee2e2',
+                                                padding: '4px 10px',
+                                                borderRadius: '999px',
+                                                height: 'fit-content'
+                                            }}>
+                                                {isUp ? <ArrowUp size={13} style={{ marginRight: '3px' }} /> : <ArrowDown size={13} style={{ marginRight: '3px' }} />}
+                                                {Math.abs(change)}%
+                                            </span>
+                                        </div>
+                                        <div className="commodity-price" style={{
+                                            fontSize: '36px',
+                                            fontWeight: '800',
+                                            color: '#111827',
+                                            letterSpacing: '-0.02em'
+                                        }}>
+                                            {getCurrencySymbol()}{formatPrice(price)}
+                                            <span style={{
+                                                fontSize: '18px',
+                                                color: '#6b7280',
+                                                marginLeft: '6px',
                                                 fontWeight: '600'
                                             }}>
-                                                {item.name || item.currency_pair || item.chinese_name || 'Unknown'}
+                                                {cleanUnit ? `/${cleanUnit}` : ''}
                                             </span>
-                                            {item.url && (
-                                                <a
-                                                    href={item.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    style={{
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        gap: '4px',
-                                                        fontSize: '12px',
-                                                        color: '#9ca3af',
-                                                        textDecoration: 'none',
-                                                        maxWidth: '140px',
-                                                        overflow: 'hidden',
-                                                        textOverflow: 'ellipsis',
-                                                        whiteSpace: 'nowrap',
-                                                        fontWeight: '500'
-                                                    }}
-                                                    title={item.url}
-                                                >
-                                                    <ExternalLink size={11} />
-                                                    {hostname}
-                                                </a>
-                                            )}
                                         </div>
-                                        <span style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            fontSize: '13px',
-                                            fontWeight: '700',
-                                            color: isUp ? '#10b981' : '#ef4444',
-                                            background: isUp ? '#d1fae5' : '#fee2e2',
-                                            padding: '4px 10px',
-                                            borderRadius: '999px',
-                                            height: 'fit-content'
-                                        }}>
-                                            {isUp ? <ArrowUp size={13} style={{ marginRight: '3px' }} /> : <ArrowDown size={13} style={{ marginRight: '3px' }} />}
-                                            {Math.abs(change)}%
-                                        </span>
                                     </div>
-                                    <div className="commodity-price" style={{
-                                        fontSize: '36px',
-                                        fontWeight: '800',
-                                        color: '#111827',
-                                        letterSpacing: '-0.02em'
-                                    }}>
-                                        {getCurrencySymbol()}{formatPrice(price)}
-                                        <span style={{
-                                            fontSize: '18px',
-                                            color: '#6b7280',
-                                            marginLeft: '6px',
-                                            fontWeight: '600'
-                                        }}>
-                                            {cleanUnit ? `/${cleanUnit}` : ''}
-                                        </span>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            }))}
                     </div>
 
 
@@ -2218,132 +2225,145 @@ const Dashboard = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {displayCommodities.map((item, idx) => {
-                                        const isUp = item.change >= 0;
-                                        return (
-                                            <tr key={idx} style={{
-                                                borderBottom: '1px solid #f3f4f6',
-                                                transition: 'background 0.2s'
-                                            }}
-                                                onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
-                                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                                            >
-                                                {/* 商品名称 */}
-                                                {tableColumns.find(c => c.id === 'name')?.visible && (
-                                                    <td style={{ padding: '16px' }}>
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                            <div style={{
-                                                                width: '32px',
-                                                                height: '32px',
-                                                                borderRadius: '8px',
-                                                                background: '#eff6ff',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'center',
-                                                                color: '#3b82f6',
-                                                                fontWeight: '700',
-                                                                fontSize: '14px'
-                                                            }}>
-                                                                {item.name.charAt(0)}
-                                                            </div>
-                                                            <div>
-                                                                <div style={{ fontWeight: '600', color: '#111827' }}>
-                                                                    {item.name}
+                                    {loading ? (
+                                        // Skeleton Rows
+                                        Array.from({ length: 5 }).map((_, idx) => (
+                                            <tr key={`skel-row-${idx}`} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                                {tableColumns.filter(c => c.visible).map(col => (
+                                                    <td key={col.id} style={{ padding: '16px' }}>
+                                                        <div style={{ height: '20px', width: '80%', background: '#f3f4f6', borderRadius: '4px' }} className="animate-pulse"></div>
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        displayCommodities.map((item, idx) => {
+                                            const isUp = item.change >= 0;
+                                            return (
+                                                <tr key={idx} style={{
+                                                    borderBottom: '1px solid #f3f4f6',
+                                                    transition: 'background 0.2s'
+                                                }}
+                                                    onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+                                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                >
+                                                    {/* 商品名称 */}
+                                                    {tableColumns.find(c => c.id === 'name')?.visible && (
+                                                        <td style={{ padding: '16px' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                <div style={{
+                                                                    width: '32px',
+                                                                    height: '32px',
+                                                                    borderRadius: '8px',
+                                                                    background: '#eff6ff',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    color: '#3b82f6',
+                                                                    fontWeight: '700',
+                                                                    fontSize: '14px'
+                                                                }}>
+                                                                    {item.name.charAt(0)}
                                                                 </div>
-                                                                {item.isRegional && (
-                                                                    <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>
-                                                                        区域均价 (包含 {item.regions?.length || 0} 个地区)
+                                                                <div>
+                                                                    <div style={{ fontWeight: '600', color: '#111827' }}>
+                                                                        {item.name}
                                                                     </div>
+                                                                    {item.isRegional && (
+                                                                        <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>
+                                                                            区域均价 (包含 {item.regions?.length || 0} 个地区)
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    )}
+
+                                                    {/* 当前价格 */}
+                                                    {tableColumns.find(c => c.id === 'price')?.visible && (
+                                                        <td style={{ padding: '16px' }}>
+                                                            <div style={{ fontWeight: '700', color: '#111827', fontSize: '15px' }}>
+                                                                {getCurrencySymbol()}{formatPrice(item.price)}
+                                                            </div>
+                                                        </td>
+                                                    )}
+
+                                                    {/* 涨跌幅 */}
+                                                    {tableColumns.find(c => c.id === 'change')?.visible && (
+                                                        <td style={{ padding: '16px' }}>
+                                                            <div style={{
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                padding: '4px 8px',
+                                                                borderRadius: '6px',
+                                                                background: isUp ? '#d1fae5' : '#fee2e2',
+                                                                color: isUp ? '#10b981' : '#ef4444',
+                                                                fontWeight: '600',
+                                                                fontSize: '13px'
+                                                            }}>
+                                                                {isUp ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+                                                                {Math.abs(item.change)}%
+                                                            </div>
+                                                        </td>
+                                                    )}
+
+                                                    {/* 数据来源 */}
+                                                    {tableColumns.find(c => c.id === 'source')?.visible && (
+                                                        <td style={{ padding: '16px' }}>
+                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                                {item.sources?.slice(0, 2).map((source, sIdx) => {
+                                                                    const hostname = source.source || 'Unknown';
+                                                                    return (
+                                                                        <div key={sIdx} style={{
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            gap: '4px',
+                                                                            fontSize: '12px',
+                                                                            color: '#6b7280'
+                                                                        }}>
+                                                                            <Globe size={10} />
+                                                                            <a href={source.url} target="_blank" rel="noopener noreferrer" style={{ color: '#4b5563', textDecoration: 'none' }}>
+                                                                                {hostname}
+                                                                            </a>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                                {(item.sources?.length || 0) > 2 && (
+                                                                    <span style={{ fontSize: '11px', color: '#9ca3af' }}>
+                                                                        +{item.sources.length - 2} 更多来源...
+                                                                    </span>
                                                                 )}
                                                             </div>
-                                                        </div>
-                                                    </td>
-                                                )}
+                                                        </td>
+                                                    )}
 
-                                                {/* 当前价格 */}
-                                                {tableColumns.find(c => c.id === 'price')?.visible && (
-                                                    <td style={{ padding: '16px' }}>
-                                                        <div style={{ fontWeight: '700', color: '#111827', fontSize: '15px' }}>
-                                                            {getCurrencySymbol()}{formatPrice(item.price)}
-                                                        </div>
-                                                    </td>
-                                                )}
+                                                    {/* 单位 */}
+                                                    {tableColumns.find(c => c.id === 'unit')?.visible && (
+                                                        <td style={{ padding: '16px' }}>
+                                                            <span style={{
+                                                                background: '#f3f4f6',
+                                                                padding: '2px 8px',
+                                                                borderRadius: '4px',
+                                                                fontSize: '12px',
+                                                                color: '#4b5563',
+                                                                fontWeight: '500'
+                                                            }}>
+                                                                {item.unit || '-'}
+                                                            </span>
+                                                        </td>
+                                                    )}
 
-                                                {/* 涨跌幅 */}
-                                                {tableColumns.find(c => c.id === 'change')?.visible && (
-                                                    <td style={{ padding: '16px' }}>
-                                                        <div style={{
-                                                            display: 'inline-flex',
-                                                            alignItems: 'center',
-                                                            padding: '4px 8px',
-                                                            borderRadius: '6px',
-                                                            background: isUp ? '#d1fae5' : '#fee2e2',
-                                                            color: isUp ? '#10b981' : '#ef4444',
-                                                            fontWeight: '600',
-                                                            fontSize: '13px'
-                                                        }}>
-                                                            {isUp ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
-                                                            {Math.abs(item.change)}%
-                                                        </div>
-                                                    </td>
-                                                )}
-
-                                                {/* 数据来源 */}
-                                                {tableColumns.find(c => c.id === 'source')?.visible && (
-                                                    <td style={{ padding: '16px' }}>
-                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                            {item.sources?.slice(0, 2).map((source, sIdx) => {
-                                                                const hostname = source.source || 'Unknown';
-                                                                return (
-                                                                    <div key={sIdx} style={{
-                                                                        display: 'flex',
-                                                                        alignItems: 'center',
-                                                                        gap: '4px',
-                                                                        fontSize: '12px',
-                                                                        color: '#6b7280'
-                                                                    }}>
-                                                                        <Globe size={10} />
-                                                                        <a href={source.url} target="_blank" rel="noopener noreferrer" style={{ color: '#4b5563', textDecoration: 'none' }}>
-                                                                            {hostname}
-                                                                        </a>
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                            {(item.sources?.length || 0) > 2 && (
-                                                                <span style={{ fontSize: '11px', color: '#9ca3af' }}>
-                                                                    +{item.sources.length - 2} 更多来源...
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                )}
-
-                                                {/* 单位 */}
-                                                {tableColumns.find(c => c.id === 'unit')?.visible && (
-                                                    <td style={{ padding: '16px' }}>
-                                                        <span style={{
-                                                            background: '#f3f4f6',
-                                                            padding: '2px 8px',
-                                                            borderRadius: '4px',
-                                                            fontSize: '12px',
-                                                            color: '#4b5563',
-                                                            fontWeight: '500'
-                                                        }}>
-                                                            {item.unit || '-'}
-                                                        </span>
-                                                    </td>
-                                                )}
-
-                                                {/* 更新时间 - 模拟数据 */}
-                                                {tableColumns.find(c => c.id === 'update')?.visible && (
-                                                    <td style={{ padding: '16px', fontSize: '13px', color: '#6b7280' }}>
-                                                        15分钟前
-                                                    </td>
-                                                )}
-                                            </tr>
-                                        );
-                                    })}
-                                    {displayCommodities.length === 0 && (
+                                                    {/* 更新时间 - 模拟数据 */}
+                                                    {tableColumns.find(c => c.id === 'update')?.visible && (
+                                                        <td style={{ padding: '16px', fontSize: '13px', color: '#6b7280' }}>
+                                                            15分钟前
+                                                        </td>
+                                                    )}
+                                                </tr>
+                                            );
+                                        })
+                                    )}
+                                    {!loading && displayCommodities.length === 0 && (
                                         <tr>
                                             <td colSpan={tableColumns.filter(c => c.visible).length} style={{ padding: '32px', textAlign: 'center', color: '#9ca3af' }}>
                                                 未找到符合条件的商品
@@ -2362,25 +2382,43 @@ const Dashboard = () => {
                         gap: '24px',
                         alignItems: 'start'
                     }}>
-                        {displayCommodities.map((comm, index) => {
-                            const isLastOdd = index === displayCommodities.length - 1 && displayCommodities.length % 2 !== 0;
-                            return (
-                                <CommodityCard
-                                    key={comm.id || index}
-                                    comm={comm}
-                                    multiSourceItems={comm.sources}
-                                    currentPrice={comm.currentPrice}
-                                    unit={comm.unit}
-                                    multiSourceHistory={comm.multiSourceHistory}
-                                    historyData={comm.historyData}
-                                    currencySymbol={getCurrencySymbol()}
-                                    formatPrice={formatPrice}
-                                    isLastOdd={isLastOdd}
-                                    currency={currency}
-                                    exchangeRate={exchangeRate}
-                                />
-                            );
-                        })}
+                        {loading ? (
+                            // Skeleton for Charts
+                            Array.from({ length: 4 }).map((_, idx) => (
+                                <div key={`chart-skel-${idx}`} style={{
+                                    background: '#fff',
+                                    borderRadius: '12px',
+                                    height: '350px',
+                                    padding: '20px',
+                                    border: '1px solid #f3f4f6'
+                                }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                        <div style={{ width: '120px', height: '24px', background: '#f3f4f6', borderRadius: '4px' }} className="animate-pulse"></div>
+                                        <div style={{ width: '80px', height: '30px', background: '#f3f4f6', borderRadius: '4px' }} className="animate-pulse"></div>
+                                    </div>
+                                    <div style={{ width: '100%', height: '240px', background: '#f9fafb', borderRadius: '8px' }} className="animate-pulse"></div>
+                                </div>
+                            ))
+                        ) : (
+                            displayCommodities.map((comm, index) => {
+                                const isLastOdd = index === displayCommodities.length - 1 && displayCommodities.length % 2 !== 0;
+                                return (
+                                    <CommodityCard
+                                        key={comm.id || index}
+                                        comm={comm}
+                                        multiSourceItems={comm.sources}
+                                        currentPrice={comm.currentPrice}
+                                        unit={comm.unit}
+                                        multiSourceHistory={comm.multiSourceHistory}
+                                        historyData={comm.historyData}
+                                        currencySymbol={getCurrencySymbol()}
+                                        formatPrice={formatPrice}
+                                        isLastOdd={isLastOdd}
+                                        currency={currency}
+                                        exchangeRate={exchangeRate}
+                                    />
+                                );
+                            }))}
                     </div>
                 </div>
 

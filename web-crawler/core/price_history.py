@@ -59,116 +59,76 @@ class PriceHistoryManager:
     
     def save_daily_price(self, commodity_name: str, price: float, 
                          change_percent: float = 0, source: str = "",
-                         date: str = None):
+                         date: str = None, source_url: str = None, 
+                         extra_data: Dict = {}):
         """
-        保存每日价格数据（仅保存到 MySQL）
+        保存每日价格数据 (通过标准 Pipeline 处理)
         
         Args:
-            commodity_name: 商品名称（如 COMEX黄金、SMM铜）
+            commodity_name: 商品名称
             price: 当前价格
             change_percent: 涨跌幅
             source: 数据来源
-            date: 日期字符串 YYYY-MM-DD（默认今天）
+            date: 日期字符串 YYYY-MM-DD
+            source_url: 来源 URL (新增)
+            extra_data: 额外数据字典 (新增)
         """
-        success = False
-        
-        if date is None:
-            date = datetime.now().strftime("%Y-%m-%d")
-        
-        # 保存到 MySQL commodity_history 表
         try:
-            from database.mysql.connection import get_cursor
-            import re
-            import uuid
+            from database.mysql.pipeline import get_pipeline
             
-            # 生成 commodity_id（从commodity_name推断或查询commodity_latest）
-            commodity_id = None
-            chinese_name = commodity_name
-            english_name = None
-            category = None
+            # 1. 构造标准数据字典
+            if date is None:
+                date = datetime.now().strftime("%Y-%m-%d")
             
-            # 先尝试从 commodity_latest 查询元数据
-            with get_cursor() as cursor:
-                cursor.execute("""
-                    SELECT id, name, chinese_name, category
-                    FROM commodity_latest
-                    WHERE name = %s OR chinese_name = %s
-                    LIMIT 1
-                """, (commodity_name, commodity_name))
-                
-                row = cursor.fetchone()
-                if row:
-                    commodity_id = row['id']
-                    english_name = row['name']
-                    chinese_name = row['chinese_name'] or commodity_name
-                    category = row['category']
-            
-            # 如果找不到，生成commodity_id
-            if not commodity_id:
-                # 判断是中文还是英文
-                is_chinese = bool(re.search(r'[\u4e00-\u9fff]', commodity_name))
-                if is_chinese:
-                    # 中文映射
-                    id_map = {
-                        '钯金': 'palladium', '铂金': 'platinum', '黄金': 'gold',
-                        '白银': 'silver', '铜': 'copper', '铝': 'aluminum',
-                        '锌': 'zinc', '镍': 'nickel', '铅': 'lead', '锡': 'tin'
-                    }
-                    commodity_id = next((v for k, v in id_map.items() if k in commodity_name), 
-                                       commodity_name.lower().replace(' ', '_'))
-                    chinese_name = commodity_name
-                else:
-                    commodity_id = commodity_name.lower().replace(' ', '_').replace('-', '_')
-                    english_name = commodity_name
-            
-            # 构建 version_ts (日期 + 当前时间)
+            # 处理时间
             if isinstance(date, str):
-                date_obj = datetime.strptime(date, "%Y-%m-%d").date()
+                try:
+                    # 尝试解析 YYYY-MM-DD
+                    date_obj = datetime.strptime(date, "%Y-%m-%d")
+                    # 设置为当天最后时刻，或当前时刻? Pipeline default is now.
+                    # 保持兼容这里的语义，如果传入了 date，应该是该 date 的数据
+                    # 这里设置为 date 的 23:59:59 或者当前时间?
+                    # 如果 date 是今天，用当前时间；如果是过去，用 23:59:59?
+                    # 简单起见，如果 date 是str，视为 version_ts 的日期部分
+                    if date == datetime.now().strftime("%Y-%m-%d"):
+                        version_ts = datetime.now()
+                    else:
+                        version_ts = date_obj.replace(hour=23, minute=59, second=59)
+                except:
+                    version_ts = datetime.now()
+            elif isinstance(date, datetime):
+                version_ts = date
             else:
-                date_obj = date
-            version_ts = datetime.combine(date_obj, datetime.now().time())
+                version_ts = datetime.now()
+                
+            raw_record = {
+                "name": commodity_name,
+                "chinese_name": commodity_name, # Pipeline 会再次尝试标准化
+                "price": price,
+                "change_percent": change_percent,
+                "source": source,
+                "version_ts": version_ts.isoformat(),
+                "url": source_url,
+                **extra_data
+            }
             
-            # 生成 request_id
-            request_id = f"price_history_{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:8]}"
+            # 2. 调用 Pipeline
+            # 注意: pipeline.process_batch 接受 list
+            result = get_pipeline().process_batch([raw_record], source or "price_history_api")
             
-            # 插入 commodity_history
-            sql = """
-                INSERT INTO commodity_history 
-                (commodity_id, name, chinese_name, category,
-                 price, price_unit, change_percent,
-                 source, version_ts, record_date, request_id)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON DUPLICATE KEY UPDATE 
-                    price = VALUES(price),
-                    change_percent = VALUES(change_percent),
-                    source = VALUES(source),
-                    version_ts = VALUES(version_ts),
-                    recorded_at = CURRENT_TIMESTAMP(3)
-            """
+            if result['inserted'] > 0 or result['updated'] > 0 or result['unchanged'] > 0:
+                return True
+            if result['errors'] > 0:
+                print(f"⚠️ Pipeline 处理 {commodity_name} 失败: errors > 0")
+                return False
+                
+            return True
             
-            with get_cursor(commit=True) as cursor:
-                cursor.execute(sql, (
-                    commodity_id,
-                    english_name or commodity_name,
-                    chinese_name,
-                    category,
-                    price,
-                    'USD',  # 默认USD
-                    change_percent,
-                    source or 'price_history',
-                    version_ts,
-                    date_obj,
-                    request_id
-                ))
-            
-            success = True
         except Exception as e:
-            print(f"⚠️ 保存价格历史到 MySQL 失败: {e}")
+            print(f"⚠️ 保存价格历史失败 (Pipeline): {e}")
             import traceback
             traceback.print_exc()
             return False
-                
-        return success
     
     def get_history(self, commodity_name: str, days: int = 7) -> List[Dict[str, Any]]:
         """
@@ -254,6 +214,8 @@ class PriceHistoryManager:
             sql = """
                 WITH ranked_records AS (
                     SELECT 
+                        commodity_id,
+                        name,
                         chinese_name,
                         DATE(version_ts) as record_date,
                         price,
@@ -261,35 +223,60 @@ class PriceHistoryManager:
                         source,
                         version_ts,
                         ROW_NUMBER() OVER (
-                            PARTITION BY chinese_name, DATE(version_ts)
+                            PARTITION BY commodity_id, DATE(version_ts)
                             ORDER BY version_ts DESC
                         ) as rn
                     FROM commodity_history
                     WHERE version_ts >= %s
                 )
-                SELECT chinese_name, record_date, price, change_percent, source
+                SELECT commodity_id, name, chinese_name, record_date, price, change_percent, source
                 FROM ranked_records
                 WHERE rn = 1
-                ORDER BY chinese_name, record_date ASC
+                ORDER BY commodity_id, record_date ASC
             """
             
             with get_cursor() as cursor:
                 cursor.execute(sql, (cutoff_date,))
                 rows = cursor.fetchall()
                 
+                # 预定义ID到英文显示名称的映射 (修正旧数据)
+                id_to_english = {
+                    'palladium': 'Palladium',
+                    'platinum': 'Platinum', 
+                    'nickel': 'Nickel',
+                    'zinc': 'Zinc',
+                    'lead': 'Lead',
+                    'copper': 'Copper',
+                    'aluminum': 'Aluminum',
+                    'tin': 'Tin',
+                    'gold': 'Gold',
+                    'silver': 'Silver'
+                }
+
                 for row in rows:
-                    name = row['chinese_name']
-                    if name not in result:
-                        result[name] = []
+                    keys = set()
+                    if row['chinese_name']: keys.add(row['chinese_name'])
+                    if row['name']: keys.add(row['name'])
+                    if row['commodity_id']: 
+                        keys.add(row['commodity_id'])
+                        # 补充标准英文名
+                        if row['commodity_id'] in id_to_english:
+                            keys.add(id_to_english[row['commodity_id']])
                     
                     date_str = row['record_date'].strftime("%Y-%m-%d") if hasattr(row['record_date'], 'strftime') else str(row['record_date'])
                     
-                    result[name].append({
+                    item = {
                         "date": date_str,
                         "price": float(row['price']),
                         "change_percent": float(row['change_percent'] or 0),
                         "source": row['source'] or ""
-                    })
+                    }
+                    
+                    for k in keys:
+                        if k not in result:
+                            result[k] = []
+                        result[k].append(item)
+
             
             print(f"✅ 从 MySQL 批量获取了 {sum(len(v) for v in result.values())} 条历史记录")
             
@@ -317,7 +304,17 @@ class PriceHistoryManager:
             source = item.get("source", "")
             
             if name and price:
-                if self.save_daily_price(name, price, change, source, today):
+                # 提取额外字段
+                url = item.get("url") or item.get("source_url")
+                # 排除已知字段作为 extra_data
+                exclude_keys = {
+                    'name', 'chinese_name', 'price', 'current_price', 
+                    'change_percent', 'source', 'url', 'source_url', 'timestamp', 'date'
+                }
+                extra = {k: v for k, v in item.items() if k not in exclude_keys}
+                
+                if self.save_daily_price(name, price, change, source, today, 
+                                       source_url=url, extra_data=extra):
                     saved_count += 1
         
         print(f"✅ 已保存 {saved_count} 条价格历史记录 ({today})")
