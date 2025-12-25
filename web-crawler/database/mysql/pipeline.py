@@ -46,12 +46,12 @@ class CommodityRecord:
     def to_dict(self) -> Dict:
         """转为字典 (用于数据库操作)"""
         d = asdict(self)
-        d['price'] = float(self.price) if self.price else 0
-        d['change_percent'] = float(self.change_percent) if self.change_percent else None
-        d['change_value'] = float(self.change_value) if self.change_value else None
-        d['high_price'] = float(self.high_price) if self.high_price else None
-        d['low_price'] = float(self.low_price) if self.low_price else None
-        d['open_price'] = float(self.open_price) if self.open_price else None
+        d['price'] = float(self.price) if self.price is not None else 0
+        d['change_percent'] = float(self.change_percent) if self.change_percent is not None else None
+        d['change_value'] = float(self.change_value) if self.change_value is not None else None
+        d['high_price'] = float(self.high_price) if self.high_price is not None else None
+        d['low_price'] = float(self.low_price) if self.low_price is not None else None
+        d['open_price'] = float(self.open_price) if self.open_price is not None else None
         d['extra_data'] = json.dumps(self.extra_data, ensure_ascii=False) if self.extra_data else '{}'
         return d
 
@@ -136,7 +136,6 @@ def standardize_record(raw: Dict[str, Any], source: str) -> Optional[CommodityRe
     # 标准化 ID
     commodity_id = COMMODITY_ID_MAP.get(name, name.lower().replace(' ', '_'))
     
-    # 获取价格
     price = raw.get('price') or raw.get('current_price') or 0
     try:
         price = Decimal(str(price))
@@ -154,20 +153,43 @@ def standardize_record(raw: Dict[str, Any], source: str) -> Optional[CommodityRe
         except:
             version_ts = datetime.now()
     
+    # 获取标准英文名称 (如果存在)
+    display_name_map = {
+        'platinum': 'Platinum',
+        'palladium': 'Palladium',
+        'gold': 'Gold',
+        'silver': 'Silver',
+        'oil_brent': 'Oil (Brent)',
+        'oil_wti': 'Oil (WTI)',
+        'natural_gas': 'Natural Gas',
+        'copper': 'Copper',
+        'aluminum': 'Aluminum',
+        'zinc': 'Zinc',
+        'nickel': 'Nickel',
+        'lead': 'Lead',
+        'tin': 'Tin',
+        'corn': 'Corn',
+        'wheat': 'Wheat',
+        'soybeans': 'Soybeans'
+    }
+    
+    # 优先使用英文名称
+    final_name = display_name_map.get(commodity_id, name)
+    
     # 构建标准记录
     return CommodityRecord(
         id=commodity_id,
-        name=name,
+        name=final_name,
         chinese_name=raw.get('chinese_name', name),
         category=CATEGORY_MAP.get(commodity_id, raw.get('category', '其他')),
         price=price,
         price_unit=raw.get('price_unit', 'USD'),
         weight_unit=raw.get('weight_unit') or raw.get('unit', '').replace('USD/', '').replace('CNY/', ''),
-        change_percent=Decimal(str(raw['change_percent'])) if raw.get('change_percent') else None,
-        change_value=Decimal(str(raw['change_value'])) if raw.get('change_value') else None,
-        high_price=Decimal(str(raw['high_price'])) if raw.get('high_price') else None,
-        low_price=Decimal(str(raw['low_price'])) if raw.get('low_price') else None,
-        open_price=Decimal(str(raw['open_price'])) if raw.get('open_price') else None,
+        change_percent=Decimal(str(raw['change_percent'])) if raw.get('change_percent') is not None else None,
+        change_value=Decimal(str(raw['change_value'])) if raw.get('change_value') is not None else None,
+        high_price=Decimal(str(raw['high_price'])) if raw.get('high_price') is not None else None,
+        low_price=Decimal(str(raw['low_price'])) if raw.get('low_price') is not None else None,
+        open_price=Decimal(str(raw['open_price'])) if raw.get('open_price') is not None else None,
         source=source,
         source_url=raw.get('url') or raw.get('source_url'),
         version_ts=version_ts,
@@ -354,8 +376,12 @@ class CommodityPipeline:
                             stats['unchanged'] += 1
                             continue
                     
+                    
                     # 5. 列级差分
                     changes = diff_records(old_record, record)
+                    
+                    # 7. 写历史存档 (无论是否有变更，都尝试更新今日历史，确保 heartbeat)
+                    self._write_history(cursor, record, request_id)
                     
                     if not changes:
                         # 无变化
@@ -377,8 +403,9 @@ class CommodityPipeline:
                             self._insert_latest(cursor, record)
                             stats['inserted'] += 1
                     
-                    # 7. 写历史存档
-                    self._write_history(cursor, record, request_id)
+                    
+                    # 7. 写历史存档 (已移至上方)
+                    # self._write_history(cursor, record, request_id)
                     
                     # 8. 记录变更日志
                     for change in changes:
