@@ -672,9 +672,8 @@ async def get_market_analysis(refresh: bool = False):
     return result
 
 
-@router.post("/api/generate-analysis")
-async def generate_analysis(request: AnalysisRequest):
-    """使用 AI 生成供应链分析报告"""
+def _generate_analysis_sync(request: AnalysisRequest):
+    """同步版本的分析生成逻辑 (运行在线程池中)"""
     
     ai_config = get_ai_config()
     internal = ai_config["internal"]
@@ -936,3 +935,11 @@ async def generate_analysis(request: AnalysisRequest):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"生成分析失败: {str(e)}")
+
+
+@router.post("/api/generate-analysis")
+async def generate_analysis(request: AnalysisRequest):
+    """使用 AI 生成供应链分析报告 (异步非阻塞版)"""
+    loop = asyncio.get_running_loop()
+    # 将同步的重型任务放入线程池执行，避免阻塞主线程
+    return await loop.run_in_executor(_executor, _generate_analysis_sync, request)
