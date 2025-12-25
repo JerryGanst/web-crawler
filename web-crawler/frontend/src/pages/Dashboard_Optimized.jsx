@@ -192,7 +192,7 @@ const Dashboard = () => {
     const [priceHistory, setPriceHistory] = useState({});
     const [currency, setCurrency] = useState('CNY');
     const [exchangeRate, setExchangeRate] = useState(7.2);
-    const [timeRange, setTimeRange] = useState('day');
+    const [timeRange, setTimeRange] = useState('week'); // Default to week
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
     // Settings Modal State
@@ -291,17 +291,18 @@ const Dashboard = () => {
         }
         let current = basePrice;
         const volatility = basePrice * 0.02;
-        const isWeek = timeRange === 'week';
+        // Fix: logic for week/month interval
+        const isDayIter = timeRange === 'day'; // 1 hour interval
+        const intervalMs = isDayIter ? 3600000 : 86400000; // Day=1hr, Week/Month=24hr
+
         return Array.from({ length: points }, (_, i) => {
             const change = (Math.random() - 0.5) * volatility;
             current += change;
-            const dateObj = new Date(Date.now() - (points - i) * (isWeek ? 86400000 : 3600000));
+            const dateObj = new Date(Date.now() - (points - i) * intervalMs);
             return {
                 time: i,
-                price: current,
-                date: isWeek
-                    ? dateObj.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
-                    : dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                price: Math.max(0, current),
+                date: dateObj.toISOString(),
                 isReal: false
             };
         });
@@ -419,7 +420,7 @@ const Dashboard = () => {
 
         // 自动选中该分类下的所有商品（塑料子分类通常不多）
         const newSelected = new Set();
-        const maxSelect = activeCommodityTab === 'plastics' ? tabCommodities.length : 6;
+        const maxSelect = tabCommodities.length;
         for (const commodity of tabCommodities.slice(0, maxSelect)) {
             newSelected.add(commodity.name);
         }
@@ -551,18 +552,18 @@ const Dashboard = () => {
                 // 尝试从所有原始名称获取历史数据
                 let historyData = null;
                 for (const rawName of commodity.rawNames || [commodity.name]) {
-                    historyData = getHistoryData(rawName, price, timeRange === 'day' ? 24 : 7);
+                    historyData = getHistoryData(rawName, price, timeRange === 'day' ? 24 : (timeRange === 'week' ? 7 : 30));
                     if (historyData && historyData.some(h => h.isReal)) break;
                 }
                 if (!historyData) {
-                    historyData = getHistoryData(commodity.name, price, timeRange === 'day' ? 24 : 7);
+                    historyData = getHistoryData(commodity.name, price, timeRange === 'day' ? 24 : (timeRange === 'week' ? 7 : 30));
                 }
 
                 // 为区域商品获取多区域历史数据
                 let multiSourceHistory = null;
                 if (commodity.isRegional && commodity.regions && commodity.regions.length > 0) {
                     multiSourceHistory = commodity.regions.map(region => {
-                        const regionHistory = getHistoryData(region.fullName, region.price, timeRange === 'day' ? 24 : 7);
+                        const regionHistory = getHistoryData(region.fullName, region.price, timeRange === 'day' ? 24 : (timeRange === 'week' ? 7 : 30));
                         return {
                             source: region.name,
                             color: region.color,
@@ -577,6 +578,7 @@ const Dashboard = () => {
                     name: commodity.name,
                     basePrice: price,
                     currentPrice: price,
+                    price: price, // Fix: Ensure 'price' property exists for Table/List view
                     color: colors[idx % colors.length],
                     unit: commodity.unit || '',
                     change: commodity.change,
@@ -702,7 +704,12 @@ const Dashboard = () => {
 
     const loadPriceHistory = async () => {
         try {
-            const response = await api.getPriceHistory(null, timeRange === 'week' ? 7 : 1);
+            // Fix: handle 'month' case
+            let days = 1;
+            if (timeRange === 'week') days = 7;
+            if (timeRange === 'month') days = 30;
+
+            const response = await api.getPriceHistory(null, days);
             // Fix: Read 'data' field instead of 'commodities'
             const historyData = response.data?.data || {};
             console.log('📦 [Price History] API返回的历史数据keys:', Object.keys(historyData));
@@ -1082,7 +1089,14 @@ const Dashboard = () => {
                 if (comm.id === 'palladium' || comm.id === 'platinum') {
                     console.warn(`⚠️ [${comm.id}] NO matchingItems found! multiSourceHistory will be null`);
                 }
-                return { ...comm, multiSourceItems: [], multiSourceHistory: null };
+                // Fix: Ensure price/currentPrice exists even if no API match
+                return {
+                    ...comm,
+                    price: comm.basePrice,
+                    currentPrice: comm.basePrice,
+                    multiSourceItems: [],
+                    multiSourceHistory: null
+                };
             }
 
             const multiSourceHistory = matchingItems.map((item, idx) => {
@@ -1107,7 +1121,7 @@ const Dashboard = () => {
                 const histData = getHistoryData(
                     chineseName, // 使用中文名称查询历史数据
                     parseFloat(price || 0),
-                    timeRange === 'day' ? 24 : 7
+                    timeRange === 'day' ? 24 : (timeRange === 'week' ? 7 : 30)
                 );
                 return {
                     source: safeGetHostname(item.url) || `来源${idx + 1}`,
@@ -1131,6 +1145,7 @@ const Dashboard = () => {
                 ...comm,
                 unit,
                 currentPrice,
+                price: currentPrice, // Fix: Ensure 'price' property exists for Table/List view
                 multiSourceItems: matchingItems,
                 multiSourceHistory
             };
@@ -2184,7 +2199,7 @@ const Dashboard = () => {
                         )}
 
                         {/* Data Table */}
-                        <div style={{ overflowX: 'auto' }}>
+                        <div style={{ overflowX: 'auto', maxHeight: '600px', overflowY: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
                                 <thead>
                                     <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>

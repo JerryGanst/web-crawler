@@ -19,3 +19,5 @@ trigger: always_on
 五、扩展要求
 技术选型优先成熟活跃的栈，代码遵循开闭原则；后端支持链路追踪，前端集成埋点，保障可观测性。
 mysql、redis、mongodb的配置分别在config/database.yaml、config/redis.yaml、config/mongodb.yaml中
+
+测试验证产生的文件，验证完成之后就自动删除

@@ -91,22 +91,8 @@ def _background_fetch_commodity_data(cache_key: str):
             "background_refresh": True,
             "categories": list(set(item.get('category', '其他') for item in data))
         }
-        cache.set(cache_key, result, ttl=CACHE_TTL)
+    
         
-        # 写入 MongoDB
-        try:
-            from database.manager import db_manager
-            if db_manager.mongodb_enabled:
-                # 全量归档
-                count = db_manager.commodity_repo.save_batch(data)
-                print(f"✅ [后台] 已归档 {count} 条商品数据到 MongoDB")
-                
-                # 快照保存
-                db_manager.news_repo.save_snapshot(cache_key, result)
-                print(f"✅ [后台] 商品数据快照已保存")
-        except Exception as e:
-            print(f"⚠️ [后台] MongoDB 归档失败: {e}")
-
         # 写入 MySQL（如果已启用），按来源分组以保留真实来源
         try:
             stats_by_source = {}
@@ -124,6 +110,7 @@ def _background_fetch_commodity_data(cache_key: str):
             print(f"⚠️ MySQL 入库失败: {e}")
         
         print(f"✅ [后台] 商品数据完成: {len(data)} 条")
+        cache.set(cache_key, result, ttl=CACHE_TTL)
     except Exception as e:
         print(f"❌ [后台] 商品数据失败: {e}")
     finally:
@@ -174,46 +161,53 @@ async def get_data(refresh: bool = False):
         cached["cached"] = True
         return cached
 
-    # 缓存未命中，尝试从 MongoDB 快照获取 (快照回源)
+    # 缓存未命中，尝试从 MySQL 快照 (commodity_latest) 获取
     try:
         from database.manager import db_manager
-        if db_manager.mongodb_enabled:
-            snapshot = db_manager.news_repo.get_snapshot(cache_key)
-            if snapshot and snapshot.get("data"):
-                print("🔄 [API] Commodity Redis Miss，从 MongoDB 快照恢复")
-                result = snapshot["data"]
-                result["from_snapshot"] = True
-                result["cached"] = False
-                
-                # 回写 Redis
-                cache.set(cache_key, result, ttl=CACHE_TTL)
-                return result
+        latest_data = db_manager.get_commodity_latest()
+        
+        if latest_data:
+            print("🔄 [API] Redis Miss -> 从 MySQL 快照 (commodity_latest) 恢复")
+            
+            # 构建标准响应
+            result = {
+                "data": latest_data,
+                "source": "TrendRadar MySQL Snapshot",
+                "timestamp": datetime.now().isoformat(),
+                "cached": False,
+                "from_snapshot": True,
+                "categories": list(set(item.get('category', '其他') for item in latest_data))
+            }
+            cache.set(cache_key, result, ttl=CACHE_TTL)
+            return result
+            
     except Exception as e:
-        print(f"⚠️ [API] MongoDB 快照恢复失败: {e}")
+        print(f"⚠️ [API] MySQL 快照恢复失败: {e}")
 
-    # 快照缺失，尝试从历史归档获取 (降级读取)
+    # 快照缺失，尝试从历史归档 (commodity_history) 获取当天数据
     try:
-        from database.manager import db_manager
-        if db_manager.mongodb_enabled:
-            latest_data = db_manager.commodity_repo.get_latest_batch()
-            if latest_data:
-                print("🔄 [API] 快照缺失，从历史归档加载最新商品数据")
-                
-                # 重新构建缓存结构
-                result = {
-                    "data": latest_data,
-                    "source": "TrendRadar Commodity (Archive)",
-                    "timestamp": datetime.now().isoformat(),
-                    "cached": False,
-                    "from_archive": True,
-                    "categories": list(set(item.get('category', '其他') for item in latest_data))
-                }
-                
-                # 回写 Redis (Cache-Aside)
-                cache.set(cache_key, result, ttl=CACHE_TTL)
-                return result
+        from database.mysql.pipeline import get_commodities_by_date
+        today_data = get_commodities_by_date(datetime.now())
+        
+        if today_data:
+            print("🔄 [API] MySQL 快照缺失 -> 从历史归档 (commodity_history) 加载今日数据")
+            
+            # 兼容处理: 历史表字段转为前端需要的格式 (如果字段名有差异)
+            # 目前 commodity_history 与 latest 字段基本一致
+            
+            result = {
+                "data": today_data,
+                "source": "TrendRadar MySQL History",
+                "timestamp": datetime.now().isoformat(),
+                "cached": False,
+                "from_archive": True,
+                "categories": list(set(item.get('category', '其他') for item in today_data))
+            }
+            cache.set(cache_key, result, ttl=CACHE_TTL)
+            return result
+            
     except Exception as e:
-        print(f"⚠️ [API] MongoDB 降级读取失败: {e}")
+        print(f"⚠️ [API] MySQL 历史归档读取失败: {e}")
     
     # 缓存未命中且DB无数据，触发后台爬取
     _background_fetch_commodity_data(cache_key)
@@ -257,8 +251,8 @@ async def get_price_history(commodity: Optional[str] = None, days: int = 7):
                 "cached": False
             }
         
-        # 缓存 半小时
-        cache.set(cache_key, result, ttl=1800)
+        # 缓存 五分钟
+        cache.set(cache_key, result, ttl=300)
         return result
         
     except Exception as e:
