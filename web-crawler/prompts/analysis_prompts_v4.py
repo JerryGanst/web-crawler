@@ -598,7 +598,11 @@ def build_material_section(
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.tight_layout()
-        plt.savefig(save_path,dpi=150)
+        try:
+            plt.savefig(save_path,dpi=150)
+            print(f"【调试】{name} - 图片保存成功")
+        except Exception as e:
+            print(f"【调试】{name} - 保存失败：{str(e)}")  # 打印保存异常
         plt.close()
         if save_path:
             return save_path
