@@ -717,7 +717,7 @@ def build_material_section(
             metals.append(item)
     # 构建报告
     lines = ["## 原材料行情数据\n"]
-    lines.append(f"> 📊 数据更新时间：{datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    lines.append(f"> 📊 数据更新时间：{datetime.now().strftime('%Y-%m-%d %H:%M')")
     lines.append("> 💡 本部分数据为实时采集，未经大模型处理\n")
     
     def format_change(value: Optional[float]) -> str:
