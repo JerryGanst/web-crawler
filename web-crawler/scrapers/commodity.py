@@ -106,6 +106,8 @@ class CommodityScraper:
             ('https://hq.sinajs.cn/list=hf_CL', '原油', 'WTI原油'),
             ('https://hq.sinajs.cn/list=hf_NG', '天然气', '天然气'),
             ('https://hq.sinajs.cn/list=hf_HG', '铜', 'COMEX铜'),
+            ('https://hq.sinajs.cn/list=hf_XPT', '铂金', '铂金'),
+            ('https://hq.sinajs.cn/list=hf_XPD', '钯金', '钯金'),
         ]
         
         for url, cn_name, full_name in urls:

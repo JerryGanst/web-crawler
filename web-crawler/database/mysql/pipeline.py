@@ -445,21 +445,31 @@ class CommodityPipeline:
         cursor.execute(sql, params)
     
     def _write_history(self, cursor, record: CommodityRecord, request_id: str):
-        """写入历史存档"""
+        """写入历史存档 (每天只保留一条最新)"""
         data = record.to_dict()
         data['commodity_id'] = record.id
         data['request_id'] = request_id
+        # 新增 record_date (截取 version_ts 的日期部分)
+        data['record_date'] = record.version_ts.date()
         
         cursor.execute("""
             INSERT INTO commodity_history 
             (commodity_id, name, chinese_name, category, price, price_unit, weight_unit,
              change_percent, change_value, high_price, low_price, open_price,
-             source, source_url, version_ts, request_id, extra_data)
+             source, source_url, record_date, version_ts, request_id, extra_data)
             VALUES 
             (%(commodity_id)s, %(name)s, %(chinese_name)s, %(category)s, %(price)s, %(price_unit)s, %(weight_unit)s,
              %(change_percent)s, %(change_value)s, %(high_price)s, %(low_price)s, %(open_price)s,
-             %(source)s, %(source_url)s, %(version_ts)s, %(request_id)s, %(extra_data)s)
-            ON DUPLICATE KEY UPDATE recorded_at = CURRENT_TIMESTAMP(3)
+             %(source)s, %(source_url)s, %(record_date)s, %(version_ts)s, %(request_id)s, %(extra_data)s)
+            ON DUPLICATE KEY UPDATE 
+                price = VALUES(price),
+                change_percent = VALUES(change_percent),
+                change_value = VALUES(change_value),
+                high_price = VALUES(high_price),
+                low_price = VALUES(low_price),
+                version_ts = VALUES(version_ts),
+                request_id = VALUES(request_id),
+                recorded_at = CURRENT_TIMESTAMP(3)
         """, data)
     
     def _write_change_log(self, cursor, request_id: str, change: ChangeRecord):
@@ -534,6 +544,25 @@ def get_price_history(commodity_id: str, start_time: datetime = None, end_time: 
         
         sql += " ORDER BY version_ts DESC"
         cursor.execute(sql, params)
+        return cursor.fetchall()
+
+
+def get_commodities_by_date(target_date: datetime = None) -> List[Dict]:
+    """
+    获取指定日期的所有商品历史记录
+    (用于当 commodity_latest 缺失时，从历史归档中恢复当天数据)
+    """
+    if target_date is None:
+        target_date = datetime.now()
+        
+    date_str = target_date.strftime("%Y-%m-%d")
+    
+    with get_cursor() as cursor:
+        # 简单查询指定日期的记录
+        cursor.execute(
+            "SELECT * FROM commodity_history WHERE record_date = %s",
+            (date_str,)
+        )
         return cursor.fetchall()
 
 

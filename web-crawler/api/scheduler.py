@@ -133,15 +133,20 @@ class BackgroundScheduler:
             category_order = {'贵金属': 0, '能源': 1, '工业金属': 2, '农产品': 3, '其他': 4}
             data.sort(key=lambda x: category_order.get(x.get('category', '其他'), 4))
             
-            # 1. 写入 MongoDB
-            try:
-                from database.manager import db_manager
-                if db_manager.mongodb_enabled:
-                    count = db_manager.commodity_repo.save_batch(data)
-                    print(f"✅ [定时] 已归档 {count} 条商品数据到 MongoDB")
-            except Exception as e:
-                print(f"⚠️ [定时] MongoDB 归档失败: {e}")
             
+
+
+
+            
+            # 1. 保存价格历史 (MySQL 优先)
+            try:
+                from core.price_history import PriceHistoryManager
+                history_manager = PriceHistoryManager()
+                history_manager.save_current_prices(data)
+                print(f"✅ [定时] 价格历史已保存到 MySQL")
+            except Exception as e:
+                print(f"⚠️ [定时] 保存价格历史失败: {e}")
+
             # 2. 写入 Redis (保持原有缓存逻辑)
             result = {
                 "data": data,
@@ -152,24 +157,6 @@ class BackgroundScheduler:
                 "categories": list(set(item.get('category', '其他') for item in data))
             }
             cache.set("data:commodity", result, ttl=CACHE_TTL)
-            
-            # # 3. 写入 MongoDB 快照 (作为 Redis 的持久化备份)
-            # try:
-            #     from database.manager import db_manager
-            #     if db_manager.mongodb_enabled:
-            #         # 使用 news_repo 统一管理快照
-            #         db_manager.news_repo.save_snapshot("data:commodity", result)
-            #         print(f"✅ [定时] 大宗商品数据快照已保存到 MongoDB")
-            # except Exception as e:
-            #     print(f"⚠️ [定时] MongoDB 快照保存失败: {e}")
-
-            # 保存价格历史
-            try:
-                from core.price_history import PriceHistoryManager
-                history_manager = PriceHistoryManager()
-                history_manager.save_current_prices(data)
-            except Exception as e:
-                print(f"⚠️ [定时] 保存价格历史失败: {e}")
             
             print(f"⏰ [定时] 大宗商品数据完成: {len(data)} 条")
         except Exception as e:

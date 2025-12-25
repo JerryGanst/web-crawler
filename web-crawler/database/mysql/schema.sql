@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS commodity_history (
     source_url VARCHAR(512),
     
     -- 时间戳
+    record_date DATE NOT NULL COMMENT '记录日期 (YYYY-MM-DD)',
     version_ts DATETIME(3) NOT NULL COMMENT '数据版本时间',
     recorded_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) COMMENT '入库时间',
     
@@ -90,10 +91,11 @@ CREATE TABLE IF NOT EXISTS commodity_history (
     
     extra_data JSON,
     
-    -- 唯一约束: 同一商品同一版本只存一次 (幂等)
-    UNIQUE KEY uk_commodity_version (commodity_id, version_ts),
+    -- 唯一约束: 每天只保留一条记录 (Upsert)
+    UNIQUE KEY uk_commodity_date (commodity_id, record_date),
     
     INDEX idx_commodity_id (commodity_id),
+    INDEX idx_record_date (record_date),
     INDEX idx_version_ts (version_ts),
     INDEX idx_request_id (request_id),
     INDEX idx_recorded_at (recorded_at)
@@ -253,20 +255,3 @@ CREATE TABLE IF NOT EXISTS exchange_rates (
     INDEX idx_currency_pair (base_currency, target_currency),
     INDEX idx_created_at (created_at DESC)
 ) ENGINE=InnoDB COMMENT='汇率历史表';
-
--- ============================================================
--- 9. 商品每日价格历史表: commodity_price_history
--- 说明: 简单的每日价格记录，替代 Redis 存储，防止数据丢失
--- ============================================================
-CREATE TABLE IF NOT EXISTS commodity_price_history (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(128) NOT NULL COMMENT '商品名称',
-    price DECIMAL(20, 6) NOT NULL COMMENT '价格',
-    change_percent DECIMAL(10, 4) COMMENT '涨跌幅',
-    source VARCHAR(64) COMMENT '数据来源',
-    record_date DATE NOT NULL COMMENT '记录日期',
-    created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
-    UNIQUE KEY uk_name_date (name, record_date),
-    INDEX idx_name (name),
-    INDEX idx_record_date (record_date)
-) ENGINE=InnoDB COMMENT='商品每日价格历史表';

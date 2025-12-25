@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { 
-    Building2, 
-    Swords, 
+import {
+    Building2,
+    Swords,
     ExternalLink,
     TrendingUp,
     Factory,
@@ -29,9 +29,9 @@ const TRENDRADAR_API = API_BASE || '';
 // 增强版 Markdown 渲染器（支持表格、代码块、图表数据）
 const renderMarkdown = (text) => {
     if (!text) return '';
-    
+
     let html = text;
-    
+
     // 1. 处理代码块（JSON等）- 先处理避免被其他规则干扰
     html = html.replace(/```json\n?([\s\S]*?)```/g, (match, code) => {
         return `<pre style="background:#1e293b;color:#e2e8f0;padding:16px;border-radius:8px;overflow-x:auto;font-size:13px;margin:16px 0;font-family:monospace"><code>${code.trim()}</code></pre>`;
@@ -39,23 +39,23 @@ const renderMarkdown = (text) => {
     html = html.replace(/```\n?([\s\S]*?)```/g, (match, code) => {
         return `<pre style="background:#f1f5f9;color:#334155;padding:16px;border-radius:8px;overflow-x:auto;font-size:13px;margin:16px 0;font-family:monospace"><code>${code.trim()}</code></pre>`;
     });
-    
+
     // 2. 处理表格
     html = html.replace(/\n(\|[^\n]+\|\n\|[-:| ]+\|\n(?:\|[^\n]+\|\n?)+)/g, (match, table) => {
         const rows = table.trim().split('\n');
         if (rows.length < 2) return match;
-        
+
         let tableHtml = '<div style="overflow-x:auto;margin:16px 0"><table style="width:100%;border-collapse:collapse;font-size:14px">';
-        
+
         rows.forEach((row, idx) => {
             // 跳过分隔行
             if (row.match(/^\|[\s:-]+\|$/)) return;
-            
+
             const cells = row.split('|').filter(c => c.trim() !== '');
             const tag = idx === 0 ? 'th' : 'td';
             const bgColor = idx === 0 ? '#f8fafc' : (idx % 2 === 0 ? '#fff' : '#fafafa');
             const fontWeight = idx === 0 ? '600' : '400';
-            
+
             tableHtml += '<tr>';
             cells.forEach(cell => {
                 const cellContent = cell.trim();
@@ -66,46 +66,46 @@ const renderMarkdown = (text) => {
                     .replace(/🟢|✅/g, '<span style="color:#22c55e">✅</span>')
                     .replace(/⭐/g, '<span style="color:#f59e0b">⭐</span>')
                     .replace(/🚀/g, '<span style="color:#3b82f6">🚀</span>');
-                
+
                 tableHtml += `<${tag} style="padding:10px 12px;border:1px solid #e2e8f0;background:${bgColor};font-weight:${fontWeight};text-align:left">${styledContent}</${tag}>`;
             });
             tableHtml += '</tr>';
         });
-        
+
         tableHtml += '</table></div>';
         return tableHtml;
     });
-    
+
     // 3. 处理标题
     html = html.replace(/^#### (.*$)/gim, '<h4 style="font-size:15px;font-weight:600;margin:14px 0 8px;color:#334155">$1</h4>');
     html = html.replace(/^### (.*$)/gim, '<h3 style="font-size:16px;font-weight:700;margin:18px 0 10px;color:#1e293b;border-bottom:1px solid #e2e8f0;padding-bottom:8px">$1</h3>');
     html = html.replace(/^## (.*$)/gim, '<h2 style="font-size:18px;font-weight:700;margin:24px 0 12px;color:#0f172a;border-left:4px solid #3b82f6;padding-left:12px">$1</h2>');
     html = html.replace(/^# (.*$)/gim, '<h1 style="font-size:22px;font-weight:800;margin:28px 0 14px;color:#0f172a">$1</h1>');
-    
+
     // 4. 处理加粗和斜体
     html = html.replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight:600;color:#1e293b">$1</strong>');
     html = html.replace(/\*(.*?)\*/g, '<em style="font-style:italic">$1</em>');
-    
+
     // 5. 处理列表
     html = html.replace(/^- (.*$)/gim, '<li style="margin:6px 0;padding-left:8px;list-style-type:disc;margin-left:20px">$1</li>');
     html = html.replace(/^\d+\. (.*$)/gim, '<li style="margin:6px 0;padding-left:8px;list-style-type:decimal;margin-left:20px">$1</li>');
-    
+
     // 6. 处理分隔线
     html = html.replace(/^---$/gim, '<hr style="border:none;border-top:2px solid #e2e8f0;margin:24px 0"/>');
-    
+
     // 7. 处理引用块
     html = html.replace(/^> (.*$)/gim, '<blockquote style="border-left:4px solid #3b82f6;padding:12px 16px;margin:16px 0;background:#f0f9ff;color:#1e40af;font-style:italic">$1</blockquote>');
-    
+
     // 8. 处理行内代码
     html = html.replace(/`([^`]+)`/g, '<code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:13px;color:#e11d48;font-family:monospace">$1</code>');
-    
+
     // 9. 处理段落和换行
     html = html.replace(/\n\n/g, '</p><p style="margin:14px 0;line-height:1.8;color:#374151">');
     html = html.replace(/\n/g, '<br/>');
-    
+
     // 10. 包装段落
     html = '<p style="margin:14px 0;line-height:1.8;color:#374151">' + html + '</p>';
-    
+
     return html;
 };
 
@@ -211,10 +211,10 @@ const SupplyChainPanel = () => {
     const [expandedNews, setExpandedNews] = useState({}); // 跟踪每个公司的新闻展开状态
     const [newsData, setNewsData] = useState([]);
     const [loadingNews, setLoadingNews] = useState(true);
-    
+
     // 新闻分类Tab状态
     const [activeNewsTab, setActiveNewsTab] = useState('competitors');
-    
+
     // 防止 StrictMode 双重请求
     const hasFetchedNews = React.useRef(false);
     const hasFetchedSupplyNews = React.useRef(false);
@@ -227,55 +227,55 @@ const SupplyChainPanel = () => {
     const [copied, setCopied] = useState(false);
     const [pushing, setPushing] = useState(false);
     const [pushSuccess, setPushSuccess] = useState(false);
-    
+
     // 供应链实时新闻
     const [supplyChainNews, setSupplyChainNews] = useState([]);
     const [loadingSupplyNews, setLoadingSupplyNews] = useState(true);
     const [newsStatus, setNewsStatus] = useState(''); // cache 或 success
-    
+
     // 友商新闻统计
     const [partnerStats, setPartnerStats] = useState(null);
     const [loadingPartnerStats, setLoadingPartnerStats] = useState(true);
     const [expandedPartners, setExpandedPartners] = useState({});
     const hasFetchedPartnerStats = useRef(false);
-    
+
     // 客户新闻统计
     const [customerStats, setCustomerStats] = useState(null);
     const [loadingCustomerStats, setLoadingCustomerStats] = useState(true);
     const hasFetchedCustomerStats = useRef(false);
-    
+
     // 供应商新闻统计
     const [supplierStats, setSupplierStats] = useState(null);
     const [loadingSupplierStats, setLoadingSupplierStats] = useState(true);
     const hasFetchedSupplierStats = useRef(false);
-    
+
     // 物料新闻统计
     const [materialStats, setMaterialStats] = useState(null);
     const [loadingMaterialStats, setLoadingMaterialStats] = useState(true);
     const hasFetchedMaterialStats = useRef(false);
-    
+
     // 关税新闻统计
     const [tariffStats, setTariffStats] = useState(null);
     const [loadingTariffStats, setLoadingTariffStats] = useState(true);
     const hasFetchedTariffStats = useRef(false);
-    
+
     // 根据关键词分类新闻
     const categorizeNews = (news, category) => {
         if (!news || !news.length) return [];
         const keywords = NEWS_KEYWORDS[category] || [];
-        return news.filter(item => 
+        return news.filter(item =>
             keywords.some(kw => item.title && item.title.toLowerCase().includes(kw.toLowerCase()))
         );
     };
-    
+
     // 获取当前Tab的新闻列表（用于内容显示）
     const getNewsForTab = (tabId) => {
         return categorizeNews(supplyChainNews, tabId);
     };
-    
+
     // 获取当前Tab的新闻数量（使用各API统计数据）
     const getNewsCountForTab = (tabId) => {
-        switch(tabId) {
+        switch (tabId) {
             case 'competitors': return partnerStats?.total_news || 0;
             case 'customers': return customerStats?.total_news || 0;
             case 'suppliers': return supplierStats?.total_news || 0;
@@ -284,10 +284,10 @@ const SupplyChainPanel = () => {
             default: return 0;
         }
     };
-    
+
     // Tab图标映射
     const getTabIcon = (iconName) => {
-        switch(iconName) {
+        switch (iconName) {
             case 'Swords': return <Swords size={16} />;
             case 'Users': return <Users size={16} />;
             case 'Truck': return <Truck size={16} />;
@@ -317,7 +317,7 @@ const SupplyChainPanel = () => {
         };
         fetchNews();
     }, []);
-    
+
     // 获取供应链实时新闻
     useEffect(() => {
         if (hasFetchedSupplyNews.current) return;
@@ -338,7 +338,7 @@ const SupplyChainPanel = () => {
             }
         };
         fetchSupplyChainNews();
-        
+
         // 每5分钟自动刷新
         const interval = setInterval(fetchSupplyChainNews, 5 * 60 * 1000);
         return () => clearInterval(interval);
@@ -449,7 +449,7 @@ const SupplyChainPanel = () => {
         setGeneratingReport(true);
         setReportError('');
         setShowReport(true);
-        
+
         try {
             // 获取所有友商名称（从对象中提取）
             const allCompetitors = Object.values(LUXSHARE_DATA.competitors).flat().map(c => c.name);
@@ -457,7 +457,7 @@ const SupplyChainPanel = () => {
             const allSuppliers = Object.values(LUXSHARE_DATA.suppliers).flat();
             // 获取所有客户名称
             const allCustomers = LUXSHARE_DATA.customers.map(c => c.name);
-            
+
             // 使用已缓存的供应链新闻
             const response = await fetch(`${TRENDRADAR_API}/api/generate-analysis-v4`, {
                 method: 'POST',
@@ -470,12 +470,12 @@ const SupplyChainPanel = () => {
                     news: supplyChainNews  // 使用已缓存的新闻
                 })
             });
-            
+
             if (!response.ok) {
                 const error = await response.json();
                 throw new Error(error.detail || '生成报告失败');
             }
-            
+
             const result = await response.json();
             setReportContent(result.content || result.report);
         } catch (e) {
@@ -496,7 +496,7 @@ const SupplyChainPanel = () => {
     // 推送报告到企业微信
     const pushToWework = async () => {
         if (!reportContent) return;
-        
+
         setPushing(true);
         setPushSuccess(false);
         try {
@@ -536,8 +536,8 @@ const SupplyChainPanel = () => {
         if (companyName === '苹果') keywords.push('Apple', 'iPhone', 'AirPods');
         if (companyName === '华为') keywords.push('Huawei', 'HUAWEI');
         if (companyName === 'Meta') keywords.push('Facebook', 'Quest');
-        
-        return newsData.filter(news => 
+
+        return newsData.filter(news =>
             keywords.some(kw => news.title && news.title.includes(kw))
         ).slice(0, 5); // 最多显示5条
     };
@@ -559,7 +559,7 @@ const SupplyChainPanel = () => {
     // 渲染公司卡片
     const renderCompanyCard = (item, type) => {
         const url = getStockUrl(item.code);
-        
+
         return (
             <div
                 key={item.name}
@@ -645,7 +645,7 @@ const SupplyChainPanel = () => {
                         </span>
                     )}
                 </div>
-                
+
                 {type === 'competitor' && (
                     <>
                         <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '6px' }}>
@@ -658,9 +658,9 @@ const SupplyChainPanel = () => {
                 )}
                 {type === 'upstream' && (
                     <div style={{ fontSize: '13px', color: '#64748b' }}>
-                        <span style={{ 
+                        <span style={{
                             display: 'inline-block',
-                            background: '#ecfdf5', 
+                            background: '#ecfdf5',
                             color: '#059669',
                             padding: '2px 8px',
                             borderRadius: '4px',
@@ -684,7 +684,7 @@ const SupplyChainPanel = () => {
                     const relatedNews = getRelatedNews(item.name);
                     const hasNews = relatedNews.length > 0;
                     const isExpanded = expandedNews[item.name];
-                    
+
                     return (
                         <div style={{ marginTop: '12px', borderTop: '1px solid #e2e8f0', paddingTop: '10px' }}>
                             <button
@@ -712,13 +712,13 @@ const SupplyChainPanel = () => {
                                 </span>
                                 {hasNews && (isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
                             </button>
-                            
+
                             {isExpanded && hasNews && (
-                                <div style={{ 
-                                    marginTop: '8px', 
-                                    display: 'flex', 
-                                    flexDirection: 'column', 
-                                    gap: '6px' 
+                                <div style={{
+                                    marginTop: '8px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '6px'
                                 }}>
                                     {relatedNews.map((news, idx) => (
                                         <a
@@ -742,8 +742,8 @@ const SupplyChainPanel = () => {
                                             onMouseLeave={e => e.currentTarget.style.background = '#f8fafc'}
                                             onClick={e => e.stopPropagation()}
                                         >
-                                            <div style={{ 
-                                                overflow: 'hidden', 
+                                            <div style={{
+                                                overflow: 'hidden',
                                                 textOverflow: 'ellipsis',
                                                 display: '-webkit-box',
                                                 WebkitLineClamp: 2,
@@ -751,9 +751,9 @@ const SupplyChainPanel = () => {
                                             }}>
                                                 {news.title}
                                             </div>
-                                            <div style={{ 
-                                                fontSize: '10px', 
-                                                color: '#94a3b8', 
+                                            <div style={{
+                                                fontSize: '10px',
+                                                color: '#94a3b8',
                                                 marginTop: '4px',
                                                 display: 'flex',
                                                 alignItems: 'center',
@@ -776,7 +776,7 @@ const SupplyChainPanel = () => {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* 顶部：标题和操作按钮 */}
-            <div style={{ 
+            <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -832,16 +832,16 @@ const SupplyChainPanel = () => {
             </div>
 
             {/* 供应链新闻 - 四分类Tab */}
-            <div style={{ 
-                background: '#fff', 
-                borderRadius: '16px', 
+            <div style={{
+                background: '#fff',
+                borderRadius: '16px',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                 overflow: 'hidden'
             }}>
                 {/* 标题栏 */}
-                <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '16px 20px',
                     borderBottom: '1px solid #e2e8f0'
@@ -900,10 +900,10 @@ const SupplyChainPanel = () => {
                         {loadingSupplyNews ? '爬取中...' : '刷新数据'}
                     </button>
                 </div>
-                
+
                 {/* Tab栏 */}
-                <div style={{ 
-                    display: 'flex', 
+                <div style={{
+                    display: 'flex',
                     borderBottom: '1px solid #e2e8f0',
                     background: '#f8fafc'
                 }}>
@@ -947,7 +947,7 @@ const SupplyChainPanel = () => {
                         );
                     })}
                 </div>
-                
+
                 {/* 新闻内容区 */}
                 <div style={{ padding: '16px 20px' }}>
                     {loadingSupplyNews ? (
@@ -958,12 +958,12 @@ const SupplyChainPanel = () => {
                     ) : (() => {
                         const currentNews = getNewsForTab(activeNewsTab);
                         const currentTab = NEWS_TABS.find(t => t.id === activeNewsTab);
-                        
+
                         // 友商Tab：按公司分组展示
                         if (activeNewsTab === 'competitors' && partnerStats?.stats) {
                             return (
-                                <div style={{ 
-                                    display: 'flex', 
+                                <div style={{
+                                    display: 'flex',
                                     flexDirection: 'column',
                                     gap: '12px',
                                     maxHeight: '400px',
@@ -971,9 +971,9 @@ const SupplyChainPanel = () => {
                                 }}>
                                     {Object.entries(partnerStats.stats).map(([category, partners]) => (
                                         <div key={category}>
-                                            <div style={{ 
-                                                fontSize: '12px', 
-                                                fontWeight: '600', 
+                                            <div style={{
+                                                fontSize: '12px',
+                                                fontWeight: '600',
                                                 color: '#64748b',
                                                 marginBottom: '8px',
                                                 padding: '4px 8px',
@@ -1012,8 +1012,8 @@ const SupplyChainPanel = () => {
                                                                     cursor: hasNews ? 'pointer' : 'default'
                                                                 }}
                                                             >
-                                                                <span style={{ 
-                                                                    fontWeight: '500', 
+                                                                <span style={{
+                                                                    fontWeight: '500',
                                                                     color: hasNews ? '#1e293b' : '#94a3b8',
                                                                     fontSize: '14px'
                                                                 }}>
@@ -1034,7 +1034,7 @@ const SupplyChainPanel = () => {
                                                                 </div>
                                                             </button>
                                                             {isExpanded && hasNews && (
-                                                                <div style={{ 
+                                                                <div style={{
                                                                     padding: '0 12px 12px',
                                                                     display: 'flex',
                                                                     flexDirection: 'column',
@@ -1059,15 +1059,26 @@ const SupplyChainPanel = () => {
                                                                             }}
                                                                         >
                                                                             <div style={{ marginBottom: '4px' }}>{news.title}</div>
-                                                                            <div style={{ 
-                                                                                fontSize: '10px', 
+                                                                            <div style={{
+                                                                                fontSize: '10px',
                                                                                 color: '#94a3b8',
                                                                                 display: 'flex',
                                                                                 alignItems: 'center',
                                                                                 gap: '6px'
                                                                             }}>
-                                                                                <span>{news.source}</span>
-                                                                                {news.publish_time && <span>· {news.publish_time}</span>}
+                                                                                <span style={{
+                                                                                    background: '#e0f2fe',
+                                                                                    color: '#0284c7',
+                                                                                    padding: '1px 6px',
+                                                                                    borderRadius: '4px',
+                                                                                    fontWeight: 'bold'
+                                                                                }}>
+                                                                                    {news.platform_name || news.platform || news.source}
+                                                                                </span>
+                                                                                <span>
+                                                                                    {news.crawled_at ? new Date(news.crawled_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(/\//g, '-') :
+                                                                                        news.publish_time}
+                                                                                </span>
                                                                                 <ExternalLink size={10} />
                                                                             </div>
                                                                         </a>
@@ -1083,7 +1094,7 @@ const SupplyChainPanel = () => {
                                 </div>
                             );
                         }
-                        
+
                         // 客户Tab：按客户分类展示
                         if (activeNewsTab === 'customers' && customerStats?.stats) {
                             return (
@@ -1112,7 +1123,15 @@ const SupplyChainPanel = () => {
                                                         {data.news.map((news, idx) => (
                                                             <a key={idx} href={news.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '8px 10px', background: '#fff', borderRadius: '6px', fontSize: '12px', color: '#334155', textDecoration: 'none', lineHeight: '1.4', borderLeft: '3px solid #f59e0b' }}>
                                                                 <div style={{ marginBottom: '4px' }}>{news.title}</div>
-                                                                <div style={{ fontSize: '10px', color: '#94a3b8' }}>{news.source} {news.publish_time && `· ${news.publish_time}`} <ExternalLink size={10} style={{ display: 'inline' }} /></div>
+                                                                <div style={{ fontSize: '10px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                    <span style={{ background: '#e0f2fe', color: '#0284c7', padding: '1px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                                                        {news.platform_name || news.platform || news.source}
+                                                                    </span>
+                                                                    <span>
+                                                                        {news.crawled_at ? new Date(news.crawled_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(/\//g, '-') : news.publish_time}
+                                                                    </span>
+                                                                    <ExternalLink size={10} style={{ display: 'inline' }} />
+                                                                </div>
                                                             </a>
                                                         ))}
                                                     </div>
@@ -1123,7 +1142,7 @@ const SupplyChainPanel = () => {
                                 </div>
                             );
                         }
-                        
+
                         // 供应商Tab：按分类展示
                         if (activeNewsTab === 'suppliers' && supplierStats?.stats) {
                             return (
@@ -1149,7 +1168,15 @@ const SupplyChainPanel = () => {
                                                                     {data.news.map((news, idx) => (
                                                                         <a key={idx} href={news.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '8px 10px', background: '#fff', borderRadius: '6px', fontSize: '12px', color: '#334155', textDecoration: 'none', lineHeight: '1.4', borderLeft: '3px solid #3b82f6' }}>
                                                                             <div style={{ marginBottom: '4px' }}>{news.title}</div>
-                                                                            <div style={{ fontSize: '10px', color: '#94a3b8' }}>{news.source} <ExternalLink size={10} style={{ display: 'inline' }} /></div>
+                                                                            <div style={{ fontSize: '10px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                                <span style={{ background: '#e0f2fe', color: '#0284c7', padding: '1px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                                                                    {news.platform_name || news.platform || news.source}
+                                                                                </span>
+                                                                                <span>
+                                                                                    {news.crawled_at ? new Date(news.crawled_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(/\//g, '-') : news.publish_time}
+                                                                                </span>
+                                                                                <ExternalLink size={10} style={{ display: 'inline' }} />
+                                                                            </div>
                                                                         </a>
                                                                     ))}
                                                                 </div>
@@ -1163,7 +1190,7 @@ const SupplyChainPanel = () => {
                                 </div>
                             );
                         }
-                        
+
                         // 物料品类Tab
                         if (activeNewsTab === 'materials' && materialStats?.stats) {
                             return (
@@ -1185,7 +1212,15 @@ const SupplyChainPanel = () => {
                                                         {data.news.map((news, idx) => (
                                                             <a key={idx} href={news.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '8px 10px', background: '#fff', borderRadius: '6px', fontSize: '12px', color: '#334155', textDecoration: 'none', lineHeight: '1.4', borderLeft: '3px solid #10b981' }}>
                                                                 <div style={{ marginBottom: '4px' }}>{news.title}</div>
-                                                                <div style={{ fontSize: '10px', color: '#94a3b8' }}>{news.source} <ExternalLink size={10} style={{ display: 'inline' }} /></div>
+                                                                <div style={{ fontSize: '10px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                    <span style={{ background: '#e0f2fe', color: '#0284c7', padding: '1px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                                                        {news.platform_name || news.platform || news.source}
+                                                                    </span>
+                                                                    <span>
+                                                                        {news.crawled_at ? new Date(news.crawled_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(/\//g, '-') : news.publish_time}
+                                                                    </span>
+                                                                    <ExternalLink size={10} style={{ display: 'inline' }} />
+                                                                </div>
                                                             </a>
                                                         ))}
                                                     </div>
@@ -1196,7 +1231,7 @@ const SupplyChainPanel = () => {
                                 </div>
                             );
                         }
-                        
+
                         // 关税政策Tab（AI智能分类）
                         if (activeNewsTab === 'tariff' && tariffStats?.stats) {
                             return (
@@ -1219,7 +1254,15 @@ const SupplyChainPanel = () => {
                                                         {data.news.map((news, idx) => (
                                                             <a key={idx} href={news.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '8px 10px', background: '#fff', borderRadius: '6px', fontSize: '12px', color: '#334155', textDecoration: 'none', lineHeight: '1.4', borderLeft: '3px solid #8b5cf6' }}>
                                                                 <div style={{ marginBottom: '4px' }}>{news.title}</div>
-                                                                <div style={{ fontSize: '10px', color: '#94a3b8' }}>{news.source} <ExternalLink size={10} style={{ display: 'inline' }} /></div>
+                                                                <div style={{ fontSize: '10px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                    <span style={{ background: '#e0f2fe', color: '#0284c7', padding: '1px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                                                        {news.platform_name || news.platform || news.source}
+                                                                    </span>
+                                                                    <span>
+                                                                        {news.crawled_at ? new Date(news.crawled_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(/\//g, '-') : news.publish_time}
+                                                                    </span>
+                                                                    <ExternalLink size={10} style={{ display: 'inline' }} />
+                                                                </div>
                                                             </a>
                                                         ))}
                                                     </div>
@@ -1230,12 +1273,12 @@ const SupplyChainPanel = () => {
                                 </div>
                             );
                         }
-                        
+
                         // 其他Tab：暂无数据
                         return (
-                            <div style={{ 
-                                textAlign: 'center', 
-                                padding: '40px', 
+                            <div style={{
+                                textAlign: 'center',
+                                padding: '40px',
                                 color: '#94a3b8',
                                 background: currentTab?.bgColor || '#f8fafc',
                                 borderRadius: '12px'
@@ -1338,8 +1381,8 @@ const SupplyChainPanel = () => {
                                             opacity: pushing ? 0.7 : 1
                                         }}
                                     >
-                                        {pushing ? <Loader2 size={16} className="animate-spin" /> : 
-                                         pushSuccess ? <Check size={16} /> : <Send size={16} />}
+                                        {pushing ? <Loader2 size={16} className="animate-spin" /> :
+                                            pushSuccess ? <Check size={16} /> : <Send size={16} />}
                                         {pushing ? '推送中...' : pushSuccess ? '已推送' : '推送企微'}
                                     </button>
                                 )}
@@ -1414,7 +1457,7 @@ const SupplyChainPanel = () => {
                                     </button>
                                 </div>
                             ) : (
-                                <div 
+                                <div
                                     style={{
                                         fontSize: '14px',
                                         color: '#334155',

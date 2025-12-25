@@ -18,7 +18,7 @@ const CommodityChart = ({
     // Prepare series data
     const { dates, seriesList, minValue, maxValue } = useMemo(() => {
         let allValues = [];
-        
+
         if (multiSourceData && multiSourceData.length > 0) {
             const allDates = new Set();
             multiSourceData.forEach(source => {
@@ -34,8 +34,16 @@ const CommodityChart = ({
             const series = multiSourceData.map((source, idx) => {
                 const dataMap = {};
                 source.data.forEach(item => {
-                    dataMap[item.date] = item.price;
+                    if (item.date) {
+                        dataMap[item.date] = parseFloat(item.price);
+                    }
                 });
+
+                // Debug log
+                if (name && (name.includes('palladium') || name.includes('platinum') || name.includes('钯') || name.includes('铂'))) {
+                    console.log(`📈 [Chart:${name}] Source ${idx} data points:`, source.data.length);
+                }
+
                 return {
                     name: source.source || `来源${idx + 1}`,
                     type: 'line',
@@ -78,7 +86,7 @@ const CommodityChart = ({
 
             const min = allValues.length > 0 ? Math.min(...allValues) : 0;
             const max = allValues.length > 0 ? Math.max(...allValues) : 100;
-            
+
             return { dates: sortedDates, seriesList: series, minValue: min, maxValue: max };
         } else if (data && data.length > 0) {
             data.forEach(item => {
@@ -86,10 +94,10 @@ const CommodityChart = ({
                     allValues.push(item.price);
                 }
             });
-            
+
             const min = allValues.length > 0 ? Math.min(...allValues) : 0;
             const max = allValues.length > 0 ? Math.max(...allValues) : 100;
-            
+
             return {
                 dates: data.map(item => item.date),
                 seriesList: [{
@@ -134,7 +142,7 @@ const CommodityChart = ({
                 maxValue: max
             };
         }
-        
+
         // Default return for empty data
         return {
             dates: [],
@@ -145,7 +153,7 @@ const CommodityChart = ({
     }, [data, multiSourceData, color, name]);
 
     const hasMultiSource = multiSourceData && multiSourceData.length > 1;
-    
+
     // 计算Y轴范围，增加10%的padding
     const yAxisPadding = (maxValue - minValue) * 0.1 || 1;
     const yMin = Math.max(0, minValue - yAxisPadding);
@@ -160,9 +168,9 @@ const CommodityChart = ({
             borderColor: '#e5e7eb',
             borderWidth: 1,
             padding: [12, 16],
-            textStyle: { 
-                color: '#374151', 
-                fontSize: 12 
+            textStyle: {
+                color: '#374151',
+                fontSize: 12
             },
             formatter: function (params) {
                 if (!params || params.length === 0) return '';
@@ -201,8 +209,8 @@ const CommodityChart = ({
             itemWidth: 10,
             itemHeight: 10,
             itemGap: 20,
-            textStyle: { 
-                fontSize: 11, 
+            textStyle: {
+                fontSize: 11,
                 color: '#6b7280',
                 padding: [0, 0, 0, 4]
             },
@@ -219,15 +227,15 @@ const CommodityChart = ({
             type: 'category',
             boundaryGap: false,
             data: dates,
-            axisLine: { 
+            axisLine: {
                 show: true,
                 lineStyle: {
                     color: '#f3f4f6'
                 }
             },
             axisTick: { show: false },
-            axisLabel: { 
-                color: '#9ca3af', 
+            axisLabel: {
+                color: '#9ca3af',
                 fontSize: 11,
                 margin: 12
             }
@@ -238,18 +246,18 @@ const CommodityChart = ({
             max: yMax,
             axisLine: { show: false },
             axisTick: { show: false },
-            splitLine: { 
-                lineStyle: { 
+            splitLine: {
+                lineStyle: {
                     color: '#f3f4f6',
                     type: 'dashed'
-                } 
+                }
             },
             axisLabel: {
                 color: '#9ca3af',
                 fontSize: 11,
                 formatter: (value) => {
                     if (value >= 10000) {
-                        return `${currencySymbol}${(value/1000).toFixed(0)}k`;
+                        return `${currencySymbol}${(value / 1000).toFixed(0)}k`;
                     } else if (value >= 1000) {
                         return `${currencySymbol}${value.toFixed(0)}`;
                     } else if (value >= 100) {
@@ -269,10 +277,10 @@ const CommodityChart = ({
     // 如果没有数据，显示空状态
     if (seriesList.length === 0 || dates.length === 0) {
         return (
-            <div style={{ 
-                height: height, 
-                display: 'flex', 
-                alignItems: 'center', 
+            <div style={{
+                height: height,
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'center',
                 color: '#9ca3af',
                 fontSize: '13px',
@@ -285,9 +293,9 @@ const CommodityChart = ({
     }
 
     return (
-        <ReactECharts 
-            option={option} 
-            style={{ height: height, width: '100%' }} 
+        <ReactECharts
+            option={option}
+            style={{ height: height, width: '100%' }}
             group="commodities"
             notMerge={true}
             lazyUpdate={true}

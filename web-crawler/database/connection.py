@@ -237,16 +237,9 @@ def get_mongo_database(mongo_cfg: Optional[dict] = None):
 
     cfg = dict(mongo_cfg or _get_mongo_cfg_from_yaml() or {})
 
-    env_overrides = {
-        "host": os.getenv("MONGODB_HOST"),
-        "port": os.getenv("MONGODB_PORT"),
-        "username": os.getenv("MONGODB_USERNAME"),
-        "password": os.getenv("MONGODB_PASSWORD"),
-        "database": os.getenv("MONGODB_DATABASE"),
-        "authentication_source": os.getenv("MONGODB_AUTH_SOURCE"),
-    }
-    env_overrides = {k: v for k, v in env_overrides.items() if v not in (None, "")}
-    cfg.update(env_overrides)
+    # 环境变量代码移除，严格遵循 yaml 配置
+    # env_overrides = { ... }
+    # cfg.update(env_overrides)
 
     if isinstance(cfg.get("port"), str):
         cfg["port"] = int(cfg["port"])
