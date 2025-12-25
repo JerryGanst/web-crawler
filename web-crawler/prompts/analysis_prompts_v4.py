@@ -715,7 +715,10 @@ def build_material_section(
         else:
             # 默认归入金属类
             metals.append(item)
-    
+    print('分类结果：')
+    print("金属类：", [m.get('name',''),m.get('chinese_name') for m in metals])
+    print("塑料类：", [p.get('name',''),p.get('chinese_name') for p in plastics])
+    print("能源类：", [e.get('name',''),e.get('chinese_name') for e in energy])
     # 构建报告
     lines = ["## 原材料行情数据\n"]
     lines.append(f"> 📊 数据更新时间：{datetime.now().strftime('%Y-%m-%d %H:%M')}")
