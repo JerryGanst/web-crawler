@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 # 导入 API 模块
 from api.cache import cache, CACHE_TTL, REDIS_HOST, REDIS_PORT
 from api.routes import data, news, reports, analysis
-from api.routes import analysis_v3  # V3 模块化分析
+from api.routes import analysis_v4  # V4 模块化分析
 from api.routes import cache as cache_routes
 from api.scheduler import scheduler
 
@@ -92,7 +92,7 @@ async def api_status():
             "news": "/api/news/{category}",
             "reports": "/api/reports",
             "analysis": "/api/generate-analysis",
-            "analysis_v3": "/api/generate-analysis-v3",  # 模块化版本
+            "analysis_v4": "/api/generate-analysis-v4",  # 模块化版本
             "market_analysis": "/api/market-analysis",
             "cache": "/api/cache/status"
         }
@@ -126,8 +126,8 @@ app.include_router(reports.router, tags=["报告"])
 # 注册分析路由
 app.include_router(analysis.router, tags=["分析"])
 
-# 注册 V3 模块化分析路由
-app.include_router(analysis_v3.router, tags=["分析V3"])
+# 注册 V4 模块化分析路由
+app.include_router(analysis_v4.router, tags=["分析V4"])
 
 # 注册缓存管理路由
 app.include_router(cache_routes.router, tags=["缓存"])

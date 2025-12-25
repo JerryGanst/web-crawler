@@ -20,7 +20,6 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 
 
-
 # ============================================================
 # 模块定义
 # ============================================================
@@ -128,105 +127,365 @@ Credo、旭创科技（中际旭创）、新易盛、天孚通信、光迅科技
 
 
 # ============================================================
-# 第一轮模块：关税新闻分类器（核心改进）
+# 关税政策分析模块（独立模块）
 # ============================================================
 
+# 预定义的国家/地区关税分析分类
+TARIFF_REGIONS = {
+    "china_us": {
+        "name": "中美关税政策",
+        "display_name": "🇨🇳🇺🇸 中美关税政策",
+        "keywords": ["中美", "美中", "美国", "华盛顿", "白宫", "USTR", "拜登", "特朗普", 
+                    "芯片禁令", "实体清单", "半导体制裁", "技术封锁", "出口管制"],
+        "focus_areas": ["芯片/半导体禁令", "实体清单变化", "关税税率调整", "技术出口管制"]
+    },
+    "china_eu": {
+        "name": "中欧关税政策",
+        "display_name": "🇨🇳🇪🇺 中欧关税政策",
+        "keywords": ["中欧", "欧盟", "欧洲", "布鲁塞尔", "德国", "法国", 
+                    "反补贴", "电动车关税", "光伏双反", "碳边境税"],
+        "focus_areas": ["电动车反补贴调查", "光伏/风电双反", "碳边境调节机制(CBAM)", "电池法规"]
+    },
+    "southeast_asia": {
+        "name": "东南亚产能转移",
+        "display_name": "🌏 东南亚产能转移",
+        "keywords": ["越南", "印度", "马来西亚", "印尼", "泰国", "菲律宾", "东南亚",
+                    "产能转移", "建厂", "工厂迁移", "投资建设"],
+        "focus_areas": ["产能转移动态", "当地关税优惠政策", "供应链本地化要求", "劳动力成本"]
+    },
+    "mexico_nearshoring": {
+        "name": "墨西哥近岸外包",
+        "display_name": "🇲🇽 墨西哥近岸外包",
+        "keywords": ["墨西哥", "中墨", "美墨", "北美", "USMCA", "近岸外包", "Nearshoring"],
+        "focus_areas": ["USMCA原产地规则", "近岸外包趋势", "对华产品转口限制", "北美供应链重构"]
+    },
+    "other_regions": {
+        "name": "其他地区政策",
+        "display_name": "🌐 其他地区政策",
+        "keywords": ["日本", "韩国", "中东", "拉美", "非洲", "英国", "加拿大", "澳大利亚"],
+        "focus_areas": ["日韩贸易政策", "中东市场机会", "拉美关税变化", "其他区域动态"]
+    }
+}
+
+
+# 第一轮：关税新闻分类器
 TARIFF_CLASSIFIER_MODULE = AnalysisModule(
     name="tariff_classifier",
     system_prompt="""你是国际贸易政策分析专家。
-你的任务是阅读新闻，识别其中涉及的国家/地区贸易关系。
+你的任务是阅读新闻，将其分类到预定义的国家/地区类别中。
+
+**预定义分类**：
+1. china_us - 中美关税政策（芯片禁令、实体清单、关税）
+2. china_eu - 中欧关税政策（反补贴、电动车关税、碳边境税）
+3. southeast_asia - 东南亚产能转移（越南、印度、马来西亚等）
+4. mexico_nearshoring - 墨西哥近岸外包（USMCA、北美供应链）
+5. other_regions - 其他地区政策（日韩、中东、拉美等）
 
 **输出要求**：
-- 只输出涉及的国家/地区组合列表
-- 每个组合用简短标签表示，如"中美"、"中欧-电动车"、"东南亚-产能转移"
+- 只输出匹配的分类ID列表
 - 用 JSON 数组格式输出
 - 如果没有关税相关新闻，输出空数组 []""",
     
     user_prompt="""# 任务
-阅读以下新闻全文，识别涉及哪些**国家/地区之间的贸易关系**。
+阅读以下新闻，识别涉及哪些**国家/地区的贸易政策**，并分类。
 
-# 关注的贸易关系类型
-- 中美关系：关税、实体清单、芯片禁令、技术封锁
-- 中欧关系：反补贴调查、电动车关税、光伏双反
-- 东南亚：越南/印度/马来西亚/印尼的产能转移、关税优惠
-- 中墨/美墨：墨西哥产能转移、北美供应链重构
-- 其他：日韩、中东、拉美等
+# 分类规则
+| 分类ID | 名称 | 关键词 |
+|--------|------|--------|
+| china_us | 中美关税政策 | 中美、芯片禁令、实体清单、USTR、技术封锁 |
+| china_eu | 中欧关税政策 | 欧盟、反补贴、电动车关税、碳边境税 |
+| southeast_asia | 东南亚产能转移 | 越南、印度、马来西亚、印尼、产能转移 |
+| mexico_nearshoring | 墨西哥近岸外包 | 墨西哥、USMCA、北美供应链、近岸外包 |
+| other_regions | 其他地区政策 | 日本、韩国、中东、拉美 |
 
 # 新闻列表（含全文）
 {news_with_content}
 
 # 输出格式
 只输出 JSON 数组，不要有其他文字：
-["分类1", "分类2", ...]
+["分类ID1", "分类ID2", ...]
 
 示例输出：
-["中美-芯片禁令", "中欧-电动车关税", "东南亚-产能转移"]
+["china_us", "china_eu", "southeast_asia"]
 
 如果没有关税相关内容：
 []
 """,
-    max_tokens=300,
+    max_tokens=200,
     requires_full_content=True
 )
 
 
 # ============================================================
-# 第二轮模块：单一关税分类的深度分析（动态生成）
+# 第二轮模块：各地区关税政策深度分析（独立模块）
 # ============================================================
 
-def get_tariff_analysis_prompt(category: str, news_content: str) -> dict:
+def get_region_tariff_prompt(region_id: str, news_content: str) -> dict:
     """
-    为单一关税分类生成分析 prompt
+    为特定地区生成关税政策分析 prompt
     
     Args:
-        category: 分类名称，如 "中美-芯片禁令"
-        news_content: 该分类相关的新闻全文
+        region_id: 地区ID，如 "china_us", "china_eu"
+        news_content: 该地区相关的新闻全文
     
     Returns:
         {"system": ..., "user": ..., "max_tokens": ...}
     """
-    system_prompt = f"""你是立讯技术的国际贸易政策分析师。
-专注分析【{category}】相关的贸易政策变化。
+    region_info = TARIFF_REGIONS.get(region_id, {
+        "name": region_id,
+        "display_name": region_id,
+        "focus_areas": []
+    })
+    
+    region_name = region_info["name"]
+    display_name = region_info["display_name"]
+    focus_areas = region_info.get("focus_areas", [])
+    focus_areas_str = "\n".join([f"- {area}" for area in focus_areas]) if focus_areas else "- 一般贸易政策变化"
+    
+    # 针对不同地区的定制化分析要点
+    region_specific_guidance = {
+        "china_us": """**分析重点**：
+- 芯片/半导体出口管制的具体产品范围
+- 实体清单增减变化及影响企业
+- 关税税率调整的具体品类
+- 对立讯客户（苹果等）的影响传导""",
+        "china_eu": """**分析重点**：
+- 电动车反补贴调查进展及税率
+- 碳边境调节机制(CBAM)实施时间表
+- 对光伏、风电、电池产品的影响
+- 欧洲本地化生产要求""",
+        "southeast_asia": """**分析重点**：
+- 各国产能转移的优惠政策比较
+- 当地供应链配套成熟度
+- 中国企业在当地的投资动态
+- 对立讯产能布局的建议""",
+        "mexico_nearshoring": """**分析重点**：
+- USMCA原产地规则变化
+- 对中国产品转口的限制政策
+- 北美供应链重构的机会与挑战
+- 墨西哥本地化生产的成本分析""",
+        "other_regions": """**分析重点**：
+- 各地区的关税政策变化
+- 新兴市场的进入机会
+- 区域贸易协定的影响"""
+    }
+    
+    specific_guidance = region_specific_guidance.get(region_id, region_specific_guidance["other_regions"])
+    
+    system_prompt = f"""你是立讯技术的国际贸易政策分析师，专注【{region_name}】领域。
+
+{specific_guidance}
+
 要求：
 1. 引用新闻原文作为依据
-2. 评估对立讯技术的具体影响
-3. 给出风险等级和应对建议"""
+2. 评估对立讯技术各业务线的具体影响
+3. 给出量化的风险等级和可执行的应对建议
+4. 禁止套话，要有具体数据和事实支撑"""
 
     user_prompt = f"""# 任务
-深度分析【{category}】相关的贸易政策动态。
+深度分析【{region_name}】相关的贸易政策动态。
+
+# 重点关注领域
+{focus_areas_str}
 
 # 相关新闻（含全文）
 {news_content}
 
 # 输出格式
 
-### {category}
+### {display_name}
 
-**政策变化**：
-- 具体描述1（引用新闻原文）
-- 具体描述2
+#### 📋 政策变化
+| 政策/事件 | 具体内容 | 生效时间 | 来源 |
+|-----------|----------|----------|------|
+| | | | |
 
-**对立讯影响**：
-- 影响程度：🔴高风险 / 🟡中等 / 🟢低风险
-- 具体影响：（描述对哪些业务有什么影响）
+#### 📊 对立讯业务影响
 
-**建议应对**：
-- 具体可执行的建议1
-- 具体可执行的建议2
+| 业务线 | 影响程度 | 具体影响 |
+|--------|----------|----------|
+| 连接器 | 🔴/🟡/🟢 | |
+| 光模块 | 🔴/🟡/🟢 | |
+| 电源 | 🔴/🟡/🟢 | |
 
-**来源**：
+**整体风险评估**：🔴高风险 / 🟡中等风险 / 🟢低风险
+
+#### 🎯 应对建议
+
+| 优先级 | 建议措施 | 预期效果 | 时间窗口 |
+|--------|----------|----------|----------|
+| P0 | | | |
+| P1 | | | |
+
+#### 📰 信息来源
 - [新闻标题1](链接)
 - [新闻标题2](链接)
 
 ---
-*如果新闻内容不足以做深度分析，简要概括即可。*
+*如果新闻内容不足以做深度分析，简要概括即可，不要编造信息。*
 """
     
     return {
         "system": system_prompt,
         "user": user_prompt,
-        "max_tokens": 800
+        "max_tokens": 1000,
+        "region_id": region_id,
+        "region_name": region_name
     }
+
+
+# 兼容旧版接口
+def get_tariff_analysis_prompt(category: str, news_content: str) -> dict:
+    """
+    兼容旧版：为单一关税分类生成分析 prompt
+    自动匹配到新的地区分类
+    """
+    # 尝试匹配到预定义分类
+    category_mapping = {
+        "中美": "china_us",
+        "芯片禁令": "china_us",
+        "实体清单": "china_us",
+        "中欧": "china_eu",
+        "电动车关税": "china_eu",
+        "反补贴": "china_eu",
+        "东南亚": "southeast_asia",
+        "越南": "southeast_asia",
+        "印度": "southeast_asia",
+        "产能转移": "southeast_asia",
+        "墨西哥": "mexico_nearshoring",
+        "中墨": "mexico_nearshoring",
+        "北美": "mexico_nearshoring"
+    }
+    
+    matched_region = None
+    for keyword, region_id in category_mapping.items():
+        if keyword in category:
+            matched_region = region_id
+            break
+    
+    if matched_region:
+        return get_region_tariff_prompt(matched_region, news_content)
+    else:
+        # 未匹配到，使用通用模板
+        return get_region_tariff_prompt("other_regions", news_content)
+
+
+def filter_news_by_region(news_list: List[Dict], region_id: str) -> List[Dict]:
+    """
+    根据地区ID筛选相关新闻
+    
+    Args:
+        news_list: 新闻列表
+        region_id: 地区ID，如 "china_us"
+    
+    Returns:
+        相关的新闻列表
+    """
+    region_info = TARIFF_REGIONS.get(region_id)
+    if not region_info:
+        return []
+    
+    keywords = region_info.get("keywords", [])
+    
+    filtered = []
+    for news in news_list:
+        text = news.get('title', '') + news.get('content', '')[:500]
+        if any(kw in text for kw in keywords):
+            filtered.append(news)
+    
+    return filtered
+
+
+# ============================================================
+# 关税政策汇总模块（第三轮）
+# ============================================================
+
+TARIFF_SUMMARY_MODULE = AnalysisModule(
+    name="tariff_summary",
+    system_prompt="""你是立讯技术的国际贸易政策首席分析师。
+根据各地区的关税政策分析结果，生成整体评估和战略建议。
+要求：
+1. 综合评估全球贸易环境对立讯的影响
+2. 给出优先级排序的战略建议
+3. 禁止套话，要有具体可执行的行动""",
+    
+    user_prompt="""# 任务
+根据以下各地区的关税政策分析结果，生成整体评估。
+
+# 各地区分析结果
+{region_analyses}
+
+# 输出格式
+
+## 🌐 关税政策整体评估
+
+### 本周关键发现
+用 2-3 个要点概括最重要的政策变化：
+- ✅/⚠️/🔴 **[地区]**：一句话结论
+
+### 各地区风险概览
+| 地区 | 风险等级 | 主要关注点 | 紧迫程度 |
+|------|----------|------------|----------|
+| | 🔴/🟡/🟢 | | 高/中/低 |
+
+### 战略建议（按优先级排序）
+| 优先级 | 建议措施 | 针对地区 | 预期效果 |
+|--------|----------|----------|----------|
+| P0 | | | |
+| P1 | | | |
+| P2 | | | |
+
+---
+*如果没有关税政策相关新闻，直接写"本周关税政策面暂无重大变化"即可。*
+""",
+    max_tokens=800
+)
+
+
+def build_tariff_report_section(
+    region_analyses: Dict[str, str],
+    tariff_summary: str = None
+) -> str:
+    """
+    构建关税政策分析报告部分
+    
+    Args:
+        region_analyses: 各地区分析结果 {region_id: analysis_text}
+        tariff_summary: 整体汇总分析（可选）
+    
+    Returns:
+        Markdown 格式的关税政策报告部分
+    """
+    lines = ["## 🌐 关税政策分析\n"]
+    lines.append("> 💡 本部分按国家/地区分类分析，由 AI 自动识别和分类\n")
+    
+    if not region_analyses:
+        lines.append("本周关税政策面暂无重大变化。\n")
+        return "\n".join(lines)
+    
+    # 按定义顺序输出各地区分析
+    region_order = ["china_us", "china_eu", "southeast_asia", "mexico_nearshoring", "other_regions"]
+    
+    for region_id in region_order:
+        if region_id in region_analyses:
+            analysis = region_analyses[region_id]
+            lines.append(analysis)
+            lines.append("\n")
+    
+    # 处理未在预定义顺序中的地区
+    for region_id, analysis in region_analyses.items():
+        if region_id not in region_order:
+            lines.append(analysis)
+            lines.append("\n")
+    
+    # 添加汇总分析
+    if tariff_summary:
+        lines.append("---\n")
+        lines.append(tariff_summary)
+    
+    lines.append("---\n")
+    
+    return "\n".join(lines)
 
 
 # ============================================================
@@ -288,7 +547,6 @@ def build_material_section(
             return None
         
         return ((new_price - old_price) / old_price) * 100
-    
     # 输出指定N天历史价格列表
     def output_prices_list(name:str,days:int) -> Optional[List[float]]:
         prices = []
@@ -336,7 +594,7 @@ def build_material_section(
         else:
             return "暂无图表"
         
-
+    
     # 分类材料
     metals = []
     plastics = []
@@ -390,7 +648,16 @@ def build_material_section(
             return "📉"    # 下跌
         else:
             return "➡️"    # 横盘
+        
     days = 7 #默认七天的趋势图
+    #按类型生成所有商品图表
+    def generate_chart(category:List[Dict]):
+        lines.append("")
+        for n in sorted(category, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
+            name = n.get('chinese_name') or n.get('name', '')
+            chart_path = name+'.png'
+            lines.append(f'![]({plot_price_trend_from_prices(name,days,save_path=chart_path)})')
+        lines.append("")
     # 金属类
     if metals:
         lines.append("### 🔩 金属类\n")
@@ -407,19 +674,9 @@ def build_material_section(
             month_change = calc_period_change(name, 30)
             
             trend = get_trend_icon(day_change, week_change)
-
-            
             
             lines.append(f"| {name} | {price} {unit} | {format_change(day_change)} | {format_change(week_change)} | {format_change(month_change)} | {trend} |")
-            
-        lines.append("")
-        for n in sorted(metals, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
-            name = m.get('chinese_name') or m.get('name', '')
-            chart_path = name+'.png'
-            lines.append(f'![]({plot_price_trend_from_prices(name,days,save_path=chart_path)})')
-        lines.append("")
-
-    
+        generate_chart(metals)
     # 塑料类
     if plastics:
         lines.append("### 🧪 塑料/化工类\n")
@@ -437,15 +694,9 @@ def build_material_section(
             
             trend = get_trend_icon(day_change, week_change)
             
-            
             lines.append(f"| {name} | {price} {unit} | {format_change(day_change)} | {format_change(week_change)} | {format_change(month_change)} | {trend} |")
-        lines.append("")
-        for n in sorted(metals, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
-            name = m.get('chinese_name') or m.get('name', '')
-            chart_path = name+'.png'
-            lines.append(f'![]({plot_price_trend_from_prices(name,days,save_path=chart_path)})')
-        lines.append("")
-
+        generate_chart(plastics)
+    
     # 能源类
     if energy:
         lines.append("### ⛽ 能源类\n")
@@ -463,16 +714,9 @@ def build_material_section(
             
             trend = get_trend_icon(day_change, week_change)
             
-            
             lines.append(f"| {name} | {price} {unit} | {format_change(day_change)} | {format_change(week_change)} | {format_change(month_change)} | {trend} |")
-            
-        lines.append("")
-        for n in sorted(metals, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
-            name = m.get('chinese_name') or m.get('name', '')
-            chart_path = name+'.png'
-            lines.append(f'![]({plot_price_trend_from_prices(name,days,save_path=chart_path)})')
-        lines.append("")
-
+        generate_chart(energy)
+    
     # 数据统计摘要（纯数据，不做解读）
     lines.append("### 📊 数据统计\n")
     
@@ -712,42 +956,61 @@ def filter_tariff_news(news_list: List[Dict]) -> List[Dict]:
 
 def filter_news_by_category(news_list: List[Dict], category: str) -> List[Dict]:
     """
-    根据分类筛选相关新闻
+    根据分类筛选相关新闻（兼容旧版，内部调用新的 filter_news_by_region）
     
     Args:
         news_list: 新闻列表
-        category: 分类名称，如 "中美-芯片禁令"
+        category: 分类名称，如 "中美-芯片禁令" 或 "china_us"
     
     Returns:
         相关的新闻列表
     """
-    # 分类关键词映射
-    category_keywords = {
-        "中美": ["中美", "美中", "美国", "华盛顿", "白宫", "USTR", "拜登", "特朗普"],
-        "中欧": ["中欧", "欧盟", "欧洲", "布鲁塞尔", "德国", "法国"],
-        "东南亚": ["越南", "印度", "马来西亚", "印尼", "泰国", "菲律宾", "东南亚"],
-        "中墨": ["墨西哥", "中墨", "北美"],
-        "芯片": ["芯片", "半导体", "晶圆", "光刻", "EDA", "GPU"],
-        "电动车": ["电动车", "新能源车", "电池", "锂电"],
-        "产能转移": ["产能转移", "建厂", "工厂", "迁移", "投资建设"],
-        "关税": ["关税", "贸易战", "反倾销", "反补贴"],
-        "制裁": ["制裁", "实体清单", "出口管制", "封锁"]
+    # 如果是新版 region_id，直接调用
+    if category in TARIFF_REGIONS:
+        return filter_news_by_region(news_list, category)
+    
+    # 尝试匹配到预定义分类
+    category_mapping = {
+        "中美": "china_us",
+        "芯片禁令": "china_us",
+        "芯片": "china_us",
+        "实体清单": "china_us",
+        "制裁": "china_us",
+        "中欧": "china_eu",
+        "电动车关税": "china_eu",
+        "电动车": "china_eu",
+        "反补贴": "china_eu",
+        "东南亚": "southeast_asia",
+        "越南": "southeast_asia",
+        "印度": "southeast_asia",
+        "马来西亚": "southeast_asia",
+        "印尼": "southeast_asia",
+        "产能转移": "southeast_asia",
+        "墨西哥": "mexico_nearshoring",
+        "中墨": "mexico_nearshoring",
+        "北美": "mexico_nearshoring",
+        "关税": "other_regions"
     }
     
-    # 解析分类名称中的关键词
-    keywords = []
-    for key, kws in category_keywords.items():
-        if key in category:
-            keywords.extend(kws)
+    matched_region = None
+    for keyword, region_id in category_mapping.items():
+        if keyword in category:
+            matched_region = region_id
+            break
     
-    if not keywords:
-        # 直接用分类名作为关键词
-        keywords = [category]
+    if matched_region:
+        return filter_news_by_region(news_list, matched_region)
+    
+    # 未匹配到，使用通用关键词搜索
+    tariff_keywords = [
+        '关税', '贸易战', '贸易摩擦', '贸易壁垒', '反倾销', '反补贴',
+        '制裁', '实体清单', '出口管制', '技术封锁'
+    ]
     
     filtered = []
     for news in news_list:
         text = news.get('title', '') + news.get('content', '')[:500]
-        if any(kw in text for kw in keywords):
+        if any(kw in text for kw in tariff_keywords):
             filtered.append(news)
     
     return filtered
@@ -815,30 +1078,24 @@ def assemble_final_report_v4(
     competitor_analysis: str,
     material_data_section: str,  # 原材料数据（不走大模型）
     material_analysis: str,      # 原材料成本分析（走大模型）
-    tariff_sections: Dict[str, str],  # {分类: 分析内容}
-    today: str
+    tariff_sections: Dict[str, str],  # {region_id: 分析内容}
+    today: str,
+    tariff_summary: str = None   # 关税整体汇总（可选）
 ) -> str:
     """
     组装最终报告
     
     特点：
     - 原材料数据和分析分离
-    - 关税按实际分类动态生成
+    - 关税按国家/地区独立分析，最后汇总
     """
-    # 组装关税部分
-    tariff_content = ""
-    if tariff_sections:
-        tariff_content = "## 关税政策分析\n\n"
-        tariff_content += "> 💡 以下分析按 AI 自动识别的国家/地区分类展开\n\n"
-        for category, analysis in tariff_sections.items():
-            tariff_content += f"{analysis}\n\n"
-    else:
-        tariff_content = "## 关税政策分析\n\n本周暂无重大关税政策变化。\n\n"
+    # 使用新的关税报告构建函数
+    tariff_content = build_tariff_report_section(tariff_sections, tariff_summary)
     
     report = f"""# 立讯技术产业链分析报告
 
 **分析日期**：{today}
-**版本**：V4.0（模块化 + 动态关税分类 + 原材料分离分析）
+**版本**：V4.1（模块化 + 独立关税分析 + 原材料分离分析）
 
 ---
 
@@ -856,20 +1113,26 @@ def assemble_final_report_v4(
 
 ---
 
+{tariff_content}
+
 {material_data_section}
 
 {material_analysis}
 
 ---
 
-{tariff_content}
-
----
-
 *报告由 TrendRadar 模块化分析系统生成*
-*原材料数据为实时采集，关税分类由 AI 动态识别*
+*关税政策按国家/地区独立分析，原材料数据为实时采集*
 """
     return report
+
+
+# 关税模块导出（方便外部调用）
+TARIFF_MODULES = {
+    "classifier": TARIFF_CLASSIFIER_MODULE,
+    "summary": TARIFF_SUMMARY_MODULE,
+    "regions": TARIFF_REGIONS
+}
 
 
 # ============================================================
@@ -915,3 +1178,94 @@ FIRST_ROUND_MODULES = {
     "competitor": COMPETITOR_MODULE,
     "tariff_classifier": TARIFF_CLASSIFIER_MODULE
 }
+
+# 第二轮模块列表（关税各地区分析）
+SECOND_ROUND_TARIFF_MODULES = TARIFF_REGIONS
+
+# 第三轮模块列表
+THIRD_ROUND_MODULES = {
+    "tariff_summary": TARIFF_SUMMARY_MODULE
+}
+
+
+# ============================================================
+# 关税分析工作流辅助函数
+# ============================================================
+
+def get_tariff_summary_prompt(region_analyses: Dict[str, str]) -> dict:
+    """
+    获取关税汇总模块的 prompt
+    
+    Args:
+        region_analyses: 各地区分析结果 {region_id: analysis_text}
+    
+    Returns:
+        prompt dict
+    """
+    # 合并各地区分析结果
+    combined = ""
+    for region_id, analysis in region_analyses.items():
+        region_info = TARIFF_REGIONS.get(region_id, {"display_name": region_id})
+        combined += f"\n### {region_info.get('display_name', region_id)}\n"
+        combined += analysis
+        combined += "\n---\n"
+    
+    return get_module_prompt(TARIFF_SUMMARY_MODULE, region_analyses=combined)
+
+
+def get_all_region_prompts(news_list: List[Dict], detected_regions: List[str]) -> Dict[str, dict]:
+    """
+    为所有检测到的地区生成分析 prompts
+    
+    Args:
+        news_list: 新闻列表（含全文）
+        detected_regions: 检测到的地区ID列表，如 ["china_us", "china_eu"]
+    
+    Returns:
+        {region_id: prompt_dict}
+    """
+    prompts = {}
+    
+    for region_id in detected_regions:
+        # 筛选该地区相关的新闻
+        region_news = filter_news_by_region(news_list, region_id)
+        
+        if not region_news:
+            continue
+        
+        # 格式化新闻内容
+        news_content = format_news_for_analysis(region_news)
+        
+        # 生成 prompt
+        prompts[region_id] = get_region_tariff_prompt(region_id, news_content)
+    
+    return prompts
+
+
+def format_news_for_analysis(news_list: List[Dict]) -> str:
+    """
+    格式化新闻列表为分析用的文本
+    
+    Args:
+        news_list: 新闻列表
+    
+    Returns:
+        格式化的文本
+    """
+    lines = []
+    for i, news in enumerate(news_list, 1):
+        title = news.get('title', '无标题')
+        url = news.get('url', '')
+        content = news.get('content', '')[:1500]  # 限制内容长度
+        platform = news.get('platform', '')
+        
+        lines.append(f"### 新闻 {i}: {title}")
+        if platform:
+            lines.append(f"**来源**: {platform}")
+        if url:
+            lines.append(f"**链接**: {url}")
+        if content:
+            lines.append(f"\n{content}\n")
+        lines.append("---")
+    
+    return "\n".join(lines)
