@@ -551,11 +551,13 @@ def build_material_section(
     def output_prices_list(name:str,days:int) -> Optional[List[float]]:
         prices = []
         if not price_history or name not in price_history:
-            return None
+            print('暂无数据')
+            return prices
         
         history = price_history.get(name, [])
         if len(history) < 2:
-            return None
+            print('数据过少')
+            return prices
         
         sorted_history = sorted(history, key=lambda x: x.get("date", ""), reverse=True)
         cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
@@ -566,7 +568,8 @@ def build_material_section(
                 index = sorted_history.index(record)
                 break
         if not index:
-            return None
+            print('索引为0或None')
+            return price
         for current_stock in sorted_history[:index]:
             prices.append(current_stock.get('price',0))
         return prices
@@ -579,7 +582,7 @@ def build_material_section(
         title = name+title
         prices = output_prices_list(name,days)
         if not prices:
-            raise ValueError('Prices is empty')
+            return f"{name}暂无数据"
         x= list(range(len(prices)))
         plt.figure()
         plt.plot(x,prices,marker='o')
@@ -592,7 +595,7 @@ def build_material_section(
         if save_path:
             return save_path
         else:
-            return "暂无图表"
+            return f"{name}暂无图表"
         
     
     # 分类材料
@@ -656,7 +659,11 @@ def build_material_section(
         for n in sorted(category, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
             name = n.get('chinese_name') or n.get('name', '')
             chart_path = name+'.png'
-            lines.append(f'![]({plot_price_trend_from_prices(name,days,save_path=chart_path)})')
+            plot_result = plot_price_trend_from_prices(name, days, save_path=chart_path)
+            if plot_result.endswith(".png"):  # 成功保存
+                lines.append(f"### {name}\n![]({plot_result})")
+            else:  # 失败/无数据
+                lines.append(f"### {name}\n{plot_result}")
         lines.append("")
     # 金属类
     if metals:
