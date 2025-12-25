@@ -58,3 +58,4 @@
 | RUN-04 | 启动前端 Dev Server | ✔ | `frontend/package.json:7` | `npm run dev -- --host 0.0.0.0 --port 5173` | Vite 4 启动成功，端口 5173 |
 | RUN-05 | 执行启动前验证命令 | ✔ | `frontend/eslint.config.js:5` | `npm run lint`；`py -m compileall -q .` | lint=0 退出；compileall 通过 |
 | PERF-01 | 定位20秒超时 | ✔ | `frontend/vite.config.js:95`；`api/routes/data.py:421` | `$ProgressPreference='SilentlyContinue'; Measure-Command { iwr http://localhost:5173/api/data -UseBasicParsing }` | 实测 5173 代理与 8000 后端均毫秒级；20 秒为链路超时阈值 |
+| FIX-01 | 修复 typing.List 类型错误 | ✔ | `web/web-crawler/prompts/analysis_prompts_v4.py:613` | `py -m compileall web/web-crawler/prompts/analysis_prompts_v4.py` | 修复 TypeError: Too many arguments for typing.List |
