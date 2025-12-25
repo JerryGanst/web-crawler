@@ -459,7 +459,7 @@ const SupplyChainPanel = () => {
             const allCustomers = LUXSHARE_DATA.customers.map(c => c.name);
             
             // 使用已缓存的供应链新闻
-            const response = await fetch(`${TRENDRADAR_API}/api/generate-analysis`, {
+            const response = await fetch(`${TRENDRADAR_API}/api/generate-analysis-v4`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
