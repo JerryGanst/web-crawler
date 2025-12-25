@@ -803,6 +803,7 @@ def build_material_section(
         generate_table_prices(metals)
     # 塑料类
     if plastics:
+        lines.append("")
         lines.append("### 🧪 塑料/化工类\n")
         lines.append("| 原材料 | 当前价格 | 日涨跌 | 周涨跌 | 月涨跌 | 趋势 |")
         lines.append("|--------|----------|--------|--------|--------|------|")
@@ -823,6 +824,7 @@ def build_material_section(
     
     # 能源类
     if energy:
+        lines.append("")
         lines.append("### ⛽ 能源类\n")
         lines.append("| 品种 | 当前价格 | 日涨跌 | 周涨跌 | 月涨跌 | 趋势 |")
         lines.append("|------|----------|--------|--------|--------|------|")
