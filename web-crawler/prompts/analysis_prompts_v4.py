@@ -18,6 +18,7 @@ from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
+import re
 
 
 # ============================================================
@@ -750,11 +751,12 @@ def build_material_section(
 
     #折中方案，若图表不生成
     def generate_table_prices(category:List[Dict]):
-        
         lines.append("")
         for n in sorted(category, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
-            name = n.get('chinese_name') or n.get('name', '')
-            prices_s=get_price_with_dates(name,days)
+            raw_name = n.get('chinese_name') or n.get('name', '')
+            # 去除可能来自上游数据的 Markdown 标题符号（如 '### '）或多余空白
+            name = re.sub(r'^\s*#+\s*', '', str(raw_name)).strip()
+            prices_s = get_price_with_dates(name, days)
             if not prices_s:
                 lines.append(f'### {name}前{days}天内价格\n暂无有效价格数据\n')
                 continue
