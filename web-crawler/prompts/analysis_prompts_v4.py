@@ -609,7 +609,89 @@ def build_material_section(
         else:
             return f"{name}暂无图表"
         
+    # 获取日期价格元组
+    def get_price_with_dates(name: str, days: int) -> Optional[List[(str, float)]]:
+    # """
+    # 获取指定名称资产在最近N天内的价格列表（包含对应日期）
     
+    # Args:
+    #     name: 资产名称
+    #     days: 回溯天数
+        
+    # Returns:
+    #     元组列表，每个元组格式为 (日期字符串, 价格浮点数)，按日期倒序排列；
+    #     无数据时返回空列表，异常情况返回None
+    # """
+    # 初始化返回结果
+        price_date_list: List[(str, float)] = []
+        
+        # 校验核心数据源
+        if not price_history or name not in price_history:
+            print(f'{name}：暂无数据')
+            return price_date_list
+        
+        # 获取该资产的历史记录
+        history = price_history.get(name, [])
+        
+        # 校验数据量
+        if len(history) < 2:
+            print(f'{name}：数据过少（仅{len(history)}条记录）')
+            return price_date_list
+        
+        # 按日期倒序排序（最新的在前）
+        try:
+            sorted_history = sorted(
+                history, 
+                key=lambda x: x.get("date", ""), 
+                reverse=True
+            )
+        except Exception as e:
+            print(f'{name}：数据排序失败 - {str(e)}')
+            return None
+        
+        # 计算截止日期（N天前）
+        try:
+            cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+        except Exception as e:
+            print(f'日期计算失败 - {str(e)}')
+            return None
+        
+        # 找到截止日期的分界点
+        cutoff_index = None
+        for idx, record in enumerate(sorted_history):
+            record_date = record.get("date", "")
+            if record_date <= cutoff_date:
+                cutoff_index = idx
+                break
+        
+        # 筛选目标数据
+        if cutoff_index is None:
+            print(f'{name}：所有数据都在{days}天内，取全部')
+            target_data = sorted_history
+        else:
+            target_data = sorted_history[:cutoff_index]
+        
+        # 构建(日期, 价格)元组列表
+        for record in target_data:
+            record_date = record.get("date", "")
+            price_val = record.get("price", 0.0)
+            
+            # 数据有效性校验
+            if not record_date:
+                print(f'{name}：发现无日期记录，跳过')
+                continue
+            
+            if not isinstance(price_val, (int, float)):
+                print(f'{name}：{record_date}价格非数字({price_val})，跳过')
+                continue
+            
+            price_date_list.append((record_date, float(price_val)))
+        
+        # 最终数据校验
+        if not price_date_list:
+            print(f'{name}：{days}天内无有效价格数据')
+        
+        return price_date_list
     # 分类材料
     metals = []
     plastics = []
@@ -665,6 +747,19 @@ def build_material_section(
             return "➡️"    # 横盘
         
     days = 7 #默认七天的趋势图
+
+    #折中方案，若图表不生成
+    def generate_table_prices(category:List[Dict]):
+        
+        lines.append("")
+        for n in sorted(category, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
+            name = n.get('chinese_name') or n.get('name', '')
+            prices_s=get_price_with_dates(name,days)
+            lines.append(f'### {name}前{days}天内价格\n| 日期 | 价格 |')
+            for p in prices_s:
+                lines.append(f'| {p[0]} | {p[1]}|')
+        lines.append("")
+
     #按类型生成所有商品图表
     def generate_chart(category:List[Dict]):
         lines.append("")
@@ -677,6 +772,7 @@ def build_material_section(
             else:  # 失败/无数据
                 lines.append(f"### {name}\n{plot_result}")
         lines.append("")
+
     # 金属类
     if metals:
         lines.append("### 🔩 金属类\n")
@@ -695,7 +791,7 @@ def build_material_section(
             trend = get_trend_icon(day_change, week_change)
             
             lines.append(f"| {name} | {price} {unit} | {format_change(day_change)} | {format_change(week_change)} | {format_change(month_change)} | {trend} |")
-        generate_chart(metals)
+        generate_table_prices(metals)
     # 塑料类
     if plastics:
         lines.append("### 🧪 塑料/化工类\n")
@@ -714,7 +810,7 @@ def build_material_section(
             trend = get_trend_icon(day_change, week_change)
             
             lines.append(f"| {name} | {price} {unit} | {format_change(day_change)} | {format_change(week_change)} | {format_change(month_change)} | {trend} |")
-        generate_chart(plastics)
+        generate_table_prices(plastics)
     
     # 能源类
     if energy:
@@ -734,7 +830,7 @@ def build_material_section(
             trend = get_trend_icon(day_change, week_change)
             
             lines.append(f"| {name} | {price} {unit} | {format_change(day_change)} | {format_change(week_change)} | {format_change(month_change)} | {trend} |")
-        generate_chart(energy)
+        generate_table_prices(energy)
     
     # 数据统计摘要（纯数据，不做解读）
     lines.append("### 📊 数据统计\n")
