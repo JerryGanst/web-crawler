@@ -35,6 +35,29 @@ from .analysis_prompts_v4 import (
 # 市场分析 prompts（独立）
 from .market_prompts import get_market_analysis_prompt, MARKET_SYSTEM_PROMPT
 
+# ============================================================
+# V3 模块化版本（推荐用于 /api/generate-analysis-v3）
+# ============================================================
+from .analysis_prompts_v3 import (
+    # 模块化接口
+    get_all_module_prompts,
+    get_summary_prompt,
+    get_module_prompt,
+    FIRST_ROUND_MODULES,
+    CUSTOMER_MODULE,
+    COMPETITOR_MODULE,
+    MATERIAL_MODULE,
+    TARIFF_MODULE,
+    SUMMARY_MODULE,
+    # 兼容接口
+    get_supply_chain_analysis_prompt,
+    get_supplier_analysis_prompt,
+    ANALYSIS_SYSTEM_PROMPT,
+    MATERIAL_CATEGORIES,
+    precheck_news_quality,
+    COMPETITORS  # 完整友商列表
+)
+
 __all__ = [
     # V3 模块化接口
     'get_all_module_prompts',
