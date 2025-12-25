@@ -562,16 +562,24 @@ def build_material_section(
         sorted_history = sorted(history, key=lambda x: x.get("date", ""), reverse=True)
         cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
         index = None
-        for record in sorted_history:
-            #找到后返回索引
-            if record.get("date", "") <= cutoff_date:
-                index = sorted_history.index(record)
+        for idx, record in enumerate(sorted_history):  # 用enumerate避免index()重复问题
+            record_date = record.get("date", "")
+            if record_date <= cutoff_date:
+                index = idx
                 break
-        if not index:
-            print('索引为0或None')
-            return price
-        for current_stock in sorted_history[:index]:
-            prices.append(current_stock.get('price',0))
+        if index is None:
+        # 所有记录都 > 截止日期 → 取全部数据
+            print(f'{name}：所有数据都在{days}天内，取全部')
+            target_data = sorted_history
+        else:
+        # 取截止日期之前的所有数据
+            target_data = sorted_history[:index]
+        for current_stock in target_data:
+            price_val = current_stock.get('price', 0.0)
+            if isinstance(price_val, (int, float)):  # 确保价格是数字
+                prices.append(price_val)
+        if not prices:
+            print(f'{name}：{days}天内无有效价格数据')
         return prices
     #绘制价格走势图
     def plot_price_trend_from_prices(name:str,days:int,*,
