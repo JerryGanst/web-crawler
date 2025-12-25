@@ -753,6 +753,7 @@ def build_material_section(
     def generate_table_prices(category:List[Dict]):
         lines.append("")
         for n in sorted(category, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
+            lines.append("")
             raw_name = n.get('chinese_name') or n.get('name', '')
             # 去除可能来自上游数据的 Markdown 标题符号（如 '### '）或多余空白
             name = re.sub(r'^\s*#+\s*', '', str(raw_name)).strip()
@@ -766,7 +767,7 @@ def build_material_section(
             lines.append('|------|------|')
             for p in prices_s:
                 lines.append(f'| {p[0]} | {p[1]} {unit}|')
-        lines.append("")
+            
 
     #按类型生成所有商品图表
     def generate_chart(category:List[Dict]):
