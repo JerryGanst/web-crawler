@@ -579,7 +579,7 @@ def build_material_section(
             year = total_months // 12
             month = total_months % 12 + 1
             # 尝试保留当前日；若当月天数不足则取当月最后一天作为目标日
-            day = min(now.day, calendar.monthrange(year, month)[1])
+            day = min(now.day, calendar.monthrange(year, month)[1])#返回当前月有多少天
             target_date = datetime(year, month, day)
             month_label = f"{year:04d}-{month:02d}"
 
@@ -804,7 +804,7 @@ def build_material_section(
     def format_change(value: Optional[float]) -> str:
         """格式化涨跌幅"""
         if value is None:
-            return "N/A"
+            return "--"
         if value > 0:
             return f"+{value:.2f}%"
         return f"{value:.2f}%"
