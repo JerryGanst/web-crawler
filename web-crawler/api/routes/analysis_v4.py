@@ -20,6 +20,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 from pathlib import Path
 from fastapi import APIRouter, HTTPException
+from fastapi.concurrency import run_in_threadpool
 import yaml
 import os
 
@@ -405,7 +406,8 @@ async def generate_analysis_v4(request: AnalysisRequest):
     
     # 获取新闻
     keywords = ["立讯", "苹果", "华为", "关税", "贸易", "中美", "中欧", "越南", "印度", "铜", "塑料", "ABS"]
-    realtime_news = fetch_realtime_news(keywords)
+    # 异步执行同步的爬虫函数
+    realtime_news = await run_in_threadpool(fetch_realtime_news, keywords)
     all_news = list(request.news) if request.news else []
     all_news.extend(realtime_news)
     
@@ -420,18 +422,18 @@ async def generate_analysis_v4(request: AnalysisRequest):
     print(f"   📰 新闻总数: {len(unique_news)} 条")
     
     # 新闻质量预检
-    quality = precheck_news_quality(unique_news)
+    quality = await run_in_threadpool(precheck_news_quality, unique_news)
     print(f"   📊 新闻质量: {quality['quality_score']}/100")
     if quality['suggestions']:
         print(f"   💡 建议: {', '.join(quality['suggestions'])}")
     
     # 筛选关税新闻并获取全文
-    tariff_news = filter_tariff_news(unique_news)
+    tariff_news = await run_in_threadpool(filter_tariff_news, unique_news)
     print(f"   🌐 关税相关: {len(tariff_news)} 条")
     
     if tariff_news:
         print("   📄 获取新闻全文...")
-        tariff_news = fetch_news_full_content(tariff_news, max_items=20)
+        tariff_news = await run_in_threadpool(fetch_news_full_content, tariff_news, max_items=20)
         content_count = len([n for n in tariff_news if n.get('content')])
         print(f"   ✅ 成功获取 {content_count} 条全文")
     
@@ -440,13 +442,14 @@ async def generate_analysis_v4(request: AnalysisRequest):
     try:
         from scrapers.commodity import CommodityScraper
         scraper = CommodityScraper()
-        commodity_data = scraper.scrape()
+        # 异步执行同步的商品爬取
+        commodity_data = await run_in_threadpool(scraper.scrape)
         print(f"   📈 原材料数据: {len(commodity_data)} 条")
     except Exception as e:
         print(f"   ⚠️ 原材料获取失败: {e}")
     
     # 获取价格历史
-    price_history_data = get_price_history()
+    price_history_data = await run_in_threadpool(get_price_history)
     print(f"   📜 历史数据: {len(price_history_data)} 个品种")
     
     # 构建新闻摘要
@@ -462,7 +465,7 @@ async def generate_analysis_v4(request: AnalysisRequest):
     ]) if tariff_news else "暂无关税相关新闻"
     
     # 构建原材料数据部分（不走大模型）
-    material_data_section = build_material_section(commodity_data, price_history_data)
+    material_data_section = await run_in_threadpool(build_material_section, commodity_data, price_history_data)
     
     today = datetime.now().strftime("%Y年%m月%d日 %H:%M")
     
