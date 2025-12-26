@@ -611,18 +611,22 @@ def build_material_section(
             latest = sorted_history[0]
 
             if not target_record or not target_record.get("price") or not latest.get("price"):
-                monthly_changes.append((month_label, None))
+                monthly_changes.append((month_label, "--"))
                 continue
 
             old_price = float(target_record["price"])
             new_price = float(latest["price"])
 
             if old_price == 0:
-                monthly_changes.append((month_label, None))
+                monthly_changes.append((month_label, "--"))
                 continue
 
             change_percent = ((new_price - old_price) / old_price) * 100
-            monthly_changes.append((month_label, change_percent))
+            if change_percent > 0:
+                formatted = f"+{change_percent:.2f}%"
+            else:
+                formatted = f"{change_percent:.2f}%"
+            monthly_changes.append((month_label, formatted))
         
         return monthly_changes
     # 输出指定N天历史价格列表
@@ -892,9 +896,9 @@ def build_material_section(
             monthly_values = []
             if year_monthly_changes:
                 for d, ch in year_monthly_changes:
-                    monthly_values.append(format_change(ch))
+                    monthly_values.append(ch)
             else:
-                monthly_values = ["N/A"] * len(month_labels)
+                monthly_values = ["--"] * len(month_labels)
 
             row_cells = [name, f"{price} {unit}", format_change(month_change)] + monthly_values + [trend]
             lines.append("| " + " | ".join(row_cells) + " |")
@@ -922,9 +926,9 @@ def build_material_section(
             monthly_values = []
             if year_monthly_changes:
                 for d, ch in year_monthly_changes:
-                    monthly_values.append(format_change(ch))
+                    monthly_values.append(ch)
             else:
-                monthly_values = ["N/A"] * len(month_labels)
+                monthly_values = ["--"] * len(month_labels)
 
             row_cells = [name, f"{price} {unit}", format_change(month_change)] + monthly_values + [trend]
             lines.append("| " + " | ".join(row_cells) + " |")
@@ -953,9 +957,9 @@ def build_material_section(
             monthly_values = []
             if year_monthly_changes:
                 for d, ch in year_monthly_changes:
-                    monthly_values.append(format_change(ch))
+                    monthly_values.append(ch)
             else:
-                monthly_values = ["N/A"] * len(month_labels)
+                monthly_values = ["--"] * len(month_labels)
 
             row_cells = [name, f"{price} {unit}", format_change(month_change)] + monthly_values + [trend]
             lines.append("| " + " | ".join(row_cells) + " |")
