@@ -879,7 +879,7 @@ def build_material_section(
         header_cells = ["原材料", "当前价格", "当前月涨跌"] + month_labels + ["趋势"]
         lines.append("| " + " | ".join(header_cells) + " |")
         # 分隔符：为第一列和价格列留较宽的分隔符，月份列使用较窄分隔符
-        sep_cells = ["------", "-------"] + ["---"] * len(month_labels) + ["---"]
+        sep_cells = ["------", "-------"] + ["---"] * (len(month_labels)+1) + ["---"]
         lines.append("|" + "|".join(sep_cells) + "|")
         
         for m in sorted(metals, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
@@ -908,7 +908,7 @@ def build_material_section(
         lines.append("### 🧪 塑料/化工类\n")
         header_cells = ["原材料", "当前价格", "当前月涨跌"] + month_labels + ["趋势"]
         lines.append("| " + " | ".join(header_cells) + " |")
-        sep_cells = ["------", "-------"] + ["---"] * len(month_labels) + ["---"]
+        sep_cells = ["------", "-------"] + ["---"] * (len(month_labels)+1) + ["---"]
         lines.append("|" + "|".join(sep_cells) + "|")
         
         for p in sorted(plastics, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
@@ -939,7 +939,7 @@ def build_material_section(
         lines.append("### ⛽ 能源类\n")
         header_cells = ["品种", "当前价格", "当前月涨跌"] + month_labels + ["趋势"]
         lines.append("| " + " | ".join(header_cells) + " |")
-        sep_cells = ["------", "-------"] + ["---"] * len(month_labels) + ["---"]
+        sep_cells = ["------", "-------"] + ["---"] * (len(month_labels)+1) + ["---"]
         lines.append("|" + "|".join(sep_cells) + "|")
         
         for e in sorted(energy, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
