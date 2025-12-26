@@ -562,29 +562,31 @@ def build_material_section(
         
         sorted_history = sorted(history, key=lambda x: x.get("date", ""), reverse=True)
         
-        for month_offset in range(1, 13):
+        for month_offset in range(12, 0, -1):
+            # 以近似 30 天为一个月，生成对应的截止日期并用年-月作为标签（格式 YYYY-MM）
             cutoff_date = (datetime.now() - timedelta(days=30 * month_offset)).strftime("%Y-%m-%d")
+            month_label = (datetime.now() - timedelta(days=30 * month_offset)).strftime("%Y-%m")
             older = None
             for record in sorted_history:
                 if record.get("date", "") <= cutoff_date:
                     older = record
                     break
-            
+
             latest = sorted_history[0]
-            
+
             if not older or not older.get("price") or not latest.get("price"):
-                monthly_changes.append((cutoff_date, None))
+                monthly_changes.append((month_label, None))
                 continue
-            
+
             old_price = float(older["price"])
             new_price = float(latest["price"])
-            
+
             if old_price == 0:
-                monthly_changes.append((cutoff_date, None))
+                monthly_changes.append((month_label, None))
                 continue
-            
+
             change_percent = ((new_price - old_price) / old_price) * 100
-            monthly_changes.append((cutoff_date, change_percent))
+            monthly_changes.append((month_label, change_percent))
         
         return monthly_changes
     # 输出指定N天历史价格列表
@@ -787,6 +789,9 @@ def build_material_section(
         
     days = 7 #默认七天的趋势图
 
+    # 生成用于表头的过去12个月的月份标签（年-月，格式 YYYY-MM），顺序为从远到近（最早 -> 最近）
+    month_labels = [(datetime.now() - timedelta(days=30 * m)).strftime("%Y-%m") for m in range(12, 0, -1)]
+
     #折中方案，若图表不生成
     def generate_table_prices(category:List[Dict]):
         lines.append("")
@@ -824,8 +829,12 @@ def build_material_section(
     if metals:
         
         lines.append("### 🔩 金属类\n")
-        lines.append("| 原材料 | 当前价格 | 当前月涨跌 | 历史一年涨跌 | 趋势 |")
-        lines.append("|--------|----------|---|------------------------------------|----|")
+        # 构建包含 12 个月列的表头，月份只保留 MM
+        header_cells = ["原材料", "当前价格", "当前月涨跌"] + month_labels + ["趋势"]
+        lines.append("| " + " | ".join(header_cells) + " |")
+        # 分隔符：为第一列和价格列留较宽的分隔符，月份列使用较窄分隔符
+        sep_cells = ["------", "-------"] + ["---"] * len(month_labels) + ["---"]
+        lines.append("|" + "|".join(sep_cells) + "|")
         
         for m in sorted(metals, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
             name = m.get('chinese_name') or m.get('name', '')
@@ -837,22 +846,25 @@ def build_material_section(
             month_change = calc_period_change(name, 30)
             year_monthly_changes = calc_monthly_changes(name)
             trend = get_trend_icon(day_change, week_change)
-            # 将过去12个月的月度涨跌格式化为单元格内的紧凑字符串，如: 2024-11:+1.23%, 2024-10:-0.45%, ...
+            # 将过去12个月的月度涨跌按月份列填入各自单元格
+            monthly_values = []
             if year_monthly_changes:
-                monthly_str = ", ".join([
-                    f"{d}:{format_change(ch)}" for d, ch in year_monthly_changes
-                ])
+                for d, ch in year_monthly_changes:
+                    monthly_values.append(format_change(ch))
             else:
-                monthly_str = "N/A"
+                monthly_values = ["N/A"] * len(month_labels)
 
-            lines.append(f"| {name} | {price} {unit} | {format_change(month_change)} | {monthly_str} | {trend} |")
+            row_cells = [name, f"{price} {unit}", format_change(month_change)] + monthly_values + [trend]
+            lines.append("| " + " | ".join(row_cells) + " |")
         generate_table_prices(metals)
     # 塑料类
     if plastics:
         lines.append("")
         lines.append("### 🧪 塑料/化工类\n")
-        lines.append("| 原材料 | 当前价格 | 月涨跌 | 历史一年涨跌 | 趋势 |")
-        lines.append("|--------|----------|--------|------------------------------------|------|")
+        header_cells = ["原材料", "当前价格", "当前月涨跌"] + month_labels + ["趋势"]
+        lines.append("| " + " | ".join(header_cells) + " |")
+        sep_cells = ["------", "-------"] + ["---"] * len(month_labels) + ["---"]
+        lines.append("|" + "|".join(sep_cells) + "|")
         
         for p in sorted(plastics, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
             name = p.get('chinese_name') or p.get('name', '')
@@ -866,22 +878,25 @@ def build_material_section(
             
             trend = get_trend_icon(day_change, week_change)
 
+            monthly_values = []
             if year_monthly_changes:
-                monthly_str = ", ".join([
-                    f"{d}:{format_change(ch)}" for d, ch in year_monthly_changes
-                ])
+                for d, ch in year_monthly_changes:
+                    monthly_values.append(format_change(ch))
             else:
-                monthly_str = "N/A"
+                monthly_values = ["N/A"] * len(month_labels)
 
-            lines.append(f"| {name} | {price} {unit} | {format_change(month_change)} | {monthly_str} | {trend} |")
+            row_cells = [name, f"{price} {unit}", format_change(month_change)] + monthly_values + [trend]
+            lines.append("| " + " | ".join(row_cells) + " |")
         generate_table_prices(plastics)
     
     # 能源类
     if energy:
         lines.append("")
         lines.append("### ⛽ 能源类\n")
-        lines.append("| 品种 | 当前价格 | 月涨跌 | 历史一年涨跌 | 趋势 |")
-        lines.append("|------|----------|--------|------------------------------------|------|")
+        header_cells = ["品种", "当前价格", "当前月涨跌"] + month_labels + ["趋势"]
+        lines.append("| " + " | ".join(header_cells) + " |")
+        sep_cells = ["------", "-------"] + ["---"] * len(month_labels) + ["---"]
+        lines.append("|" + "|".join(sep_cells) + "|")
         
         for e in sorted(energy, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
             name = e.get('chinese_name') or e.get('name', '')
@@ -895,14 +910,15 @@ def build_material_section(
             
             trend = get_trend_icon(day_change, week_change)
 
+            monthly_values = []
             if year_monthly_changes:
-                monthly_str = ", ".join([
-                    f"{d}:{format_change(ch)}" for d, ch in year_monthly_changes
-                ])
+                for d, ch in year_monthly_changes:
+                    monthly_values.append(format_change(ch))
             else:
-                monthly_str = "N/A"
+                monthly_values = ["N/A"] * len(month_labels)
 
-            lines.append(f"| {name} | {price} {unit} | {format_change(month_change)} | {monthly_str} | {trend} |")
+            row_cells = [name, f"{price} {unit}", format_change(month_change)] + monthly_values + [trend]
+            lines.append("| " + " | ".join(row_cells) + " |")
         generate_table_prices(energy)
     
     # 数据统计摘要（纯数据，不做解读）
