@@ -35,7 +35,7 @@ const COMMODITY_TABS = [
         bgColor: '#fffbeb',
         // 匹配后端 category: 贵金属、工业金属
         categories: ['贵金属', '工业金属'],
-        keywords: ['黄金', 'Gold', '白银', 'Silver', '铜', 'Copper', '铝', 'Aluminum', '铂金', 'Platinum', '钯金', 'Palladium', '镍', 'Nickel', '锌', 'Zinc', '铅', 'Lead', '锡', 'Tin']
+        keywords: ['黄金', 'Gold', '白银', 'Silver', '铜', 'Copper', '铝', 'Aluminium', '铂金', 'Platinum', '钯金', 'Palladium', '镍', 'Nickel', '锌', 'Zinc', '铅', 'Lead', '锡', 'Tin']
     },
     {
         id: 'energy',
@@ -148,7 +148,7 @@ const COMMODITY_ALIASES = {
     'COMEX Copper': '铜',
     '沪铜': '铜',
     // 铝
-    'Aluminum': '铝',
+    'Aluminium': '铝',
     '沪铝': '铝',
     // 天然气
     'Natural Gas': '天然气',

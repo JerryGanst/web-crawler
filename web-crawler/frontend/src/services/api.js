@@ -28,10 +28,10 @@ const abortControllers = new Map();
  * @param {Object} options - 配置选项
  */
 const cachedRequest = async (key, fetcher, options = {}) => {
-    const { 
-        ttl = CACHE_TTL, 
+    const {
+        ttl = CACHE_TTL,
         debounce = 0,
-        forceRefresh = false 
+        forceRefresh = false
     } = options;
 
     // 1. 检查缓存是否有效（非强制刷新时）
@@ -54,7 +54,7 @@ const cachedRequest = async (key, fetcher, options = {}) => {
         if (debounceTimers.has(key)) {
             clearTimeout(debounceTimers.get(key));
         }
-        
+
         return new Promise((resolve, reject) => {
             const timer = setTimeout(async () => {
                 debounceTimers.delete(key);
@@ -81,13 +81,13 @@ const executeRequest = async (key, fetcher, ttl) => {
     if (abortControllers.has(key)) {
         abortControllers.get(key).abort();
     }
-    
+
     // 创建新的 AbortController
     const controller = new AbortController();
     abortControllers.set(key, controller);
 
     console.log(`[Cache MISS] ${key} - fetching...`);
-    
+
     const promise = fetcher(controller.signal)
         .then(response => {
             // 存入缓存
@@ -103,7 +103,7 @@ const executeRequest = async (key, fetcher, ttl) => {
         .catch(error => {
             pendingRequests.delete(key);
             abortControllers.delete(key);
-            
+
             // 如果是取消请求，不抛出错误
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 console.log(`[Request CANCELLED] ${key}`);
@@ -188,7 +188,7 @@ const api = {
     // 获取新闻（核心方法，带防抖）
     getNews: (category, includeCustom = true, refresh = false) => {
         const cacheKey = `api:news:${category}:${includeCustom}`;
-        
+
         if (refresh) {
             clearCache(`api:news:${category}`);
             return axios.get(
@@ -196,14 +196,14 @@ const api = {
                 { timeout: 90000 }  // 90秒超时
             );
         }
-        
+
         return cachedRequest(
             cacheKey,
             (signal) => axios.get(
                 `${API_BASE}/api/news/${category}?include_custom=${includeCustom}`,
                 { signal, timeout: 90000 }
             ),
-            { 
+            {
                 ttl: 120000,  // 2分钟缓存
                 debounce: 100  // 100ms 防抖
             }
@@ -263,7 +263,7 @@ const api = {
     },
 
     // 获取价格历史数据（带缓存）
-    getPriceHistory: (commodity = null, days = 7) => {
+    getPriceHistory: (commodity = null, days = 7, bypassCache = false) => {
         const cacheKey = `api:price-history:${commodity || 'all'}:${days}`;
         return cachedRequest(
             cacheKey,
@@ -273,7 +273,7 @@ const api = {
                 params.append('days', days.toString());
                 return axios.get(`${API_BASE}/api/price-history?${params.toString()}`, { signal });
             },
-            { ttl: 300000 }  // 5分钟缓存（价格历史变化不频繁）
+            { ttl: 300000, forceRefresh: bypassCache }  // 5分钟缓存（价格历史变化不频繁）
         );
     },
 
@@ -348,7 +348,7 @@ const api = {
     // 工具方法
     clearCache,
     preloadCache,
-    
+
     // 获取前端缓存状态（用于调试）
     getCacheStatus: () => {
         const status = {};
@@ -362,7 +362,7 @@ const api = {
         }
         return status;
     },
-    
+
     // 获取待处理请求数（用于调试）
     getPendingRequests: () => Array.from(pendingRequests.keys())
 };

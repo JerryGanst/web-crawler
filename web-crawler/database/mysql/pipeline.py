@@ -89,7 +89,7 @@ COMMODITY_ID_MAP = {
     
     # 工业金属
     'Copper': 'copper', '铜': 'copper', 'COMEX铜': 'comex_copper',
-    'Aluminum': 'aluminum', 'Aluminium': 'aluminum', '铝': 'aluminum',
+    'Aluminium': 'aluminum',  '铝': 'aluminum',
     'Zinc': 'zinc', '锌': 'zinc',
     'Nickel': 'nickel', '镍': 'nickel',
     'Lead': 'lead', '铅': 'lead',
@@ -102,6 +102,24 @@ COMMODITY_ID_MAP = {
     'Cotton': 'cotton', '棉花': 'cotton',
     'Sugar': 'sugar', '糖': 'sugar',
     'Coffee': 'coffee', '咖啡': 'coffee',
+    'Cocoa': 'cocoa', '可可': 'cocoa',
+    'Rice': 'rice', '大米': 'rice',
+    
+    # 肉类
+    'Live Cattle': 'live_cattle',
+    'Lean Hog': 'lean_hog',
+    'Feeder Cattle': 'feeder_cattle',
+    'Milk': 'milk',
+    
+    # 其他软商品
+    'Orange Juice': 'orange_juice',
+    'Lumber': 'lumber',
+    'Oats': 'oats',
+    'Palm Oil': 'palm_oil', '棕榈油': 'palm_oil',
+    'Soybean Oil': 'soybean_oil',
+    'Soybean Meal': 'soybean_meal',
+    'Rapeseed': 'rapeseed',
+    'Coal': 'coal',
 }
 
 # 分类映射
@@ -114,6 +132,11 @@ CATEGORY_MAP = {
     'zinc': '工业金属', 'nickel': '工业金属', 'lead': '工业金属', 'tin': '工业金属',
     'corn': '农产品', 'wheat': '农产品', 'soybeans': '农产品',
     'cotton': '农产品', 'sugar': '农产品', 'coffee': '农产品',
+    'cocoa': '农产品', 'rice': '农产品', 'orange_juice': '农产品',
+    'palm_oil': '农产品', 'soybean_oil': '农产品', 'soybean_meal': '农产品',
+    'rapeseed': '农产品', 'oats': '农产品', 'milk': '农产品',
+    'live_cattle': '农产品', 'lean_hog': '农产品', 'feeder_cattle': '农产品',
+    'lumber': '其他', 'coal': '能源',
 }
 
 
@@ -163,14 +186,33 @@ def standardize_record(raw: Dict[str, Any], source: str) -> Optional[CommodityRe
         'oil_wti': 'Oil (WTI)',
         'natural_gas': 'Natural Gas',
         'copper': 'Copper',
-        'aluminum': 'Aluminum',
+        'aluminum': 'Aluminium',
         'zinc': 'Zinc',
         'nickel': 'Nickel',
         'lead': 'Lead',
         'tin': 'Tin',
         'corn': 'Corn',
         'wheat': 'Wheat',
-        'soybeans': 'Soybeans'
+        'corn': 'Corn',
+        'wheat': 'Wheat',
+        'soybeans': 'Soybeans',
+        'cocoa': 'Cocoa',
+        'rice': 'Rice',
+        'coffee': 'Coffee',
+        'cotton': 'Cotton',
+        'sugar': 'Sugar',
+        'live_cattle': 'Live Cattle',
+        'lean_hog': 'Lean Hog',
+        'feeder_cattle': 'Feeder Cattle',
+        'milk': 'Milk',
+        'orange_juice': 'Orange Juice',
+        'lumber': 'Lumber',
+        'oats': 'Oats',
+        'palm_oil': 'Palm Oil',
+        'soybean_oil': 'Soybean Oil',
+        'soybean_meal': 'Soybean Meal',
+        'rapeseed': 'Rapeseed',
+        'coal': 'Coal'
     }
     
     # 优先使用英文名称
@@ -384,7 +426,8 @@ class CommodityPipeline:
                     self._write_history(cursor, record, request_id)
                     
                     if not changes:
-                        # 无变化
+                        # 无变化，但更新 heartbeat (timestamp)
+                        self._update_heartbeat(cursor, record.id, record.version_ts)
                         stats['unchanged'] += 1
                         continue
                     
@@ -402,10 +445,6 @@ class CommodityPipeline:
                             # INSERT 类型 (新增)
                             self._insert_latest(cursor, record)
                             stats['inserted'] += 1
-                    
-                    
-                    # 7. 写历史存档 (已移至上方)
-                    # self._write_history(cursor, record, request_id)
                     
                     # 8. 记录变更日志
                     for change in changes:
@@ -469,7 +508,16 @@ class CommodityPipeline:
         params.append(record.id)
         
         sql = f"UPDATE commodity_latest SET {', '.join(set_clauses)} WHERE id = %s"
+        sql = f"UPDATE commodity_latest SET {', '.join(set_clauses)} WHERE id = %s"
         cursor.execute(sql, params)
+
+    def _update_heartbeat(self, cursor, commodity_id: str, version_ts: datetime):
+        """仅更新时间戳 (心跳)"""
+        cursor.execute("""
+            UPDATE commodity_latest 
+            SET as_of_ts = %s, version_ts = %s
+            WHERE id = %s
+        """, (version_ts, version_ts, commodity_id))
     
     def _write_history(self, cursor, record: CommodityRecord, request_id: str):
         """写入历史存档 (每天只保留一条最新)"""
@@ -489,13 +537,15 @@ class CommodityPipeline:
              %(change_percent)s, %(change_value)s, %(high_price)s, %(low_price)s, %(open_price)s,
              %(source)s, %(source_url)s, %(record_date)s, %(version_ts)s, %(request_id)s, %(extra_data)s)
             ON DUPLICATE KEY UPDATE 
-                price = VALUES(price),
-                change_percent = VALUES(change_percent),
-                change_value = VALUES(change_value),
-                high_price = VALUES(high_price),
-                low_price = VALUES(low_price),
-                version_ts = VALUES(version_ts),
-                request_id = VALUES(request_id),
+                name = IF(VALUES(version_ts) >= version_ts, VALUES(name), name),
+                chinese_name = IF(VALUES(version_ts) >= version_ts, VALUES(chinese_name), chinese_name),
+                price = IF(VALUES(version_ts) >= version_ts, VALUES(price), price),
+                change_percent = IF(VALUES(version_ts) >= version_ts, VALUES(change_percent), change_percent),
+                change_value = IF(VALUES(version_ts) >= version_ts, VALUES(change_value), change_value),
+                high_price = IF(VALUES(version_ts) >= version_ts, VALUES(high_price), high_price),
+                low_price = IF(VALUES(version_ts) >= version_ts, VALUES(low_price), low_price),
+                version_ts = IF(VALUES(version_ts) >= version_ts, VALUES(version_ts), version_ts),
+                request_id = IF(VALUES(version_ts) >= version_ts, VALUES(request_id), request_id),
                 recorded_at = CURRENT_TIMESTAMP(3)
         """, data)
     

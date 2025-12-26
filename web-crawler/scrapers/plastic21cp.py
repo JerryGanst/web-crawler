@@ -271,7 +271,12 @@ class Plastic21CPScraper:
                 # 前一日价格
                 pre_price = r.get("preQuotedPrice")
                 
-                version_ts = datetime.strptime(price_date + " 23:59:59", "%Y-%m-%d %H:%M:%S")
+                # 处理时间戳: 如果是今天的数据，使用当前时间，否则使用当日末尾
+                today_str = date.today().isoformat()
+                if price_date == today_str:
+                    version_ts = datetime.now()
+                else:
+                    version_ts = datetime.strptime(price_date + " 23:59:59", "%Y-%m-%d %H:%M:%S")
                 
                 normalized.append({
                     "name": product_name,

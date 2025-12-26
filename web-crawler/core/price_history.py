@@ -247,7 +247,7 @@ class PriceHistoryManager:
                     'zinc': 'Zinc',
                     'lead': 'Lead',
                     'copper': 'Copper',
-                    'aluminum': 'Aluminum',
+                    'aluminum': 'Aluminium',
                     'tin': 'Tin',
                     'gold': 'Gold',
                     'silver': 'Silver'
