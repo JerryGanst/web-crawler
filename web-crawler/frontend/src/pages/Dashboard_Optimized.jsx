@@ -36,7 +36,7 @@ const COMMODITY_TABS = [
         bgColor: '#fffbeb',
         // 匹配后端 category: 贵金属、工业金属
         categories: ['贵金属', '工业金属'],
-        keywords: ['黄金', 'Gold', '白银', 'Silver', '铜', 'Copper', '铝', 'Aluminum', '铂金', 'Platinum', '钯金', 'Palladium', '镍', 'Nickel', '锌', 'Zinc', '铅', 'Lead', '锡', 'Tin']
+        keywords: ['黄金', 'Gold', '白银', 'Silver', '铜', 'Copper', '铝', 'Aluminium', '铂金', 'Platinum', '钯金', 'Palladium', '镍', 'Nickel', '锌', 'Zinc', '铅', 'Lead', '锡', 'Tin']
     },
     {
         id: 'energy',
@@ -149,7 +149,7 @@ const COMMODITY_ALIASES = {
     'COMEX Copper': '铜',
     '沪铜': '铜',
     // 铝
-    'Aluminum': '铝',
+    'Aluminium': '铝',
     '沪铝': '铝',
     // 天然气
     'Natural Gas': '天然气',
@@ -160,6 +160,31 @@ const COMMODITY_ALIASES = {
     // 钯金
     'Palladium': '钯金',
     '钯金': '钯金',
+    // 能源扩展
+    'Natural Gas (Henry Hub)': '天然气 (Henry Hub)',
+    'Heating Oil': '取暖油',
+    'RBOB Gasoline': 'RBOB汽油',
+    'Coal': '煤炭',
+    // 农产品
+    'Corn': '玉米',
+    'Wheat': '小麦',
+    'Soybeans': '大豆',
+    'Soybean Oil': '豆油',
+    'Soybean Meal': '豆粕',
+    'Palm Oil': '棕榈油',
+    'Rapeseed': '油菜籽',
+    'Cotton': '棉花',
+    'Sugar': '糖',
+    'Coffee': '咖啡',
+    'Cocoa': '可可',
+    'Rice': '大米',
+    'Orange Juice': '橙汁',
+    'Oats': '燕麦',
+    'Lumber': '木材',
+    'Milk': '牛奶',
+    'Live Cattle': '活牛',
+    'Feeder Cattle': '架子牛',
+    'Lean Hog': '瘦肉猪',
 };
 
 // 获取标准化商品名称
@@ -702,18 +727,21 @@ const Dashboard = () => {
         }
     };
 
-    const loadPriceHistory = async () => {
+    const loadPriceHistory = async (daysOverride = null, bypassCache = false) => {
         try {
-            // Fix: handle 'month' case
+            // Determine days based on override or current state
             let days = 1;
-            if (timeRange === 'week') days = 7;
-            if (timeRange === 'month') days = 30;
+            const targetRange = daysOverride !== null
+                ? (daysOverride === 1 ? 'day' : (daysOverride === 7 ? 'week' : 'month'))
+                : timeRange;
 
-            const response = await api.getPriceHistory(null, days);
+            if (targetRange === 'week') days = 7;
+            if (targetRange === 'month') days = 30;
+
+            const response = await api.getPriceHistory(null, days, bypassCache);
             // Fix: Read 'data' field instead of 'commodities'
             const historyData = response.data?.data || {};
-            console.log('📦 [Price History] API返回的历史数据keys:', Object.keys(historyData));
-            console.log('📦 [Price History] 完整数据:', historyData);
+            console.log(`📦 [Price History] Loaded (${targetRange}, bypass=${bypassCache}):`, Object.keys(historyData).length, 'items');
             setPriceHistory(historyData);
         } catch (err) {
             console.error('加载历史数据失败:', err);
@@ -721,8 +749,9 @@ const Dashboard = () => {
     };
 
     useEffect(() => {
+        // Initial load only
         loadPriceHistory();
-    }, [timeRange]);
+    }, []);
 
 
 
@@ -854,7 +883,7 @@ const Dashboard = () => {
         },
         {
             id: 'aluminum',
-            name: '铝 (Aluminum)',
+            name: '铝 (Aluminium)',
             basePrice: 2500,
             color: '#848789',
             matchPatterns: [/^Alum/i, /^铝$/, /SMM铝/],
@@ -1655,7 +1684,10 @@ const Dashboard = () => {
                         display: 'flex'
                     }}>
                         <button
-                            onClick={() => setTimeRange('day')}
+                            onClick={() => {
+                                setTimeRange('day');
+                                loadPriceHistory(1, true);
+                            }}
                             style={{
                                 padding: '5px 14px',
                                 borderRadius: '6px',
@@ -1671,7 +1703,10 @@ const Dashboard = () => {
                             日
                         </button>
                         <button
-                            onClick={() => setTimeRange('week')}
+                            onClick={() => {
+                                setTimeRange('week');
+                                loadPriceHistory(7, true);
+                            }}
                             style={{
                                 padding: '5px 14px',
                                 borderRadius: '6px',
@@ -1687,7 +1722,10 @@ const Dashboard = () => {
                             周
                         </button>
                         <button
-                            onClick={() => setTimeRange('month')}
+                            onClick={() => {
+                                setTimeRange('month');
+                                loadPriceHistory(30, true);
+                            }}
                             style={{
                                 padding: '5px 14px',
                                 borderRadius: '6px',

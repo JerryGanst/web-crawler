@@ -133,11 +133,6 @@ class BackgroundScheduler:
             category_order = {'贵金属': 0, '能源': 1, '工业金属': 2, '农产品': 3, '其他': 4}
             data.sort(key=lambda x: category_order.get(x.get('category', '其他'), 4))
             
-            
-
-
-
-            
             # 1. 保存价格历史 (MySQL 优先)
             try:
                 from core.price_history import PriceHistoryManager

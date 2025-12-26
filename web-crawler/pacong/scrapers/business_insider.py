@@ -37,7 +37,6 @@ class BusinessInsiderScraper(BaseScraper, WebScrapingMixin):
             
             # 工业金属
             'Aluminium': '铝',
-            'Aluminum': '铝',
             'Lead': '铅',
             'Copper': '铜',
             'Nickel': '镍',

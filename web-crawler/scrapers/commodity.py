@@ -15,7 +15,7 @@ COMMODITY_TRANSLATIONS = {
     'Oil (Brent)': '布伦特原油', 'Oil (WTI)': 'WTI原油', 'Crude Oil': '原油',
     'Natural Gas': '天然气', 'Heating Oil': '取暖油', 'RBOB Gasoline': 'RBOB汽油',
     # 工业金属
-    'Copper': '铜', 'Aluminium': '铝', 'Aluminum': '铝', 'Zinc': '锌',
+    'Copper': '铜', 'Aluminium': '铝', 'Zinc': '锌',
     'Nickel': '镍', 'Lead': '铅', 'Tin': '锡',
     # 农产品
     'Corn': '玉米', 'Wheat': '小麦', 'Soybeans': '大豆', 'Cotton': '棉花',
@@ -172,23 +172,39 @@ class CommodityScraper:
             if any(kw in name.lower() for kw in ['commodity', 'price', 'precious', 'energy', 'industrial', 'agriculture']):
                 return None
             
-            # 按固定列顺序提取：列1=价格，列2=涨跌幅%
+            # 智能检测列
             price = None
             change_percent = 0
             unit_text = ''
-            
-            # 列 1: 价格（可能有逗号分隔符）
-            if len(cell_texts) > 1:
-                price_text = cell_texts[1].replace(',', '')
-                match = re.search(r'^(\d+\.?\d*)$', price_text)
-                if match:
+
+            # 遍历寻找价格和涨跌幅
+            # 价格通常是数字（可带逗号），涨跌幅带有 %
+            for i, text in enumerate(cell_texts[1:5], start=1):
+                if not text:
+                    continue
+                    
+                # 尝试匹配百分比 (涨跌幅)
+                if '%' in text:
+                    match = re.search(r'([+-]?\d+\.?\d*)%', text)
+                    if match:
+                        change_percent = float(match.group(1))
+                    continue
+                
+                # 尝试匹配价格 (排除日期格式)
+                # 价格特征: 包含数字, 可能有逗号/点, 但不是纯日期 MM/DD
+                if re.match(r'^\d{1,2}/\d{1,2}$', text):
+                    continue
+                    
+                clean_price = text.replace(',', '')
+                # 匹配开头的数字 (允许后面跟单位，如 '1787.50 USD')
+                match = re.search(r'^(\d+\.?\d*)', clean_price)
+                if match and price is None:
+                    # 只有当还没找到价格时才赋值，避免误判其他数字列
                     price = float(match.group(1))
-            
-            # 列 2: 涨跌幅%
-            if len(cell_texts) > 2 and '%' in cell_texts[2]:
-                match = re.search(r'([+-]?\d+\.?\d*)%', cell_texts[2])
-                if match:
-                    change_percent = float(match.group(1))
+                    
+            # 尝试提取单位 (列 4 或 后面)
+            if len(cell_texts) > 4:
+                unit_text = cell_texts[4]
             
             # 列 4: 单位（如果有）
             if len(cell_texts) > 4:
