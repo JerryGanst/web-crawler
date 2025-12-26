@@ -571,30 +571,46 @@ def build_material_section(
         
         sorted_history = sorted(history, key=lambda x: x.get("date", ""), reverse=True)
         
-        # 使用年/月精确计算：对于每个目标月（从12个月前到1个月前，顺序为 oldest->recent），
-        # 以当月的相同日作为截止日（若当月天数不足则取当月最后一天），并在该截止日及之前寻找最新记录。
+        # 使用年月日精确计算：对于每个目标月（从12个月前到1个月前，顺序为 oldest->recent），
+        # 优先使用与当前日期同日（回溯 n 个月）的记录；若该日无记录，则使用与该目标日期最近的一条记录（可在目标日前后）。
         now = datetime.now()
         for month_offset in range(12, 0, -1):
             total_months = now.year * 12 + now.month - 1 - month_offset
             year = total_months // 12
             month = total_months % 12 + 1
-            # 使用该月的月初作为截止日，以保证统计截止到该月的第一天（例如 2024-12-01）
-            cutoff_date = f"{year:04d}-{month:02d}-01"
+            # 尝试保留当前日；若当月天数不足则取当月最后一天作为目标日
+            day = min(now.day, calendar.monthrange(year, month)[1])
+            target_date = datetime(year, month, day)
             month_label = f"{year:04d}-{month:02d}"
 
-            older = None
+            # 按优先级查找：1) 精确匹配目标日期；2) 找到与目标日期最接近的历史记录
+            target_record = None
+            target_date_str = target_date.strftime("%Y-%m-%d")
             for record in sorted_history:
-                if record.get("date", "") <= cutoff_date:
-                    older = record
+                if record.get("date", "") == target_date_str:
+                    target_record = record
                     break
+
+            if target_record is None:
+                best_diff = None
+                for record in sorted_history:
+                    rd = record.get("date", "")
+                    try:
+                        rdate = datetime.strptime(rd, "%Y-%m-%d")
+                    except Exception:
+                        continue
+                    diff = abs((rdate - target_date).days)
+                    if best_diff is None or diff < best_diff:
+                        best_diff = diff
+                        target_record = record
 
             latest = sorted_history[0]
 
-            if not older or not older.get("price") or not latest.get("price"):
+            if not target_record or not target_record.get("price") or not latest.get("price"):
                 monthly_changes.append((month_label, None))
                 continue
 
-            old_price = float(older["price"])
+            old_price = float(target_record["price"])
             new_price = float(latest["price"])
 
             if old_price == 0:
