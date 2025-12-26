@@ -864,7 +864,6 @@ def build_material_section(
 
             row_cells = [name, f"{price} {unit}", format_change(month_change)] + monthly_values + [trend]
             lines.append("| " + " | ".join(row_cells) + " |")
-        generate_table_prices(metals)
     # 塑料类
     if plastics:
         lines.append("")
@@ -895,7 +894,6 @@ def build_material_section(
 
             row_cells = [name, f"{price} {unit}", format_change(month_change)] + monthly_values + [trend]
             lines.append("| " + " | ".join(row_cells) + " |")
-        generate_table_prices(plastics)
     
     # 能源类
     if energy:
@@ -927,7 +925,6 @@ def build_material_section(
 
             row_cells = [name, f"{price} {unit}", format_change(month_change)] + monthly_values + [trend]
             lines.append("| " + " | ".join(row_cells) + " |")
-        generate_table_prices(energy)
     
     # 数据统计摘要（纯数据，不做解读）
     lines.append("### 📊 数据统计\n")
