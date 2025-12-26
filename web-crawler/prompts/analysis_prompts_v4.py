@@ -71,7 +71,8 @@ CUSTOMER_MODULE = AnalysisModule(
 > **来源格式说明**：为保持表格整洁且不丢失信息，请在表格的“来源”列中使用短标识（比如数字脚注 `[1]`、`[2]` 或 来源简称 `路透`）；
 > 表格下方必须跟一段**编号的完整来源列表**，每项包含完整 URL。URL如果长度过长，请在合适的位置换行。例如：
 > 
-> 1. 路透 — https://www.reuters.com/xxxx
+> 1. 路透 — https://www.reuters.com/xxxxxx
+x/xxxxx
 > 2. 财新 — https://www.caixin.com/xxxx
 >
 > 这样既保持表格排版，又能保留完整来源以供核查。
