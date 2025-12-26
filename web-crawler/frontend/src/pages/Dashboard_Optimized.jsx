@@ -755,12 +755,28 @@ const Dashboard = () => {
 
 
 
-    const formatPrice = (price) => {
+    const formatPrice = (price, unit) => {
         if (!price) return '0.00';
-        const val = parseFloat(price);
+        let val = parseFloat(price);
+
+        // 判断源货币是否为人民币
+        const isSourceCNY = unit && (unit.includes('元') || unit.includes('CNY') || unit.includes('RMB'));
+
         if (currency === 'CNY') {
-            return (val * exchangeRate).toFixed(2);
+            // 目标是CNY，源是CNY -> 不变
+            // 目标是CNY，源是USD -> 乘汇率
+            if (!isSourceCNY) {
+                val = val * exchangeRate;
+            }
+        } else {
+            // 目标是USD
+            // 目标是USD，源是CNY -> 除汇率
+            // 目标是USD，源是USD -> 不变
+            if (isSourceCNY) {
+                val = val / exchangeRate;
+            }
         }
+
         return val.toFixed(2);
     };
 
@@ -2011,7 +2027,7 @@ const Dashboard = () => {
                                             color: '#111827',
                                             letterSpacing: '-0.02em'
                                         }}>
-                                            {getCurrencySymbol()}{formatPrice(price)}
+                                            {getCurrencySymbol()}{formatPrice(price, item.unit)}
                                             <span style={{
                                                 fontSize: '18px',
                                                 color: '#6b7280',
@@ -2321,7 +2337,7 @@ const Dashboard = () => {
                                                     {tableColumns.find(c => c.id === 'price')?.visible && (
                                                         <td style={{ padding: '16px' }}>
                                                             <div style={{ fontWeight: '700', color: '#111827', fontSize: '15px' }}>
-                                                                {getCurrencySymbol()}{formatPrice(item.price)}
+                                                                {getCurrencySymbol()}{formatPrice(item.price, item.unit)}
                                                             </div>
                                                         </td>
                                                     )}
