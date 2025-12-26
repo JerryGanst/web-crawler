@@ -50,31 +50,36 @@ class CommodityScraper:
         sina_data = self._scrape_sina_commodities()
         for item in sina_data:
             commodities_map[item['chinese_name']] = item
+        print(f"📦 [Sina] 爬取到 {len(sina_data)} 条数据: {sina_data}")
         
         # 2. 从上海有色网获取金属价格
         smm_data = self._scrape_smm_prices()
         for item in smm_data:
             if item['chinese_name'] not in commodities_map:
                 commodities_map[item['chinese_name']] = item
+        print(f"📦 [SMM] 爬取到 {len(smm_data)} 条数据: {smm_data}")
         
         # 3. 从 Business Insider 获取补充数据
         bi_data = self._scrape_business_insider()
         for item in bi_data:
             if item['chinese_name'] not in commodities_map:
                 commodities_map[item['chinese_name']] = item
+        print(f"📦 [BI] 爬取到 {len(bi_data)} 条数据: {bi_data}")
         
         # 4. 从中塑在线获取 WTI 原油数据（增量）
         wti_21cp = self._scrape_21cp_wti()
         for item in wti_21cp:
             if item['chinese_name'] not in commodities_map:
                 commodities_map[item['chinese_name']] = item
+        print(f"📦 [21CP-WTI] 爬取到 {len(wti_21cp)} 条数据: {wti_21cp}")
         
         # 5. 从中塑在线获取塑料价格数据（增量）
         plastics_21cp = self._scrape_21cp_plastics()
         for item in plastics_21cp:
             if item['chinese_name'] not in commodities_map:
                 commodities_map[item['chinese_name']] = item
-        
+        print(f"📦 [21CP-Plastics] 爬取到 {len(plastics_21cp)} 条数据: {plastics_21cp}")
+
         return list(commodities_map.values())
     
     def _scrape_business_insider(self) -> List[Dict[str, Any]]:
