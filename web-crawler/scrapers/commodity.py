@@ -46,22 +46,27 @@ class CommodityScraper:
         
         # 从新浪期货获取数据（更可靠）
         sina_data = self._scrape_sina_commodities()
+        print(f"📦 [Sina] 爬取到 {len(sina_data)} 条数据: {sina_data}")
         commodities.extend(sina_data)
         
         # 从上海有色网获取金属价格
         smm_data = self._scrape_smm_prices()
+        print(f"📦 [SMM] 爬取到 {len(smm_data)} 条数据: {smm_data}")
         commodities.extend(smm_data)
         
         # 从 Business Insider 获取补充数据
         bi_data = self._scrape_business_insider()
+        print(f"📦 [BI] 爬取到 {len(bi_data)} 条数据: {bi_data}")
         commodities.extend(bi_data)
         
         # 从中塑在线获取 WTI 原油数据（增量）
         wti_21cp = self._scrape_21cp_wti()
+        print(f"📦 [21CP-WTI] 爬取到 {len(wti_21cp)} 条数据: {wti_21cp}")
         commodities.extend(wti_21cp)
         
         # 从中塑在线获取塑料价格数据（增量）
         plastics_21cp = self._scrape_21cp_plastics()
+        print(f"📦 [21CP-Plastics] 爬取到 {len(plastics_21cp)} 条数据: {plastics_21cp}")
         commodities.extend(plastics_21cp)
         
         return commodities
