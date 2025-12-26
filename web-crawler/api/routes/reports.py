@@ -152,7 +152,8 @@ async def render_report_to_image(title: str, content: str, timestamp: str) -> by
         return None
     
     try:
-        max_content_length = 8000
+        # 提高允许的报告内容长度，避免被过早截断
+        max_content_length = 20000
         if len(content) > max_content_length:
             content = content[:max_content_length] + "\n\n... *(报告内容较长，已截断)*"
         
@@ -163,7 +164,7 @@ async def render_report_to_image(title: str, content: str, timestamp: str) -> by
 <head>
     <meta charset="utf-8">
     <style>
-        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,"Noto Sans SC", "WenQuanYi Micro Hei", "Microsoft YaHei"; 
                padding: 30px; background: #f8f9fa; color: #333; }}
         h1, h2, h3 {{ color: #1a1a1a; }}
         table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
@@ -189,7 +190,8 @@ async def render_report_to_image(title: str, content: str, timestamp: str) -> by
             await page.set_content(full_html, wait_until='networkidle')
             
             height = await page.evaluate('document.body.scrollHeight')
-            max_height = 4000
+            # 提高截图最大高度以支持更长的报告（注意：过大高度可能导致浏览器资源占用增加）
+            max_height = 8000
             await page.set_viewport_size({'width': 800, 'height': min(height + 50, max_height)})
             
             screenshot = await page.screenshot(full_page=True, type='jpeg', quality=85)

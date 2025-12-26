@@ -2360,7 +2360,7 @@ async def generate_analysis(request: AnalysisRequest):
                     {"role": "user", "content": prompt}
                 ],
                 "temperature": 0.7,
-                "max_tokens": 8000
+                "": 8000
             },
             timeout=timeout
         )
