@@ -578,9 +578,8 @@ def build_material_section(
             total_months = now.year * 12 + now.month - 1 - month_offset
             year = total_months // 12
             month = total_months % 12 + 1
-            # 使用该月的月末作为截止日，以保证整个月的数据都能被统计（例如去年12月的27-31日也被包含）
-            last_day = calendar.monthrange(year, month)[1]
-            cutoff_date = f"{year:04d}-{month:02d}-{last_day:02d}"
+            # 使用该月的月初作为截止日，以保证统计截止到该月的第一天（例如 2024-12-01）
+            cutoff_date = f"{year:04d}-{month:02d}-01"
             month_label = f"{year:04d}-{month:02d}"
 
             older = None
