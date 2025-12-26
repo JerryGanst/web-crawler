@@ -17,6 +17,7 @@
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+import calendar
 import matplotlib.pyplot as plt
 import re
 
@@ -570,10 +571,18 @@ def build_material_section(
         
         sorted_history = sorted(history, key=lambda x: x.get("date", ""), reverse=True)
         
+        # 使用年/月精确计算：对于每个目标月（从12个月前到1个月前，顺序为 oldest->recent），
+        # 以当月的相同日作为截止日（若当月天数不足则取当月最后一天），并在该截止日及之前寻找最新记录。
+        now = datetime.now()
         for month_offset in range(12, 0, -1):
-            # 以近似 30 天为一个月，生成对应的截止日期并用年-月作为标签（格式 YYYY-MM）
-            cutoff_date = (datetime.now() - timedelta(days=30 * month_offset)).strftime("%Y-%m-%d")
-            month_label = (datetime.now() - timedelta(days=30 * month_offset)).strftime("%Y-%m")
+            total_months = now.year * 12 + now.month - 1 - month_offset
+            year = total_months // 12
+            month = total_months % 12 + 1
+            # 使用该月的月末作为截止日，以保证整个月的数据都能被统计（例如去年12月的27-31日也被包含）
+            last_day = calendar.monthrange(year, month)[1]
+            cutoff_date = f"{year:04d}-{month:02d}-{last_day:02d}"
+            month_label = f"{year:04d}-{month:02d}"
+
             older = None
             for record in sorted_history:
                 if record.get("date", "") <= cutoff_date:
@@ -798,7 +807,13 @@ def build_material_section(
     days = 7 #默认七天的趋势图
 
     # 生成用于表头的过去12个月的月份标签（年-月，格式 YYYY-MM），顺序为从远到近（最早 -> 最近）
-    month_labels = [(datetime.now() - timedelta(days=30 * m)).strftime("%Y-%m") for m in range(12, 0, -1)]
+    month_labels = []
+    now = datetime.now()
+    for month_offset in range(12, 0, -1):
+        total_months = now.year * 12 + now.month - 1 - month_offset
+        year = total_months // 12
+        month = total_months % 12 + 1
+        month_labels.append(f"{year:04d}-{month:02d}")
 
     #折中方案，若图表不生成
     def generate_table_prices(category:List[Dict]):
