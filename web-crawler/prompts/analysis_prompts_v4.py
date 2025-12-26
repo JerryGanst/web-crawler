@@ -548,6 +548,8 @@ def build_material_section(
             return None
         
         return ((new_price - old_price) / old_price) * 100
+    
+
     # 输出指定N天历史价格列表
     def output_prices_list(name:str,days:int) -> Optional[List[float]]:
         prices = []
@@ -784,8 +786,8 @@ def build_material_section(
     # 金属类
     if metals:
         lines.append("### 🔩 金属类\n")
-        lines.append("| 原材料 | 当前价格 | 日涨跌 | 周涨跌 | 月涨跌 | 趋势 |")
-        lines.append("|--------|----------|--------|--------|--------|------|")
+        lines.append("| 原材料 | 当前价格 | 月涨跌 | 趋势 |")
+        lines.append("|--------|----------|--------|------|")
         
         for m in sorted(metals, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
             name = m.get('chinese_name') or m.get('name', '')
@@ -798,14 +800,14 @@ def build_material_section(
             
             trend = get_trend_icon(day_change, week_change)
             
-            lines.append(f"| {name} | {price} {unit} | {format_change(day_change)} | {format_change(week_change)} | {format_change(month_change)} | {trend} |")
+            lines.append(f"| {name} | {price} {unit} | {format_change(month_change)} | {trend} |")
         generate_table_prices(metals)
     # 塑料类
     if plastics:
         lines.append("")
         lines.append("### 🧪 塑料/化工类\n")
-        lines.append("| 原材料 | 当前价格 | 日涨跌 | 周涨跌 | 月涨跌 | 趋势 |")
-        lines.append("|--------|----------|--------|--------|--------|------|")
+        lines.append("| 原材料 | 当前价格 | 月涨跌 | 趋势 |")
+        lines.append("|--------|----------|--------|------|")
         
         for p in sorted(plastics, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
             name = p.get('chinese_name') or p.get('name', '')
@@ -818,15 +820,15 @@ def build_material_section(
             
             trend = get_trend_icon(day_change, week_change)
             
-            lines.append(f"| {name} | {price} {unit} | {format_change(day_change)} | {format_change(week_change)} | {format_change(month_change)} | {trend} |")
+            lines.append(f"| {name} | {price} {unit} | {format_change(month_change)} | {trend} |")
         generate_table_prices(plastics)
     
     # 能源类
     if energy:
         lines.append("")
         lines.append("### ⛽ 能源类\n")
-        lines.append("| 品种 | 当前价格 | 日涨跌 | 周涨跌 | 月涨跌 | 趋势 |")
-        lines.append("|------|----------|--------|--------|--------|------|")
+        lines.append("| 品种 | 当前价格 | 月涨跌 | 趋势 |")
+        lines.append("|------|----------|--------|------|")
         
         for e in sorted(energy, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
             name = e.get('chinese_name') or e.get('name', '')
@@ -839,7 +841,7 @@ def build_material_section(
             
             trend = get_trend_icon(day_change, week_change)
             
-            lines.append(f"| {name} | {price} {unit} | {format_change(day_change)} | {format_change(week_change)} | {format_change(month_change)} | {trend} |")
+            lines.append(f"| {name} | {price} {unit} | {format_change(month_change)} | {trend} |")
         generate_table_prices(energy)
     
     # 数据统计摘要（纯数据，不做解读）
