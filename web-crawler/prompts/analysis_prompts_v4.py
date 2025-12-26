@@ -592,12 +592,16 @@ def build_material_section(
                     break
 
             if target_record is None:
+                # 回退查找：仅在目标的同年同月内寻找最接近的记录，避免选到其他月份的数据
                 best_diff = None
                 for record in sorted_history:
                     rd = record.get("date", "")
                     try:
                         rdate = datetime.strptime(rd, "%Y-%m-%d")
                     except Exception:
+                        continue
+                    # 只考虑与目标同年同月的记录
+                    if rdate.year != year or rdate.month != month:
                         continue
                     diff = abs((rdate - target_date).days)
                     if best_diff is None or diff < best_diff:
