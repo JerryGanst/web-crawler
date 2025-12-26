@@ -486,11 +486,47 @@ const SupplyChainPanel = () => {
         }
     };
 
-    // 复制报告
-    const copyReport = () => {
-        navigator.clipboard.writeText(reportContent);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+    // 复制报告（优先使用 Clipboard API，失败时回退到 textarea + execCommand）
+    const copyReport = async () => {
+        if (!reportContent) return;
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(reportContent);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+                return;
+            }
+        } catch (err) {
+            // Clipboard API 可能在非安全上下文或被拒绝，继续回退方法
+            console.warn('navigator.clipboard.writeText failed:', err);
+        }
+
+        // 回退：使用隐藏 textarea + document.execCommand('copy')
+        try {
+            const textarea = document.createElement('textarea');
+            textarea.value = reportContent;
+            // 避免页面滚动
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            textarea.style.top = '0';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            if (successful) {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+                return;
+            } else {
+                throw new Error('execCommand copy returned false');
+            }
+        } catch (err) {
+            console.error('Fallback copy failed:', err);
+            alert('复制失败：浏览器不支持自动复制，请手动复制文本。');
+        }
     };
 
     // 推送报告到企业微信
