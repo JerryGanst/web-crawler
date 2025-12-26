@@ -550,74 +550,98 @@ const Dashboard = () => {
     const displayCommodities = useMemo(() => {
         const colors = ['#f59e0b', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#6366f1', '#14b8a6', '#a855f7'];
 
-        return allCommodities
-            .filter(commodity => {
-                // 先检查TAB分类过滤
-                if (activeCommodityTab !== 'all') {
-                    const commodityCategory = getCommodityCategory(commodity.name, commodity.category);
-                    if (commodityCategory !== activeCommodityTab && commodityCategory !== 'all') return false;
-                }
-                // 塑料子分类过滤
-                if (activeCommodityTab === 'plastics' && activePlasticSubTab !== 'all') {
-                    // 检查商品名称是否以子分类开头（如 ABS、PP、PE、PS）
-                    if (!commodity.name.toUpperCase().startsWith(activePlasticSubTab)) return false;
-                }
-                // 再检查是否选中
-                if (!selectedCommodities.has(commodity.name)) return false;
-                // 再检查来源过滤
-                if (getSourceFilteredCommodities) {
-                    const hasMatch = commodity.rawNames?.some(name => getSourceFilteredCommodities.has(name))
-                        || getSourceFilteredCommodities.has(commodity.name);
-                    if (!hasMatch) return false;
-                }
-                return true;
-            })
-            .map((commodity, idx) => {
-                const price = commodity.price;
-                // 尝试从所有原始名称获取历史数据
-                let historyData = null;
-                for (const rawName of commodity.rawNames || [commodity.name]) {
-                    historyData = getHistoryData(rawName, price, timeRange === 'day' ? 24 : (timeRange === 'week' ? 7 : 30));
-                    if (historyData && historyData.some(h => h.isReal)) break;
-                }
-                if (!historyData) {
-                    historyData = getHistoryData(commodity.name, price, timeRange === 'day' ? 24 : (timeRange === 'week' ? 7 : 30));
-                }
+        // 1. 基础筛选
+        let filtered = allCommodities.filter(commodity => {
+            // 先检查TAB分类过滤
+            if (activeCommodityTab !== 'all') {
+                const commodityCategory = getCommodityCategory(commodity.name, commodity.category);
+                if (commodityCategory !== activeCommodityTab && commodityCategory !== 'all') return false;
+            }
+            // 塑料子分类过滤
+            if (activeCommodityTab === 'plastics' && activePlasticSubTab !== 'all') {
+                // 检查商品名称是否以子分类开头（如 ABS、PP、PE、PS）
+                if (!commodity.name.toUpperCase().startsWith(activePlasticSubTab)) return false;
+            }
+            // 再检查是否选中
+            if (!selectedCommodities.has(commodity.name)) return false;
+            // 再检查来源过滤
+            if (getSourceFilteredCommodities) {
+                const hasMatch = commodity.rawNames?.some(name => getSourceFilteredCommodities.has(name))
+                    || getSourceFilteredCommodities.has(commodity.name);
+                if (!hasMatch) return false;
+            }
+            return true;
+        });
 
-                // 为区域商品获取多区域历史数据
-                let multiSourceHistory = null;
+        // 2. 自动展开区域数据 (当选中具体塑料子分类时)
+        if (activeCommodityTab === 'plastics' && activePlasticSubTab !== 'all') {
+            filtered = filtered.flatMap(commodity => {
+                // 如果是区域聚合商品，并且有具体区域数据，则展开
                 if (commodity.isRegional && commodity.regions && commodity.regions.length > 0) {
-                    multiSourceHistory = commodity.regions.map(region => {
-                        const regionHistory = getHistoryData(region.fullName, region.price, timeRange === 'day' ? 24 : (timeRange === 'week' ? 7 : 30));
-                        return {
-                            source: region.name,
-                            color: region.color,
-                            url: commodity.url,
-                            data: regionHistory || []
-                        };
-                    }).filter(s => s.data && s.data.length > 0);
+                    return commodity.regions.map(region => ({
+                        ...commodity,
+                        name: region.fullName || `${commodity.name}(${region.name})`, // 使用全名 e.g. PP(华东)
+                        chinese_name: region.fullName || `${commodity.name}(${region.name})`,
+                        current_price: region.price,
+                        price: region.price,
+                        change: region.change,
+                        unit: commodity.unit,
+                        isRegional: false, // 展开后不再是聚合状态
+                        regions: [], // 清空区域列表
+                        rawNames: [region.fullName || `${commodity.name}(${region.name})`] // 重置 rawNames 以便获取对应历史数据
+                    }));
                 }
-
-                return {
-                    id: commodity.name,
-                    name: commodity.name,
-                    basePrice: price,
-                    currentPrice: price,
-                    price: price, // Fix: Ensure 'price' property exists for Table/List view
-                    color: colors[idx % colors.length],
-                    unit: commodity.unit || '',
-                    change: commodity.change,
-                    url: commodity.url,
-                    source: commodity.source,
-                    sources: commodity.sources || [],  // 多个来源
-                    regions: commodity.regions || [],  // 区域信息
-                    isRegional: commodity.isRegional,
-                    historyData: historyData,
-                    multiSourceHistory: multiSourceHistory,  // 多区域历史数据
-                    dataItem: commodity
-                };
+                return [commodity];
             });
-    }, [allCommodities, selectedCommodities, getHistoryData, timeRange, activeCommodityTab, activePlasticSubTab, getSourceFilteredCommodities]);
+        }
+
+        // 3. 映射为前端显示对象
+        return filtered.map((commodity, idx) => {
+            const price = commodity.price;
+            // 尝试从所有原始名称获取历史数据
+            let historyData = null;
+            for (const rawName of commodity.rawNames || [commodity.name]) {
+                historyData = getHistoryData(rawName, price, timeRange === 'day' ? 24 : (timeRange === 'week' ? 7 : 30));
+                if (historyData && historyData.some(h => h.isReal)) break;
+            }
+            if (!historyData) {
+                historyData = getHistoryData(commodity.name, price, timeRange === 'day' ? 24 : (timeRange === 'week' ? 7 : 30));
+            }
+
+            // 为区域商品获取多区域历史数据 (只有未展开的聚合项才需要)
+            let multiSourceHistory = null;
+            if (commodity.isRegional && commodity.regions && commodity.regions.length > 0) {
+                multiSourceHistory = commodity.regions.map(region => {
+                    const regionHistory = getHistoryData(region.fullName, region.price, timeRange === 'day' ? 24 : (timeRange === 'week' ? 7 : 30));
+                    return {
+                        source: region.name,
+                        color: region.color,
+                        url: commodity.url,
+                        data: regionHistory || []
+                    };
+                }).filter(s => s.data && s.data.length > 0);
+            }
+
+            return {
+                id: commodity.name,
+                name: commodity.name,
+                basePrice: price,
+                currentPrice: price,
+                price: price,
+                color: colors[idx % colors.length],
+                unit: commodity.unit || '',
+                change: commodity.change,
+                url: commodity.url,
+                source: commodity.source,
+                sources: commodity.sources || [],
+                regions: commodity.regions || [],
+                isRegional: commodity.isRegional,
+                historyData: historyData,
+                multiSourceHistory: multiSourceHistory,
+                dataItem: commodity
+            };
+        });
+    }, [allCommodities, activeCommodityTab, activePlasticSubTab, selectedCommodities, timeRange, priceHistory, getSourceFilteredCommodities]);
     const hasFetchedData = useRef(false);
     const intervalRef = useRef(null);
 
@@ -1946,7 +1970,7 @@ const Dashboard = () => {
                                 </div>
                             ))
                         ) : (
-                            data.slice(0, 3).map((item, index) => {
+                            displayCommodities.slice(0, 3).map((item, index) => {
                                 const price = item.price || item.current_price || item.last_price || 0;
                                 const change = item.change || item.change_percent || 0;
                                 const isUp = change >= 0;
@@ -2227,35 +2251,67 @@ const Dashboard = () => {
                                 borderRadius: '12px',
                                 border: '1px solid #e5e7eb'
                             }}>
-                                {COMMODITY_TABS.find(t => t.id === 'plastics').subTabs.map(subTab => (
-                                    <button
-                                        key={subTab.id}
-                                        onClick={() => setActivePlasticSubTab(subTab.id)}
-                                        title={subTab.desc || subTab.name}
-                                        style={{
-                                            padding: '6px 12px',
-                                            borderRadius: '8px',
-                                            border: activePlasticSubTab === subTab.id ? `1px solid ${subTab.color}` : '1px solid transparent',
-                                            background: activePlasticSubTab === subTab.id ? `${subTab.color}10` : '#fff',
-                                            color: activePlasticSubTab === subTab.id ? subTab.color : '#6b7280',
-                                            fontWeight: activePlasticSubTab === subTab.id ? '600' : '500',
-                                            fontSize: '13px',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '4px'
-                                        }}
-                                    >
-                                        <span style={{
-                                            width: '8px',
-                                            height: '8px',
-                                            borderRadius: '50%',
-                                            background: subTab.color
-                                        }}></span>
-                                        {subTab.name}
-                                    </button>
-                                ))}
+                                {COMMODITY_TABS.find(t => t.id === 'plastics').subTabs.map(subTab => {
+                                    const isActive = activePlasticSubTab === subTab.id;
+                                    // 计算该子分类的商品数量（基于所有塑料商品）
+                                    const plasticCommodities = allCommodities.filter(c =>
+                                        getCommodityCategory(c.name, c.category) === 'plastics'
+                                    );
+                                    const subCount = plasticCommodities.reduce((acc, c) => {
+                                        // 检查是否属于当前子分类
+                                        const matches = subTab.id === 'all' || c.name.toUpperCase().startsWith(subTab.id);
+                                        if (!matches) return acc;
+
+                                        // 如果是区域聚合商品，加上区域数量
+                                        if (c.isRegional && c.regions && c.regions.length > 0) {
+                                            return acc + c.regions.length;
+                                        }
+                                        // 否则普通商品算1个
+                                        return acc + 1;
+                                    }, 0);
+
+                                    return (
+                                        <button
+                                            key={subTab.id}
+                                            onClick={() => setActivePlasticSubTab(subTab.id)}
+                                            title={subTab.desc || subTab.name}
+                                            style={{
+                                                padding: '6px 12px',
+                                                borderRadius: '20px',
+                                                border: isActive ? `1px solid ${subTab.color}` : '1px solid transparent',
+                                                background: isActive ? subTab.color : '#fff',
+                                                color: isActive ? '#fff' : '#6b7280',
+                                                fontWeight: isActive ? '600' : '500',
+                                                fontSize: '13px',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '6px'
+                                            }}
+                                        >
+                                            {subTab.name}
+                                            {subCount > 0 && (
+                                                <span style={{
+                                                    fontSize: '10px',
+                                                    background: isActive ? '#fff' : subTab.color,
+                                                    color: isActive ? subTab.color : '#fff',
+                                                    padding: '0px 4px',
+                                                    borderRadius: '6px',
+                                                    fontWeight: '700',
+                                                    minWidth: '14px',
+                                                    height: '14px',
+                                                    lineHeight: '14px',
+                                                    textAlign: 'center',
+                                                    marginLeft: '4px',
+                                                    marginBottom: '8px' // Slight lift
+                                                }}>
+                                                    {subCount}
+                                                </span>
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         )}
 
