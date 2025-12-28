@@ -966,6 +966,7 @@ def build_material_section(
             lines.append("| " + " | ".join(row_cells) + " |")
     
     # 数据统计摘要（纯数据，不做解读）
+    lines.append("")
     lines.append("### 📊 数据统计\n")
     
     all_materials = metals + plastics + energy
