@@ -241,16 +241,29 @@ class PriceHistoryManager:
                 
                 # 预定义ID到英文显示名称的映射 (修正旧数据)
                 id_to_english = {
+                    # 贵金属
+                    'gold': 'Gold',
+                    'comex_gold': 'COMEX Gold',
+                    'silver': 'Silver',
+                    'comex_silver': 'COMEX Silver',
                     'palladium': 'Palladium',
-                    'platinum': 'Platinum', 
+                    'platinum': 'Platinum',
+                    
+                    # 能源
+                    'oil_brent': 'Oil (Brent)',
+                    'oil_wti': 'Oil (WTI)',
+                    'natural_gas': 'Natural Gas',
+                    'gasoline': 'RBOB Gasoline',
+                    'heating_oil': 'Heating Oil',
+                    
+                    # 工业金属
+                    'copper': 'Copper',
+                    'comex_copper': 'COMEX Copper',
+                    'aluminum': 'Aluminium',
                     'nickel': 'Nickel',
                     'zinc': 'Zinc',
                     'lead': 'Lead',
-                    'copper': 'Copper',
-                    'aluminum': 'Aluminium',
-                    'tin': 'Tin',
-                    'gold': 'Gold',
-                    'silver': 'Silver'
+                    'tin': 'Tin'
                 }
 
                 for row in rows:
