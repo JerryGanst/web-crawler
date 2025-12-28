@@ -271,17 +271,7 @@ const Dashboard = () => {
     const getHistoryData = (commodityName, basePrice, points) => {
         let historyRecords = priceHistory[commodityName] || [];
 
-        // Debug: 为钯金和铂金添加详细日志
-        const isDebugCommodity = commodityName && (
-            commodityName.includes('钯') || commodityName.includes('铂') ||
-            commodityName.toLowerCase().includes('pallad') || commodityName.toLowerCase().includes('platin')
-        );
 
-        if (isDebugCommodity) {
-            console.log(`🔍 [getHistoryData] 查询商品: "${commodityName}"`);
-            console.log(`🔍 [getHistoryData] priceHistory keys:`, Object.keys(priceHistory));
-            console.log(`🔍 [getHistoryData] 精确匹配结果:`, historyRecords.length);
-        }
 
         // 增强的匹配逻辑：如果精确匹配失败，尝试使用商品配置的matchPatterns
         if (historyRecords.length === 0) {
@@ -290,18 +280,14 @@ const Dashboard = () => {
             for (const [key, records] of Object.entries(priceHistory)) {
                 if (key.toLowerCase().includes(lowerName) || lowerName.includes(key.toLowerCase())) {
                     historyRecords = records;
-                    if (isDebugCommodity) {
-                        console.log(`✅ [getHistoryData] 模糊匹配成功: "${commodityName}" -> "${key}"`);
-                    }
+
                     break;
                 }
             }
         }
 
         if (historyRecords.length > 0) {
-            if (isDebugCommodity) {
-                console.log(`✅ [getHistoryData] 找到 ${historyRecords.length} 条历史记录`);
-            }
+
             return historyRecords.map((record, i) => ({
                 time: i,
                 price: record.price,
@@ -311,9 +297,7 @@ const Dashboard = () => {
         }
 
         // 如果没有找到真实数据，生成模拟数据
-        if (isDebugCommodity) {
-            console.warn(`⚠️ [History] 未找到 "${commodityName}" 的历史数据，使用模拟数据`);
-        }
+
         let current = basePrice;
         const volatility = basePrice * 0.02;
         // Fix: logic for week/month interval

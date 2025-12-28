@@ -129,6 +129,7 @@ class BackgroundScheduler:
             print(f"⏰ [定时] 开始爬取大宗商品数据...")
             scraper = CommodityScraper()
             data = scraper.scrape()
+            print(f"✅ [Scheduler] Scraped {data} commodity items")
             
             category_order = {'贵金属': 0, '能源': 1, '工业金属': 2, '农产品': 3, '其他': 4}
             data.sort(key=lambda x: category_order.get(x.get('category', '其他'), 4))

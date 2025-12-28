@@ -178,21 +178,31 @@ def standardize_record(raw: Dict[str, Any], source: str) -> Optional[CommodityRe
     
     # 获取标准英文名称 (如果存在)
     display_name_map = {
+        # 贵金属
         'platinum': 'Platinum',
         'palladium': 'Palladium',
         'gold': 'Gold',
+        'comex_gold': 'COMEX Gold',
         'silver': 'Silver',
+        'comex_silver': 'COMEX Silver',
+        
+        # 能源
         'oil_brent': 'Oil (Brent)',
         'oil_wti': 'Oil (WTI)',
         'natural_gas': 'Natural Gas',
+        'gasoline': 'RBOB Gasoline',
+        'heating_oil': 'Heating Oil',
+        
+        # 工业金属
         'copper': 'Copper',
+        'comex_copper': 'COMEX Copper',
         'aluminum': 'Aluminium',
         'zinc': 'Zinc',
         'nickel': 'Nickel',
         'lead': 'Lead',
         'tin': 'Tin',
-        'corn': 'Corn',
-        'wheat': 'Wheat',
+        
+        # 农产品
         'corn': 'Corn',
         'wheat': 'Wheat',
         'soybeans': 'Soybeans',

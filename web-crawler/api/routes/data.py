@@ -79,6 +79,7 @@ def _background_fetch_commodity_data(cache_key: str):
         from scrapers.commodity import CommodityScraper
         scraper = CommodityScraper()
         data = scraper.scrape()
+        print(f"✅ [后台] 爬取商品数据完成: {data} ")
         
         category_order = {'贵金属': 0, '能源': 1, '工业金属': 2, '农产品': 3, '其他': 4}
         data.sort(key=lambda x: category_order.get(x.get('category', '其他'), 4))
@@ -109,7 +110,7 @@ def _background_fetch_commodity_data(cache_key: str):
         except Exception as e:
             print(f"⚠️ MySQL 入库失败: {e}")
         
-        print(f"✅ [后台] 商品数据完成: {len(data)} 条")
+        print(f"✅ [后台] 商品数据完成入库redis的数据: {data} ")
         cache.set(cache_key, result, ttl=CACHE_TTL)
     except Exception as e:
         print(f"❌ [后台] 商品数据失败: {e}")
