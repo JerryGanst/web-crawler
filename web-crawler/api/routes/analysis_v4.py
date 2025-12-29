@@ -373,7 +373,7 @@ def get_price_history() -> Dict[str, List[Dict]]:
     """获取价格历史数据"""
     try:
         from core.price_history import price_history
-        return price_history.get_all_commodities_history(days=30)
+        return price_history.get_all_commodities_history(days=395)
     except Exception as e:
         print(f"⚠️ 获取价格历史失败: {e}")
         return {}
