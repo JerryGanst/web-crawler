@@ -786,6 +786,7 @@ def build_material_section(
     metals = []
     plastics = []
     energy = []
+    others = []
     
     metal_keywords = ['铜', '镍', '锡', '锌', '铝', '铅', '金', '银', '钯', '铂', 'COMEX', 'LME', '有色']
     plastic_keywords = ['ABS', 'PP', 'PE', 'PVC', 'PA', 'PBT', 'PC', 'GPPS', 'HIPS', '塑料', '树脂', 'PA66', 'PA6']
@@ -802,8 +803,8 @@ def build_material_section(
         elif any(kw in name for kw in metal_keywords):
             metals.append(item)
         else:
-            # 默认归入金属类
-            metals.append(item)
+            # 默认归入其他类
+            others.append(item)
     # 构建报告
     lines = ["## 原材料行情数据\n"]
     lines.append(f"> 📊 数据更新时间：{datetime.now().strftime('%Y-%m-%d %H:%M')}")
@@ -971,6 +972,37 @@ def build_material_section(
 
             row_cells = [name, f"{price} {unit}", format_change(month_change)] + monthly_values + [trend]
             lines.append("| " + " | ".join(row_cells) + " |")
+    # 其他类
+    if others:
+        lines.append("")
+        lines.append("### 🧾 其他类\n")
+        header_cells = ["品种", "当前价格", "当前月涨跌"] + month_labels + ["趋势"]
+        lines.append("| " + " | ".join(header_cells) + " |")
+        sep_cells = ["------", "-------"] + ["---"] * (len(month_labels)+1) + ["---"]
+        lines.append("|" + "|".join(sep_cells) + "|")
+        
+        for o in sorted(others, key=lambda x: abs(x.get('change_percent', 0)), reverse=True):
+            name = o.get('chinese_name') or o.get('name', '')
+            price = o.get('price', 0)
+            unit = o.get('unit', '')
+            day_change = o.get('change_percent', 0) or 0
+            
+            week_change = calc_period_change(name, 7)
+            month_change = calc_period_change(name, 30)
+            year_monthly_changes = calc_monthly_changes(name)
+            
+            trend = get_trend_icon(day_change, week_change)
+
+            monthly_values = []
+            if year_monthly_changes:
+                for d, ch in year_monthly_changes:
+                    monthly_values.append(ch)
+            else:
+                monthly_values = ["--"] * len(month_labels)
+
+            row_cells = [name, f"{price} {unit}", format_change(month_change)] + monthly_values + [trend]
+            lines.append("| " + " | ".join(row_cells) + " |")
+    
     
     # 数据统计摘要（纯数据，不做解读）
     lines.append("")
