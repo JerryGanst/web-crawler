@@ -5,7 +5,7 @@
 """
 from fastapi import APIRouter, HTTPException
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Dict
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
@@ -24,6 +24,47 @@ BASE_DIR = Path(__file__).parent.parent.parent
 _executor = ThreadPoolExecutor(max_workers=5, thread_name_prefix="data-bg")
 _pending_refreshes = set()
 _refresh_lock = Lock()
+
+
+def _transform_mysql_to_api_format(data: List[Dict]) -> List[Dict]:
+    """
+    将 MySQL commodity_latest 数据转换为 API 格式
+    
+    转换内容：
+    1. 合并 price_unit 和 weight_unit 为 unit
+    2. 添加 current_price 字段
+    3. 确保 url 字段存在
+    4. 删除 MySQL 专用字段
+    """
+    for item in data:
+        # 1. 合并 price_unit 和 weight_unit 为 unit
+        price_unit = item.get('price_unit', '')
+        weight_unit = item.get('weight_unit', '')
+        if price_unit and weight_unit:
+            item['unit'] = f"{price_unit}/{weight_unit}"
+        elif price_unit:
+            item['unit'] = price_unit
+        elif weight_unit:
+            item['unit'] = weight_unit
+        else:
+            item['unit'] = 'USD'
+        
+        # 2. current_price = price (前端兼容)
+        if 'price' in item and 'current_price' not in item:
+            item['current_price'] = item['price']
+        
+        # 3. 确保 url 字段存在
+        if 'url' not in item or not item['url']:
+            item['url'] = item.get('source_url', '')
+        
+        # 4. 删除前端不需要的字段
+        item.pop('id', None)
+        item.pop('price_unit', None)
+        item.pop('weight_unit', None)
+        item.pop('version_ts', None)
+        item.pop('source_url', None)
+    
+    return data
 
 
 def load_config():
@@ -73,44 +114,60 @@ def get_platforms():
 
 
 def _background_fetch_commodity_data(cache_key: str):
-    """后台爬取商品数据"""
+    """后台爬取商品数据并从 MySQL commodity_latest 读取去重后的数据写入 Redis"""
     try:
         print(f"🔄 [后台] 开始爬取商品数据...")
         from scrapers.commodity import CommodityScraper
         scraper = CommodityScraper()
-        data = scraper.scrape()
-        print(f"✅ [后台] 爬取商品数据完成: {data} ")
+        raw_data = scraper.scrape()
+        print(f"✅ [后台] 爬取完成: {len(raw_data)} 条原始数据")
         
-        category_order = {'贵金属': 0, '能源': 1, '工业金属': 2, '农产品': 3, '其他': 4}
-        data.sort(key=lambda x: category_order.get(x.get('category', '其他'), 4))
-        
-        result = {
-            "data": data,
-            "source": "TrendRadar Commodity",
-            "timestamp": datetime.now().isoformat(),
-            "cached": False,
-            "background_refresh": True,
-            "categories": list(set(item.get('category', '其他') for item in data))
-        }
-    
-        
-        # 写入 MySQL（如果已启用），按来源分组以保留真实来源
+        # 写入 MySQL（Pipeline 会自动去重），按来源分组
         try:
             stats_by_source = {}
-            sources = set(item.get("source", "unknown") for item in data)
+            sources = set(item.get("source", "unknown") for item in raw_data)
             for src in sources:
-                src_records = [item for item in data if item.get("source", "unknown") == src]
+                src_records = [item for item in raw_data if item.get("source", "unknown") == src]
                 if not src_records:
                     continue
                 db_stats = db_manager.write_commodity(src_records, source=src)
                 if db_stats:
                     stats_by_source[src] = db_stats
             if stats_by_source:
-                print(f"✅ [后台] MySQL 入库完成（按来源）: {stats_by_source}")
+                print(f"✅ [后台] MySQL 入库完成: {stats_by_source}")
         except Exception as e:
             print(f"⚠️ MySQL 入库失败: {e}")
         
-        print(f"✅ [后台] 商品数据完成入库redis的数据: {data} ")
+        # 从 MySQL commodity_latest 读取去重后的数据（以 MySQL 为准）
+        try:
+            latest_data = db_manager.get_commodity_latest()
+            if not latest_data:
+                print("⚠️ MySQL commodity_latest 为空，使用原始数据")
+                latest_data = raw_data
+            else:
+                print(f"✅ [后台] 从 MySQL commodity_latest 读取: {len(latest_data)} 条去重数据")
+                # 字段映射：MySQL → API 格式
+                latest_data = _transform_mysql_to_api_format(latest_data)
+        except Exception as e:
+            print(f"⚠️ 从 MySQL 读取失败: {e}，使用原始数据")
+            latest_data = raw_data
+        
+        # 排序并写入 Redis
+        category_order = {'贵金属': 0, '能源': 1, '工业金属': 2, '农产品': 3, '其他': 4}
+        latest_data.sort(key=lambda x: category_order.get(x.get('category', '其他'), 4))
+        
+        result = {
+            "data": latest_data,
+            "source": "TrendRadar Commodity",
+            "timestamp": datetime.now().isoformat(),
+            "cached": False,
+            "background_refresh": True,
+            "from_mysql": True,
+            "categories": list(set(item.get('category', '其他') for item in latest_data)),
+            "total": len(latest_data)
+        }
+        
+        print(f"✅ [后台] 写入 Redis 缓存: {len(latest_data)} 条")
         cache.set(cache_key, result, ttl=CACHE_TTL)
     except Exception as e:
         print(f"❌ [后台] 商品数据失败: {e}")
@@ -170,6 +227,13 @@ async def get_data(refresh: bool = False):
         if latest_data:
             print("🔄 [API] Redis Miss -> 从 MySQL 快照 (commodity_latest) 恢复")
             
+            # 字段映射：MySQL → API 格式（与后台刷新逻辑保持一致）
+            latest_data = _transform_mysql_to_api_format(latest_data)
+            
+            # 排序
+            category_order = {'贵金属': 0, '能源': 1, '工业金属': 2, '农产品': 3, '其他': 4}
+            latest_data.sort(key=lambda x: category_order.get(x.get('category', '其他'), 4))
+            
             # 构建标准响应
             result = {
                 "data": latest_data,
@@ -177,7 +241,9 @@ async def get_data(refresh: bool = False):
                 "timestamp": datetime.now().isoformat(),
                 "cached": False,
                 "from_snapshot": True,
-                "categories": list(set(item.get('category', '其他') for item in latest_data))
+                "from_mysql": True,
+                "categories": list(set(item.get('category', '其他') for item in latest_data)),
+                "total": len(latest_data)
             }
             cache.set(cache_key, result, ttl=CACHE_TTL)
             return result

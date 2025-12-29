@@ -157,7 +157,7 @@ class PriceHistoryManager:
                         source,
                         version_ts,
                         ROW_NUMBER() OVER (
-                            PARTITION BY DATE(version_ts)
+                            PARTITION BY DATE(version_ts), source
                             ORDER BY version_ts DESC
                         ) as rn
                     FROM commodity_history
@@ -210,7 +210,7 @@ class PriceHistoryManager:
         try:
             cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d 00:00:00")
             
-            # 使用窗口函数批量查询，按天取最新
+            # 使用窗口函数批量查询，按天+来源取最新
             sql = """
                 WITH ranked_records AS (
                     SELECT 
@@ -223,7 +223,7 @@ class PriceHistoryManager:
                         source,
                         version_ts,
                         ROW_NUMBER() OVER (
-                            PARTITION BY commodity_id, DATE(version_ts)
+                            PARTITION BY commodity_id, DATE(version_ts), source
                             ORDER BY version_ts DESC
                         ) as rn
                     FROM commodity_history

@@ -20,14 +20,57 @@ COMMODITY_TRANSLATIONS = {
     # 农产品
     'Corn': '玉米', 'Wheat': '小麦', 'Soybeans': '大豆', 'Cotton': '棉花',
     'Sugar': '糖', 'Coffee': '咖啡', 'Cocoa': '可可', 'Rice': '大米',
+    'Palm Oil': '棕榈油', 'Soybean Oil': '豆油', 'Soybean Meal': '豆粕',
+    'Rapeseed': '油菜籽',
+    # 畜牧
+    'Live Cattle': '活牛', 'Lean Hog': '瘦肉猪', 'Feeder Cattle': '育肥牛', 'Milk': '牛奶',
+    # 其他
+    'Lumber': '木材', 'Orange Juice': '橙汁', 'Oats': '燕麦', 'Coal': '煤炭',
 }
 
 # 商品单位
 COMMODITY_UNITS = {
+    # 贵金属
     '黄金': 'USD/盎司', '白银': 'USD/盎司', '铂金': 'USD/盎司', '钯金': 'USD/盎司',
+    'Gold': 'USD/盎司', 'Silver': 'USD/盎司', 'Platinum': 'USD/盎司', 'Palladium': 'USD/盎司',
+    
+    # 能源
     '布伦特原油': 'USD/桶', 'WTI原油': 'USD/桶', '原油': 'USD/桶',
-    '天然气': 'USD/MMBtu', '铜': 'USD/磅', '铝': 'USD/吨',
-    '玉米': 'USD/蒲式耳', '小麦': 'USD/蒲式耳', '大豆': 'USD/蒲式耳',
+    'Oil (Brent)': 'USD/桶', 'Oil (WTI)': 'USD/桶',
+    '天然气': 'USD/MMBtu', 'Natural Gas': 'USD/MMBtu', 'Natural Gas (Henry Hub)': 'USD/MMBtu',
+    '取暖油': 'USD/100升', 'Heating Oil': 'USD/100升',
+    'RBOB Gasoline': 'USD/加仑', 'RBOB汽油': 'USD/加仑',
+    
+    # 工业金属
+    '铜': 'USD/磅', 'Copper': 'USD/磅',
+    '铝': 'USD/吨', 'Aluminium': 'USD/吨',
+    '锌': 'USD/吨', 'Zinc': 'USD/吨',
+    '镍': 'USD/吨', 'Nickel': 'USD/吨',
+    '铅': 'USD/吨', 'Lead': 'USD/吨',
+    '锡': 'USD/吨', 'Tin': 'USD/吨',
+    
+    # 农产品
+    '玉米': 'USD/蒲式耳', 'Corn': 'USD/蒲式耳',
+    '小麦': 'USc/吨', 'Wheat': 'USc/吨',
+    '大豆': 'USD/蒲式耳', 'Soybeans': 'USD/蒲式耳',
+    '大米': 'USD/英担', 'Rice': 'USD/英担',
+    '棉花': 'USD/磅', 'Cotton': 'USD/磅',
+    '糖': 'USD/磅', 'Sugar': 'USD/磅',
+    '咖啡': 'USD/磅', 'Coffee': 'USD/磅',
+    '可可': 'USD/吨', 'Cocoa': 'USD/吨',
+    '豆油': 'USD/磅', 'Soybean Oil': 'USD/磅',
+    '豆粕': 'USD/吨', 'Soybean Meal': 'USD/吨',
+    
+    # 畜牧
+    '牛奶': 'USD/英担', 'Milk': 'USD/英担',
+    '活牛': 'USD/磅', 'Live Cattle': 'USD/磅',
+    '瘦肉猪': 'USD/磅', 'Lean Hog': 'USD/磅',
+    '育肥牛': 'USD/磅', 'Feeder Cattle': 'USD/磅',
+    
+    # 其他
+    '木材': 'USD/千板尺', 'Lumber': 'USD/千板尺',
+    '橙汁': 'USD/磅', 'Orange Juice': 'USD/磅',
+    '燕麦': 'USD/蒲式耳', 'Oats': 'USD/蒲式耳',
 }
 
 
@@ -210,10 +253,11 @@ class CommodityScraper:
             chinese_name = COMMODITY_TRANSLATIONS.get(name, name)
             
             # 根据单位判断是否需要转换（USc = 美分）
-            display_unit = COMMODITY_UNITS.get(chinese_name, 'USD')
+            # 优先查找英文名，其次中文名，最后默认 USD
+            display_unit = COMMODITY_UNITS.get(name) or COMMODITY_UNITS.get(chinese_name, 'USD')
             if 'USc' in unit_text:
                 # 美分单位，标注清楚
-                display_unit = unit_text.replace('USc', '美分').replace('per', '/').replace('lb.', '磅').replace('Bushel', '蒲式耳')
+                display_unit = unit_text.replace('USc', '美分').replace('per', '/').replace('lb.', '磅').replace('Bushel', '蒲式耳').replace('Ton', '吨')
             elif 'per Ton' in unit_text:
                 display_unit = 'USD/吨'
             elif 'per Barrel' in unit_text:
