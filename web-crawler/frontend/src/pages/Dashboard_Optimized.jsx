@@ -293,6 +293,7 @@ const Dashboard = () => {
                 time: i,
                 price: record.price,
                 date: record.date,
+                source: record.source, // Add source field
                 isReal: true
             }));
         }
@@ -609,18 +610,40 @@ const Dashboard = () => {
         // 3. 映射为前端显示对象
         return filtered.map((commodity, idx) => {
             const price = commodity.price;
-            // 尝试从所有原始名称获取历史数据
-            let historyData = null;
+            // 1. 聚合所有来源的历史数据 (New Logic)
+            let uniqueHistoryRecords = new Map(); // key: val-source-date
+            let hasRealHistory = false;
+
+            // 遍历所有可能的名称，收集真实数据
             for (const rawName of commodity.rawNames || [commodity.name]) {
-                historyData = getHistoryData(rawName, price, timeRange === 'day' ? 24 : (timeRange === 'week' ? 7 : 30));
-                if (historyData && historyData.some(h => h.isReal)) break;
+                const hData = getHistoryData(rawName, price, timeRange === 'day' ? 24 : (timeRange === 'week' ? 7 : 30));
+                if (hData) {
+                    hData.forEach(record => {
+                        if (record.isReal) {
+                            hasRealHistory = true;
+                            // 使用 日期+来源 作为唯一键，避免重复
+                            const key = `${record.date}-${record.source || 'default'}`;
+                            uniqueHistoryRecords.set(key, record);
+                        }
+                    });
+                }
             }
-            if (!historyData) {
+
+            let historyData = null;
+            if (hasRealHistory) {
+                // 将 Map 转回数组并排序
+                historyData = Array.from(uniqueHistoryRecords.values())
+                    .sort((a, b) => new Date(a.date) - new Date(b.date))
+                    .map((r, i) => ({ ...r, time: i }));
+            } else {
+                // 回退到模拟数据
                 historyData = getHistoryData(commodity.name, price, timeRange === 'day' ? 24 : (timeRange === 'week' ? 7 : 30));
             }
 
             // 为区域商品获取多区域历史数据 (只有未展开的聚合项才需要)
             let multiSourceHistory = null;
+
+            // 情况1: 区域聚合商品 (e.g. 塑料PP)
             if (commodity.isRegional && commodity.regions && commodity.regions.length > 0) {
                 multiSourceHistory = commodity.regions.map(region => {
                     const regionHistory = getHistoryData(region.fullName, region.price, timeRange === 'day' ? 24 : (timeRange === 'week' ? 7 : 30));
@@ -631,6 +654,26 @@ const Dashboard = () => {
                         data: regionHistory || []
                     };
                 }).filter(s => s.data && s.data.length > 0);
+            }
+            // 情况2: 普通多来源商品 (e.g. 黄金)
+            else if (commodity.sources && commodity.sources.length > 1 && historyData && hasRealHistory) {
+                // 检查历史数据中是否包含不同 source 的记录
+                const historyBySource = {};
+
+                historyData.forEach(record => {
+                    const src = record.source || 'Unknown';
+                    if (!historyBySource[src]) historyBySource[src] = [];
+                    historyBySource[src].push(record);
+                });
+
+                if (Object.keys(historyBySource).length > 1) {
+                    multiSourceHistory = Object.entries(historyBySource).map(([src, data], idx) => ({
+                        source: src,
+                        color: ['#f59e0b', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#06b6d4'][idx % 6],
+                        data: data.sort((a, b) => new Date(a.date) - new Date(b.date)),
+                        url: commodity.sources.find(s => s.source === src)?.url
+                    }));
+                }
             }
 
             return {

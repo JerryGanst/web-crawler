@@ -91,8 +91,8 @@ CREATE TABLE IF NOT EXISTS commodity_history (
     
     extra_data JSON,
     
-    -- 唯一约束: 每天只保留一条记录 (Upsert)
-    UNIQUE KEY uk_commodity_date (commodity_id, record_date),
+    -- 唯一约束: 每天每个数据源保留一条记录 (允许多数据源)
+    UNIQUE KEY uk_commodity_date_source (commodity_id, record_date, source),
     
     INDEX idx_commodity_id (commodity_id),
     INDEX idx_record_date (record_date),

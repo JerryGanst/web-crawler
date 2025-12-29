@@ -228,6 +228,33 @@ def standardize_record(raw: Dict[str, Any], source: str) -> Optional[CommodityRe
     # 优先使用英文名称
     final_name = display_name_map.get(commodity_id, name)
     
+    # 智能解析单位：从 unit 字段提取 price_unit 和 weight_unit
+    raw_unit = raw.get('unit', '')
+    parsed_price_unit = raw.get('price_unit', 'USD')  # 默认 USD
+    parsed_weight_unit = raw.get('weight_unit', '')
+    
+    if raw_unit and not parsed_weight_unit:
+        # 解析格式: "USD/盎司", "元/吨", "美分/磅", "GBP/吨" 等
+        if '/' in raw_unit:
+            parts = raw_unit.split('/', 1)
+            currency_part = parts[0].strip()
+            weight_part = parts[1].strip() if len(parts) > 1 else ''
+            
+            # 识别货币
+            if currency_part in ('USD', 'CNY', 'GBP', 'EUR', '美元', '元', '人民币'):
+                parsed_price_unit = 'USD' if currency_part in ('USD', '美元') else \
+                                   'CNY' if currency_part in ('CNY', '元', '人民币') else currency_part
+            elif currency_part in ('美分', 'USc'):
+                parsed_price_unit = 'USc'  # 美分特殊处理
+            
+            parsed_weight_unit = weight_part
+        else:
+            # 无 / 分隔，检查是否纯货币
+            if raw_unit in ('USD', 'CNY', 'GBP', 'EUR'):
+                parsed_price_unit = raw_unit
+            else:
+                parsed_weight_unit = raw_unit
+    
     # 构建标准记录
     return CommodityRecord(
         id=commodity_id,
@@ -235,8 +262,8 @@ def standardize_record(raw: Dict[str, Any], source: str) -> Optional[CommodityRe
         chinese_name=raw.get('chinese_name', name),
         category=CATEGORY_MAP.get(commodity_id, raw.get('category', '其他')),
         price=price,
-        price_unit=raw.get('price_unit', 'USD'),
-        weight_unit=raw.get('weight_unit') or raw.get('unit', '').replace('USD/', '').replace('CNY/', ''),
+        price_unit=parsed_price_unit,
+        weight_unit=parsed_weight_unit,
         change_percent=Decimal(str(raw['change_percent'])) if raw.get('change_percent') is not None else None,
         change_value=Decimal(str(raw['change_value'])) if raw.get('change_value') is not None else None,
         high_price=Decimal(str(raw['high_price'])) if raw.get('high_price') is not None else None,
@@ -278,7 +305,8 @@ def standardize_batch(raw_records: List[Dict], source: str) -> Tuple[str, List[C
 
 # 需要比对的字段
 DIFF_FIELDS = [
-    'price', 'change_percent', 'change_value',
+    'price', 'price_unit', 'weight_unit',
+    'change_percent', 'change_value',
     'high_price', 'low_price', 'open_price'
 ]
 
@@ -311,21 +339,32 @@ def diff_records(old: Optional[Dict], new: CommodityRecord) -> List[ChangeRecord
         return changes
     
     # 更新记录 - 逐字段比对
+    # 数值型字段（需要精度比较）
+    NUMERIC_FIELDS = {'price', 'change_percent', 'change_value', 'high_price', 'low_price', 'open_price'}
+    
     for field in DIFF_FIELDS:
         old_val = old.get(field)
         new_val = new_dict.get(field)
         
-        # 类型转换处理
-        if old_val is not None:
-            old_val = float(old_val) if isinstance(old_val, Decimal) else old_val
-        if new_val is not None:
-            new_val = float(new_val) if isinstance(new_val, Decimal) else new_val
-        
-        # 比较 (考虑精度)
-        if old_val is None and new_val is None:
-            continue
-        if old_val is not None and new_val is not None:
-            if abs(float(old_val or 0) - float(new_val or 0)) < 0.0001:
+        # 类型转换处理（仅对数值型字段）
+        if field in NUMERIC_FIELDS:
+            if old_val is not None:
+                old_val = float(old_val) if isinstance(old_val, Decimal) else old_val
+            if new_val is not None:
+                new_val = float(new_val) if isinstance(new_val, Decimal) else new_val
+            
+            # 比较数值 (考虑精度)
+            if old_val is None and new_val is None:
+                continue
+            if old_val is not None and new_val is not None:
+                try:
+                    if abs(float(old_val or 0) - float(new_val or 0)) < 0.0001:
+                        continue
+                except (TypeError, ValueError):
+                    pass  # 无法转换为数值，按字符串比较
+        else:
+            # 字符串型字段直接比较
+            if old_val == new_val:
                 continue
         
         # 生成变更摘要
@@ -550,6 +589,8 @@ class CommodityPipeline:
                 name = IF(VALUES(version_ts) >= version_ts, VALUES(name), name),
                 chinese_name = IF(VALUES(version_ts) >= version_ts, VALUES(chinese_name), chinese_name),
                 price = IF(VALUES(version_ts) >= version_ts, VALUES(price), price),
+                price_unit = IF(VALUES(version_ts) >= version_ts, VALUES(price_unit), price_unit),
+                weight_unit = IF(VALUES(version_ts) >= version_ts, VALUES(weight_unit), weight_unit),
                 change_percent = IF(VALUES(version_ts) >= version_ts, VALUES(change_percent), change_percent),
                 change_value = IF(VALUES(version_ts) >= version_ts, VALUES(change_value), change_value),
                 high_price = IF(VALUES(version_ts) >= version_ts, VALUES(high_price), high_price),
