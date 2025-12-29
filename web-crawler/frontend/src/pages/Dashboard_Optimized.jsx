@@ -216,7 +216,8 @@ const Dashboard = () => {
     const [lastUpdate, setLastUpdate] = useState(null);
     const [priceHistory, setPriceHistory] = useState({});
     const [currency, setCurrency] = useState('CNY');
-    const [exchangeRate, setExchangeRate] = useState(7.2);
+    const [exchangeRate, setExchangeRate] = useState(null); // null 表示尚未加载
+    const [exchangeRateLoading, setExchangeRateLoading] = useState(true);
     const [timeRange, setTimeRange] = useState('week'); // Default to week
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -456,6 +457,32 @@ const Dashboard = () => {
             }
         };
         fetchSources();
+    }, []);
+
+    // 获取实时汇率（只加载一次）
+    const exchangeRateLoadedRef = useRef(false);
+    useEffect(() => {
+        if (exchangeRateLoadedRef.current) return;
+        exchangeRateLoadedRef.current = true;
+
+        const fetchExchangeRate = async () => {
+            try {
+                const response = await api.getExchangeRate();
+                const rate = response.data?.rate || response?.rate;
+                if (rate && typeof rate === 'number') {
+                    setExchangeRate(rate);
+                    console.log('✅ 汇率已更新:', rate);
+                } else {
+                    setExchangeRate(7.2); // 解析失败使用默认值
+                }
+            } catch (err) {
+                console.warn('⚠️ 获取汇率失败，使用默认值 7.2:', err);
+                setExchangeRate(7.2);
+            } finally {
+                setExchangeRateLoading(false);
+            }
+        };
+        fetchExchangeRate();
     }, []);
 
     // 根据来源过滤的商品列表（支持多选网站）
@@ -1923,7 +1950,11 @@ const Dashboard = () => {
                                 fontWeight: '800',
                                 letterSpacing: '-0.02em'
                             }}>
-                                ¥{(exchangeRate || 7.2).toFixed(4)}
+                                {exchangeRateLoading ? (
+                                    <span style={{ opacity: 0.6 }}>加载中...</span>
+                                ) : (
+                                    `¥${(exchangeRate || 7.2).toFixed(4)}`
+                                )}
                             </div>
                             <div className="rate-info" style={{
                                 fontSize: '13px',
@@ -1931,7 +1962,7 @@ const Dashboard = () => {
                                 marginTop: '6px',
                                 fontWeight: '500'
                             }}>
-                                1 USD = {exchangeRate} CNY
+                                {exchangeRateLoading ? '获取实时汇率...' : `1 USD = ${exchangeRate} CNY`}
                             </div>
                         </div>
 
