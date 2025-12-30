@@ -30,14 +30,14 @@ class Plastic21CPScraper:
             "name": "ABS(华东)",
             "category": "塑料",
             "unit": "元/吨",
-            "referer": "https://quote.21cp.com/avg_area/list/303561829995569152-ABS.html"
+            "referer": "https://quote.21cp.com/avg_area/list/301005776779010048-ABS.html"  # 修正URL
         },
         "abs_north": {
             "sid": "749906876434538497",
             "name": "ABS(华北)",
             "category": "塑料",
             "unit": "元/吨",
-            "referer": "https://quote.21cp.com/avg_area/list/303561829995569152-ABS.html"
+            "referer": "https://quote.21cp.com/avg_area/list/316927260558942208-ABS.html"  # 修正URL
         },
         # PP 聚丙烯
         "pp_east": {
@@ -52,14 +52,14 @@ class Plastic21CPScraper:
             "name": "PP(华南)",
             "category": "塑料",
             "unit": "元/吨",
-            "referer": "https://quote.21cp.com/avg_area/list/301005776779010048-PP.html"
+            "referer": "https://quote.21cp.com/avg_area/list/303561829995569152-PP.html"  # 修正URL
         },
         "pp_north": {
             "sid": "316956838132244480",
             "name": "PP(华北)",
             "category": "塑料",
             "unit": "元/吨",
-            "referer": "https://quote.21cp.com/avg_area/list/301005776779010048-PP.html"
+            "referer": "https://quote.21cp.com/avg_area/list/316927260558942208-PP.html"  # 修正URL
         },
         # PE 聚乙烯
         "pe_east": {
@@ -74,14 +74,14 @@ class Plastic21CPScraper:
             "name": "PE(华南)",
             "category": "塑料",
             "unit": "元/吨",
-            "referer": "https://quote.21cp.com/avg_area/list/301005776779010048-PE.html"
+            "referer": "https://quote.21cp.com/avg_area/list/303561829995569152-PE.html"  # 修正URL
         },
         "pe_north": {
             "sid": "316956835372392449",
             "name": "PE(华北)",
             "category": "塑料",
             "unit": "元/吨",
-            "referer": "https://quote.21cp.com/avg_area/list/301005776779010048-PE.html"
+            "referer": "https://quote.21cp.com/avg_area/list/316927260558942208-PE.html"  # 修正URL
         },
         # GPPS 通用级聚苯乙烯 (中高端国产)
         "gpps_east": {

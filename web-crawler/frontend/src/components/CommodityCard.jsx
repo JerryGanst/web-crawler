@@ -128,7 +128,49 @@ const CommodityCard = ({
         }));
     }, [multiSourceHistory, showInGrams, isOunceUnit, currency, exchangeRate, isOriginalCNY]);
 
-    const displayedPrice = convertPrice(currentPrice);
+    // 计算多来源商品的平均价格（在货币转换之前）
+    const calculateAveragePrice = () => {
+        const sources = multiSourceItems || [];
+        if (sources.length === 0) {
+            return currentPrice; // 无来源数据，使用传入的默认值
+        }
+
+        if (sources.length === 1) {
+            return sources[0].price || sources[0].current_price || currentPrice;
+        }
+
+        // 多来源：计算平均值
+        let total = 0;
+        let count = 0;
+
+        sources.forEach(item => {
+            const price = parseFloat(item.price || item.current_price);
+            if (!isNaN(price) && price > 0) {
+                // 判断该来源的原始货币
+                const itemUnit = item.unit || '';
+                const isItemCNY = itemUnit.includes('元') || itemUnit.includes('CNY') || itemUnit.includes('RMB');
+
+                // 根据目标货币进行转换后累加
+                let convertedPrice = price;
+                if (currency === 'CNY' && !isItemCNY) {
+                    convertedPrice = price * exchangeRate;
+                } else if (currency === 'USD' && isItemCNY) {
+                    convertedPrice = price / exchangeRate;
+                }
+
+                total += convertedPrice;
+                count++;
+            }
+        });
+
+        return count > 0 ? total / count : currentPrice;
+    };
+
+    const avgPrice = calculateAveragePrice();
+    // 单位转换（盎司→克）在求平均值之后完成
+    const displayedPrice = isOunceUnit && showInGrams
+        ? avgPrice / GRAMS_PER_OUNCE
+        : avgPrice;
     const sources = multiSourceItems || (realItem ? [realItem] : []);
     const change = comm.change || realItem?.change || realItem?.change_percent || 0;
     const isUp = parseFloat(change) >= 0;

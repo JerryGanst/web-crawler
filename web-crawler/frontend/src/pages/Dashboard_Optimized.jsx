@@ -160,6 +160,18 @@ const COMMODITY_ALIASES = {
     // 钯金
     'Palladium': '钯金',
     '钯金': '钯金',
+    // 铅
+    'Lead': '铅',
+    '铅': '铅',
+    // 镍
+    'Nickel': '镍',
+    '镍': '镍',
+    // 锡
+    'Tin': '锡',
+    '锡': '锡',
+    // 锌
+    'Zinc': '锌',
+    '锌': '锌',
     // 能源扩展
     'Natural Gas (Henry Hub)': '天然气 (Henry Hub)',
     'Heating Oil': '取暖油',

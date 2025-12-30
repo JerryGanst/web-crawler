@@ -60,6 +60,7 @@ COMMODITY_UNITS = {
     '可可': 'USD/吨', 'Cocoa': 'USD/吨',
     '豆油': 'USD/磅', 'Soybean Oil': 'USD/磅',
     '豆粕': 'USD/吨', 'Soybean Meal': 'USD/吨',
+    '棕榈油': 'USD/吨', 'Palm Oil': 'USD/吨',
     
     # 畜牧
     '牛奶': 'USD/英担', 'Milk': 'USD/英担',

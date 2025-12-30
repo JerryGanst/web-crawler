@@ -21,6 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Paths
 BASE_DIR = Path(__file__).parent.parent
 CONFIG_PATH = BASE_DIR / "pacong" / "config" / "settings.yaml"
