@@ -668,7 +668,8 @@ const Dashboard = () => {
                 }).filter(s => s.data && s.data.length > 0);
             }
             // 情况2: 普通多来源商品 (e.g. 黄金)
-            else if (commodity.sources && commodity.sources.length > 1 && historyData && hasRealHistory) {
+            // 情况2: 普通多来源商品 (e.g. 黄金) 或 历史数据包含多来源 (e.g. WTI原油)
+            else if (historyData && hasRealHistory) {
                 // 检查历史数据中是否包含不同 source 的记录
                 const historyBySource = {};
 
@@ -679,12 +680,28 @@ const Dashboard = () => {
                 });
 
                 if (Object.keys(historyBySource).length > 1) {
-                    multiSourceHistory = Object.entries(historyBySource).map(([src, data], idx) => ({
-                        source: src,
-                        color: ['#f59e0b', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#06b6d4'][idx % 6],
-                        data: data.sort((a, b) => new Date(a.date) - new Date(b.date)),
-                        url: commodity.sources.find(s => s.source === src)?.url
-                    }));
+                    multiSourceHistory = Object.entries(historyBySource).map(([src, data], idx) => {
+                        // 尝试从 commodity.sources 查找 URL
+                        let sourceUrl = commodity.sources?.find(s => s.source === src)?.url;
+
+                        // 如果未找到且是新浪期货，使用固定 URL (针对 WTI 原油等情况)
+                        if (!sourceUrl && src === '新浪期货') {
+                            if (commodity.name.includes('WTI') || commodity.name.includes('原油')) {
+                                // 用户提供的固定URL (注意: hf_SI 通常是白银, hf_CL 是原油, 这里按用户要求或修正为 CL)
+                                // 修正: WTI原油对应 hf_CL
+                                sourceUrl = 'https://finance.sina.com.cn/futures/quotes/hf_CL.shtml';
+                            } else {
+                                sourceUrl = 'https://finance.sina.com.cn/futures/quotes/hf_SI.shtml';
+                            }
+                        }
+
+                        return {
+                            source: src,
+                            color: ['#f59e0b', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#06b6d4'][idx % 6],
+                            data: data.sort((a, b) => new Date(a.date) - new Date(b.date)),
+                            url: sourceUrl
+                        };
+                    });
                 }
             }
 
