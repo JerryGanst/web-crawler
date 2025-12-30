@@ -72,14 +72,73 @@ async def add_frame_protection(request, call_next):
     response.headers["Content-Security-Policy"] = "frame-ancestors 'self'"
     return response
 
-# 性能监控中间件
+# 防止被其他网站 iframe 嵌入 + Referrer 检查（严格模式）
 @app.middleware("http")
-async def add_process_time_header(request, call_next):
-    import time
-    start_time = time.time()
+async def add_frame_protection(request, call_next):
+    from fastapi.responses import JSONResponse
+    from urllib.parse import urlparse
+
+    # 允许的来源域名白名单
+    ALLOWED_REFERRERS = [
+        "localhost",
+        "127.0.0.1",
+        "ai.luxshare-tech.com",         # AI平台正式环境
+        "ai-test.luxshare-tech.com",    # AI平台测试环境
+    ]
+
+    # 允许无需 referrer 检查的路径（API接口等）
+    BYPASS_PATHS = [
+        "/api/",        # API 接口跳过检查
+        "/docs",        # Swagger 文档
+        "/openapi.json",
+    ]
+
+    request_path = request.url.path
+
+    # API 接口跳过 referrer 检查
+    if any(request_path.startswith(path) for path in BYPASS_PATHS):
+        response = await call_next(request)
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Content-Security-Policy"] = "frame-ancestors 'none'"
+        return response
+
+    # 获取 referrer 和当前访问的 host
+    referrer = request.headers.get("referer", "")
+    current_host = request.headers.get("host", "").split(":")[0]  # 去掉端口号
+
+    # 检查是否允许访问
+    is_allowed = False
+
+    if referrer:
+        referrer_host = urlparse(referrer).hostname or ""
+        # 检查 referrer 是否在白名单
+        is_allowed = any(
+            referrer_host == allowed or referrer_host.endswith(f".{allowed}")
+            for allowed in ALLOWED_REFERRERS
+        )
+        # 允许同站点内部跳转（TrendRadar 内部页面互跳）
+        if referrer_host == current_host:
+            is_allowed = True
+    else:
+        # 没有 referrer，检查是否是允许的 host 直接访问
+        is_allowed = any(
+            current_host == allowed or current_host.endswith(f".{allowed}")
+            for allowed in ALLOWED_REFERRERS
+        )
+
+    if not is_allowed:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "error": "Access Denied",
+                "message": "未授权的访问来源",
+                "detail": "请通过授权渠道访问 TrendRadar。"
+            }
+        )
+
     response = await call_next(request)
-    process_time = time.time() - start_time
-    response.headers["X-Process-Time"] = str(process_time)
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Content-Security-Policy"] = "frame-ancestors 'none'"
     return response
 
 # ==================== 注册路由 ====================
