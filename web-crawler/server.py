@@ -40,6 +40,7 @@ async def lifespan(app: FastAPI):
     
     print("✅ 服务就绪！")
     
+    
     yield
     
     # 关闭
@@ -55,10 +56,17 @@ app = FastAPI(
     lifespan=lifespan  # 使用新的 lifespan 管理
 )
 
-# CORS 配置
+# CORS 配置 - 限定白名单以提升安全性
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",                  # 前端开发服务器
+        "http://127.0.0.1:5173",                  # 前端开发服务器（IP访问）
+        "http://localhost:8000",                  # 后端本地服务
+        "http://127.0.0.1:8000",                  # 后端本地服务（IP访问）
+        "https://ai.luxshare-tech.com",           # AI平台正式环境
+        "https://ai-test.luxshare-tech.com",      # AI平台测试环境
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
