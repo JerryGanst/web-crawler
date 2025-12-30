@@ -64,6 +64,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 防止被其他网站 iframe 嵌入
+@app.middleware("http")
+async def add_frame_protection(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["Content-Security-Policy"] = "frame-ancestors 'self'"
+    return response
+
 # 性能监控中间件
 @app.middleware("http")
 async def add_process_time_header(request, call_next):

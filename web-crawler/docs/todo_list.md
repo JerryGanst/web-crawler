@@ -1,38 +1,92 @@
-# 商品数据流转分析任务清单
+# TrendRadar 项目任务清单
 
-## 任务概览
-分析商品爬取数据流转全流程,验证数据是否完整落库,检测是否存在过滤项
+> **最后更新**: 2025-12-30 08:14:05
 
-## 任务列表
+---
 
-### [✔] 梳理数据流转链路
-- **位置**: `api/scheduler.py:124-159`, `scrapers/commodity.py:86-115`, `core/price_history.py:303-334`
-- **状态**: 已完成
-- **验证**: 已确认完整数据流转路径(5个数据源 → Pipeline → Latest/History双写)
+## ✅ 已完成任务
 
-### [✔] 分析过滤逻辑
-- **位置**: `database/mysql/pipeline.py:415-514`
-- **状态**: 已完成
-- **验证**: 识别3个关键过滤点,本次爬取无数据被过滤
+### 2025-12-30：修复 Palm Oil chinese_name 映射问题
 
-### [✔] 生成爬取数据快照
-- **位置**: `docs/data_crew.md`
-- **状态**: 已完成
-- **验证**: 记录65条API返回数据(含11条重复,实际54条唯一商品)
+**问题描述**：commodity_latest 表中 Palm Oil 的 chinese_name 字段被错误写入为英文 "Palm Oil"，应为中文"棕榈油"。
 
-### [Δ] 生成落库数据快照
-- **位置**: `docs/commodity_latest.md`
-- **状态**: 部分完成(Python环境问题)
-- **验证**: 已通过代码分析验证入库逻辑,建议手动执行SQL查询验证
+**修复内容**：
 
-### [✔] 对比分析报告
-- **位置**: `docs/commodity_data_analysis.md`
-- **状态**: 已完成
-- **验证**: 输出完整分析报告,包含架构图、过滤逻辑、重复数据分析和优化建议
+1. ✅ **补全 COMMODITY_UNITS 配置**
+   - 文件：`scrapers/commodity.py:62`
+   - 新增：`'棕榈油': 'USD/吨', 'Palm Oil': 'USD/吨'`
+   - 代码位置：`scrapers/commodity.py:62`
 
-## 关键发现
+2. ✅ **增强 Pipeline 容错机制**
+   - 文件：`database/mysql/pipeline.py:258-268`
+   - 新增 chinese_name 二次映射逻辑
+   - 防止未来出现类似问题
+   - 代码位置：`database/mysql/pipeline.py:258-270`
 
-✅ **数据完整性**: 所有爬取数据都尝试入库,本次爬取无数据被过滤  
-⚠️ **重复数据**: 发现5组重复商品(11条数据),Pipeline已自动去重  
-🔍 **数据源异常**: SMM(上海有色网)未返回数据,需排查  
-📊 **实际入库**: 65条原始→去重后54条→Latest表54条+History表54条(按天去重)
+3. ✅ **修正数据库脏数据**
+   - 执行 SQL：`UPDATE commodity_latest SET chinese_name = '棕榈油' WHERE id = 'palm_oil'`
+   - 影响：1 条记录
+   - 验证脚本：`docs/test/fix_palm_oil_chinese_name.py`
+
+**验证结果**：
+
+| 数据表 | name | chinese_name | 状态 |
+|:---|:---|:---|:---|
+| `commodity_latest` | `Palm Oil` | `棕榈油` ✅ | **已修正** |
+| `commodity_history` | `Palm Oil` | `棕榈油` ✅ | 保持正确 |
+
+**相关文件**：
+- 源代码：
+  - `scrapers/commodity.py` - 新增 Palm Oil 单位配置
+  - `database/mysql/pipeline.py` - 增强容错机制
+- 测试脚本：
+  - `docs/test/check_palm_simple.py` - 验证脚本
+  - `docs/test/fix_palm_oil_chinese_name.py` - 修复脚本
+- 文档：
+  - `docs/test/palm_oil_analysis_report.md` - 问题分析报告
+
+---
+
+## 📋 待处理任务
+
+### 高优先级
+*暂无*
+
+### 中优先级
+*暂无*
+
+### 低优先级
+*暂无*
+
+---
+
+## 📝 问题记录
+
+### Palm Oil chinese_name 映射错误 (已解决)
+
+- **时间**: 2025-12-30
+- **模块**: 数据管道 / 商品爬虫
+- **环境**: MySQL (commodity_latest 表)
+- **现象**: commodity_latest 表中 Palm Oil 的 chinese_name 字段为 "Palm Oil"（英文），应为"棕榈油"
+- **复现步骤**:
+  1. 执行 Business Insider 爬虫
+  2. 查询 `SELECT chinese_name FROM commodity_latest WHERE id = 'palm_oil'`
+  3. 返回 "Palm Oil" 而非 "棕榈油"
+- **根因分类**: 配置缺失 + 数据脏写
+- **修复方案**:
+  1. 补全 `COMMODITY_UNITS` 配置
+  2. 增强 Pipeline 容错机制（chinese_name 二次映射）
+  3. 修正数据库脏数据
+- **影响评估**: 低（仅影响前端显示，不影响核心功能）
+- **源码位置**:
+  - `scrapers/commodity.py:62` - 单位配置
+  - `database/mysql/pipeline.py:258-270` - 容错逻辑
+- **后续防线**: Pipeline 已增加容错机制，即使爬虫数据缺失 chinese_name，也会自动从翻译表映射
+
+---
+
+## 🔗 快速链接
+
+- 项目文档：`/docs`
+- 测试脚本：`/docs/test`
+- 问题记录：本文档"问题记录"章节

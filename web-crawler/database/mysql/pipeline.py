@@ -106,20 +106,20 @@ COMMODITY_ID_MAP = {
     'Rice': 'rice', '大米': 'rice',
     
     # 肉类
-    'Live Cattle': 'live_cattle',
-    'Lean Hog': 'lean_hog',
-    'Feeder Cattle': 'feeder_cattle',
-    'Milk': 'milk',
+    'Live Cattle': 'live_cattle', '活牛': 'live_cattle',
+    'Lean Hog': 'lean_hog', '瘦肉猪': 'lean_hog',
+    'Feeder Cattle': 'feeder_cattle', '育肥牛': 'feeder_cattle',
+    'Milk': 'milk', '牛奶': 'milk',
     
     # 其他软商品
-    'Orange Juice': 'orange_juice',
-    'Lumber': 'lumber',
-    'Oats': 'oats',
+    'Orange Juice': 'orange_juice', '橙汁': 'orange_juice',
+    'Lumber': 'lumber', '木材': 'lumber',
+    'Oats': 'oats', '燕麦': 'oats',
     'Palm Oil': 'palm_oil', '棕榈油': 'palm_oil',
-    'Soybean Oil': 'soybean_oil',
-    'Soybean Meal': 'soybean_meal',
-    'Rapeseed': 'rapeseed',
-    'Coal': 'coal',
+    'Soybean Oil': 'soybean_oil', '豆油': 'soybean_oil',
+    'Soybean Meal': 'soybean_meal', '豆粕': 'soybean_meal',
+    'Rapeseed': 'rapeseed', '油菜籽': 'rapeseed',
+    'Coal': 'coal', '煤炭': 'coal',
 }
 
 # 分类映射
@@ -128,12 +128,13 @@ CATEGORY_MAP = {
     'platinum': '贵金属', 'palladium': '贵金属',
     'oil_brent': '能源', 'oil_wti': '能源', 'natural_gas': '能源', 
     'gasoline': '能源', 'heating_oil': '能源',
+    'soybean_oil': '能源', 'palm_oil': '能源',  # 豆油、棕榈油归类为能源
     'copper': '工业金属', 'comex_copper': '工业金属', 'aluminum': '工业金属',
     'zinc': '工业金属', 'nickel': '工业金属', 'lead': '工业金属', 'tin': '工业金属',
     'corn': '农产品', 'wheat': '农产品', 'soybeans': '农产品',
     'cotton': '农产品', 'sugar': '农产品', 'coffee': '农产品',
     'cocoa': '农产品', 'rice': '农产品', 'orange_juice': '农产品',
-    'palm_oil': '农产品', 'soybean_oil': '农产品', 'soybean_meal': '农产品',
+    'soybean_meal': '农产品',  # 豆粕仍为农产品
     'rapeseed': '农产品', 'oats': '农产品', 'milk': '农产品',
     'live_cattle': '农产品', 'lean_hog': '农产品', 'feeder_cattle': '农产品',
     'lumber': '其他', 'coal': '能源',
@@ -255,11 +256,23 @@ def standardize_record(raw: Dict[str, Any], source: str) -> Optional[CommodityRe
             else:
                 parsed_weight_unit = raw_unit
     
+    # 获取并验证 chinese_name
+    chinese_name_raw = raw.get('chinese_name', name)
+    
+    # 如果 chinese_name 缺失或等于英文名，尝试从 COMMODITY_TRANSLATIONS 映射
+    if chinese_name_raw == name or not chinese_name_raw:
+        try:
+            from scrapers.commodity import COMMODITY_TRANSLATIONS
+            if name in COMMODITY_TRANSLATIONS:
+                chinese_name_raw = COMMODITY_TRANSLATIONS[name]
+        except ImportError:
+            pass  # 如果导入失败，继续使用原值
+    
     # 构建标准记录
     return CommodityRecord(
         id=commodity_id,
         name=final_name,
-        chinese_name=raw.get('chinese_name', name),
+        chinese_name=chinese_name_raw,
         category=CATEGORY_MAP.get(commodity_id, raw.get('category', '其他')),
         price=price,
         price_unit=parsed_price_unit,

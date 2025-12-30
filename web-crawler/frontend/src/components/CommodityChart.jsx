@@ -48,6 +48,7 @@ const CommodityChart = ({
                     name: source.source || `来源${idx + 1}`,
                     type: 'line',
                     smooth: true,
+                    connectNulls: true,  // 连接数据缺失点
                     symbol: 'circle',
                     symbolSize: 5,
                     showSymbol: false,
@@ -104,6 +105,7 @@ const CommodityChart = ({
                     name: name,
                     type: 'line',
                     smooth: true,
+                    connectNulls: true,  // 连接数据缺失点
                     symbol: 'circle',
                     symbolSize: 5,
                     showSymbol: false,
