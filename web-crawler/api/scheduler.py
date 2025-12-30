@@ -125,36 +125,81 @@ class BackgroundScheduler:
         """爬取大宗商品数据"""
         try:
             from scrapers.commodity import CommodityScraper
+            from database.manager import db_manager
             
             print(f"⏰ [定时] 开始爬取大宗商品数据...")
             scraper = CommodityScraper()
-            data = scraper.scrape()
-            print(f"✅ [Scheduler] Scraped {data} commodity items")
+            raw_data = scraper.scrape()
+            print(f"✅ [Scheduler] Scraped {len(raw_data)} commodity items")
             
-            category_order = {'贵金属': 0, '能源': 1, '工业金属': 2, '农产品': 3, '其他': 4}
-            data.sort(key=lambda x: category_order.get(x.get('category', '其他'), 4))
-            
-            # 1. 保存价格历史 (MySQL 优先)
+            # 1. 写入 MySQL（Pipeline 会自动去重），按来源分组
             try:
-                from core.price_history import PriceHistoryManager
-                history_manager = PriceHistoryManager()
-                history_manager.save_current_prices(data)
-                print(f"✅ [定时] 价格历史已保存到 MySQL")
+                stats_by_source = {}
+                sources = set(item.get("source", "unknown") for item in raw_data)
+                for src in sources:
+                    src_records = [item for item in raw_data if item.get("source", "unknown") == src]
+                    if not src_records:
+                        continue
+                    db_stats = db_manager.write_commodity(src_records, source=src)
+                    if db_stats:
+                        stats_by_source[src] = db_stats
+                if stats_by_source:
+                    print(f"✅ [定时] MySQL 入库完成: {stats_by_source}")
             except Exception as e:
-                print(f"⚠️ [定时] 保存价格历史失败: {e}")
+                print(f"⚠️ [定时] MySQL 入库失败: {e}")
 
-            # 2. 写入 Redis (保持原有缓存逻辑)
+            # 2. 从 MySQL commodity_latest 读取去重后的数据（以 MySQL 为准）
+            try:
+                latest_data = db_manager.get_commodity_latest()
+                if not latest_data:
+                    print("⚠️ [定时] MySQL commodity_latest 为空，使用原始数据")
+                    latest_data = raw_data
+                else:
+                    print(f"✅ [定时] 从 MySQL 读取: {len(latest_data)} 条去重数据")
+                    # 字段映射：MySQL → API 格式 (内联实现，避免循环依赖)
+                    for item in latest_data:
+                        # 1. 合并 unit
+                        price_unit = item.get('price_unit', '')
+                        weight_unit = item.get('weight_unit', '')
+                        if price_unit and weight_unit:
+                            item['unit'] = f"{price_unit}/{weight_unit}"
+                        else:
+                            item['unit'] = price_unit or weight_unit or 'USD'
+                        
+                        # 2. current_price
+                        if 'price' in item and 'current_price' not in item:
+                            item['current_price'] = item['price']
+                        
+                        # 3. url
+                        if 'url' not in item or not item['url']:
+                            item['url'] = item.get('source_url', '')
+
+                        # 4. cleanup
+                        for k in ['id', 'price_unit', 'weight_unit', 'version_ts', 'source_url']:
+                            item.pop(k, None)
+
+            except Exception as e:
+                print(f"⚠️ [定时] 从 MySQL 读取失败: {e}，使用原始数据")
+                latest_data = raw_data
+            
+            # 3. 排序
+            category_order = {'贵金属': 0, '能源': 1, '工业金属': 2, '农产品': 3, '其他': 4}
+            latest_data.sort(key=lambda x: category_order.get(x.get('category', '其他'), 4))
+            
+            # 4. 写入 Redis
             result = {
-                "data": data,
+                "data": latest_data,
                 "source": "TrendRadar Commodity",
                 "timestamp": datetime.now().isoformat(),
                 "cached": False,
                 "scheduled_refresh": True,
-                "categories": list(set(item.get('category', '其他') for item in data))
+                "from_mysql": True,
+                "categories": list(set(item.get('category', '其他') for item in latest_data)),
+                "total": len(latest_data)
             }
             cache.set("data:commodity", result, ttl=CACHE_TTL)
             
-            print(f"⏰ [定时] 大宗商品数据完成: {len(data)} 条")
+            print(f"⏰ [定时] 大宗商品数据完成: {len(latest_data)} 条")
         except Exception as e:
             print(f"⏰ [定时] 大宗商品数据失败: {e}")
     

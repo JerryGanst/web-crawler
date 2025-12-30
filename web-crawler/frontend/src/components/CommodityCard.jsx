@@ -171,7 +171,58 @@ const CommodityCard = ({
     const displayedPrice = isOunceUnit && showInGrams
         ? avgPrice / GRAMS_PER_OUNCE
         : avgPrice;
-    const sources = multiSourceItems || (realItem ? [realItem] : []);
+    // 为 Oil (WTI) 注入固定来源 URL
+    let computedSources = multiSourceItems || (realItem ? [realItem] : []);
+    if (comm.name.includes('WTI') || comm.name.includes('原油')) {
+        // 创建一个 Map 以便按名称更新或添加来源
+        const sourceMap = new Map();
+
+        // 1. 初始化现有来源
+        computedSources.forEach(s => {
+            const host = safeGetHostname(s.url) || s.source || 'Unknown';
+            sourceMap.set(s.source || host, { ...s });
+        });
+
+        // 2. 注入或更新特定来源
+        // 中塑在线
+        if (!sourceMap.has('中塑在线')) {
+            sourceMap.set('中塑在线', {
+                source: '中塑在线',
+                url: 'https://quote.21cp.com/crude_centre/list/158651161505726464--.html'
+            });
+        }
+
+        // 新浪期货
+        if (!sourceMap.has('新浪期货')) {
+            sourceMap.set('新浪期货', {
+                source: '新浪期货',
+                url: 'https://finance.sina.com.cn/futures/quotes/hf_CL.shtml'
+            });
+        } else {
+            // 确保 URL 正确
+            const existing = sourceMap.get('新浪期货');
+            if (!existing.url) existing.url = 'https://finance.sina.com.cn/futures/quotes/hf_CL.shtml';
+        }
+
+        // Business Insider
+        // 查找现有的 Business Insider 条目（可能是 hostname）
+        let biKey = Array.from(sourceMap.keys()).find(k => k.includes('businessinsider'));
+        if (!biKey) {
+            sourceMap.set('Business Insider', {
+                source: 'Business Insider',
+                url: 'https://markets.businessinsider.com/commodities/oil-(brent)'
+            });
+        } else {
+            // 如果存在，确保 url 正确（如果原 url 为空）
+            const existing = sourceMap.get(biKey);
+            if (!existing.url) existing.url = 'https://markets.businessinsider.com/commodities/oil-(brent)';
+        }
+
+        // 重新转换为数组
+        computedSources = Array.from(sourceMap.values());
+    }
+
+    const sources = computedSources;
     const change = comm.change || realItem?.change || realItem?.change_percent || 0;
     const isUp = parseFloat(change) >= 0;
 

@@ -26,18 +26,18 @@ class Plastic21CPScraper:
             "referer": "https://quote.21cp.com/avg_area/list/303561829995569152-ABS.html"
         },
         "abs_east": {
-            "sid": "316956810797965314",
+            "sid": "749907123932028928",  # 修正为中高端国产ABS
             "name": "ABS(华东)",
             "category": "塑料",
             "unit": "元/吨",
-            "referer": "https://quote.21cp.com/avg_area/list/301005776779010048-ABS.html"  # 修正URL
+            "referer": "https://quote.21cp.com/avg_area/list/301005776779010048-ABS.html"
         },
         "abs_north": {
             "sid": "749906876434538497",
             "name": "ABS(华北)",
             "category": "塑料",
             "unit": "元/吨",
-            "referer": "https://quote.21cp.com/avg_area/list/316927260558942208-ABS.html"  # 修正URL
+            "referer": "https://quote.21cp.com/avg_area/list/303561829995569152-ABS.html"
         },
         # PP 聚丙烯
         "pp_east": {
