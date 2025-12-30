@@ -145,24 +145,26 @@ class PriceHistoryManager:
         try:
             from database.mysql.connection import get_cursor
             
-            cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d 00:00:00")
+            # 计算截止日期(按 record_date 筛选)
+            cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
             
-            # 使用窗口函数，每天取最新版本
+            # 使用窗口函数,每天每来源取最新版本
+            # 关键: 使用表中的 record_date 字段,而非 DATE(version_ts)
             sql = """
                 WITH ranked_records AS (
                     SELECT 
-                        DATE(version_ts) as record_date,
+                        record_date,
                         price,
                         change_percent,
                         source,
                         version_ts,
                         ROW_NUMBER() OVER (
-                            PARTITION BY DATE(version_ts), source
+                            PARTITION BY record_date, source
                             ORDER BY version_ts DESC
                         ) as rn
                     FROM commodity_history
                     WHERE (name = %s OR chinese_name = %s)
-                      AND version_ts >= %s
+                      AND record_date >= %s
                 )
                 SELECT record_date, price, change_percent, source
                 FROM ranked_records
@@ -208,26 +210,28 @@ class PriceHistoryManager:
         result = {}
         
         try:
-            cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d 00:00:00")
+            # 计算截止日期(按 record_date 筛选)
+            cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
             
-            # 使用窗口函数批量查询，按天+来源取最新
+            # 使用窗口函数批量查询,每个商品每天每来源取最新版本
+            # 关键: 使用表中的 record_date 字段,而非 DATE(version_ts)
             sql = """
                 WITH ranked_records AS (
                     SELECT 
                         commodity_id,
                         name,
                         chinese_name,
-                        DATE(version_ts) as record_date,
+                        record_date,
                         price,
                         change_percent,
                         source,
                         version_ts,
                         ROW_NUMBER() OVER (
-                            PARTITION BY commodity_id, DATE(version_ts), source
+                            PARTITION BY commodity_id, record_date, source
                             ORDER BY version_ts DESC
                         ) as rn
                     FROM commodity_history
-                    WHERE version_ts >= %s
+                    WHERE record_date >= %s
                 )
                 SELECT commodity_id, name, chinese_name, record_date, price, change_percent, source
                 FROM ranked_records
