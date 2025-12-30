@@ -153,6 +153,9 @@ class PriceHistoryManager:
             sql = """
                 WITH ranked_records AS (
                     SELECT 
+                        commodity_id,
+                        name,
+                        chinese_name,
                         record_date,
                         price,
                         change_percent,
@@ -166,7 +169,7 @@ class PriceHistoryManager:
                     WHERE (name = %s OR chinese_name = %s)
                       AND record_date >= %s
                 )
-                SELECT record_date, price, change_percent, source
+                SELECT commodity_id, name, chinese_name, record_date, price, change_percent, source
                 FROM ranked_records
                 WHERE rn = 1
                 ORDER BY record_date ASC
