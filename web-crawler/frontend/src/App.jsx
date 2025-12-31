@@ -53,8 +53,8 @@ function App() {
                     <Route path="/" element={<Navigate to="/radar" replace />} />
                     <Route path="/radar" element={<TrendRadar />} />
                     <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/chat" element={<div style={{ padding: '40px' }}><h1>AI 对话</h1><p style={{ color: '#64748b' }}>功能开发中...</p></div>} />
-                    <Route path="/knowledge" element={<div style={{ padding: '40px' }}><h1>知识广场</h1><p style={{ color: '#64748b' }}>功能开发中...</p></div>} />
+                    {/* <Route path="/chat" element={<div style={{ padding: '40px' }}><h1>AI 对话</h1><p style={{ color: '#64748b' }}>功能开发中...</p></div>} /> */}
+                    {/* <Route path="/knowledge" element={<div style={{ padding: '40px' }}><h1>知识广场</h1><p style={{ color: '#64748b' }}>功能开发中...</p></div>} /> */}
                   </Routes>
                 </Suspense>
               </main>
