@@ -29,21 +29,21 @@ const Sidebar = () => {
                     <span className="label">数据看板</span>
                 </NavLink>
 
-                {/* 知识广场 */}
-                <NavLink to="/knowledge" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`}>
+                {/* 知识广场 (暂未开放) */}
+                {/* <NavLink to="/knowledge" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`}>
                     <div className="icon-box">
                         <Compass size={24} strokeWidth={1.5} />
                     </div>
                     <span className="label">知识广场</span>
-                </NavLink>
+                </NavLink> */}
 
-                {/* 对话 */}
-                <NavLink to="/chat" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`}>
+                {/* 对话 (暂未开放) */}
+                {/* <NavLink to="/chat" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`}>
                     <div className="icon-box">
                         <MessageSquare size={24} strokeWidth={1.5} />
                     </div>
                     <span className="label">AI对话</span>
-                </NavLink>
+                </NavLink> */}
             </div>
         </nav>
     );
