@@ -32,13 +32,7 @@ class Plastic21CPScraper:
             "unit": "元/吨",
             "referer": "https://quote.21cp.com/avg_area/list/301005776779010048-ABS.html"
         },
-        "abs_north": {
-            "sid": "749906876434538497",
-            "name": "ABS(华北)",
-            "category": "塑料",
-            "unit": "元/吨",
-            "referer": "https://quote.21cp.com/avg_area/list/303561829995569152-ABS.html"
-        },
+        
         # PP 聚丙烯
         "pp_east": {
             "sid": "316956720981139456",
