@@ -369,6 +369,8 @@ def fetch_realtime_news(keywords: list, max_news: int = 30) -> list:
     return all_news[:max_news]
 
 
+
+
 def get_price_history() -> Dict[str, List[Dict]]:
     """获取价格历史数据"""
     try:
@@ -377,6 +379,119 @@ def get_price_history() -> Dict[str, List[Dict]]:
     except Exception as e:
         print(f"⚠️ 获取价格历史失败: {e}")
         return {}
+
+
+def get_today_key() -> str:
+    """获取当天的日期键（格式：YYYYMMDD）"""
+    return datetime.now().strftime("%Y%m%d")
+
+
+def get_cache_keys(date_key: str) -> Dict[str, str]:
+    """
+    获取缓存键
+    
+    Args:
+        date_key: 日期键（YYYYMMDD格式）
+    
+    Returns:
+        包含状态键和数据键的字典
+    """
+    return {
+        "status": f"analysis-v4-status-{date_key}",
+        "data": f"analysis-v4-{date_key}"
+    }
+
+
+def check_analysis_status(date_key: str) -> Dict[str, any]:
+    """
+    检查分析状态
+    
+    Args:
+        date_key: 日期键（YYYYMMDD格式）
+    
+    Returns:
+        {
+            "status": "none|pending|completed",
+            "data": None 或完整的分析报告数据
+        }
+    """
+    keys = get_cache_keys(date_key)
+    
+    # 检查状态缓存
+    status_cache = cache.get(keys["status"])
+    
+    if not status_cache:
+        # 状态缓存不存在，检查数据缓存是否存在
+        data_cache = cache.get(keys["data"])
+        if data_cache:
+            return {"status": "completed", "data": data_cache}
+        return {"status": "none", "data": None}
+    
+    # 状态缓存存在
+    current_status = status_cache.get("status", "none")
+    
+    if current_status == "completed":
+        # 尝试获取数据缓存
+        data_cache = cache.get(keys["data"])
+        if data_cache:
+            return {"status": "completed", "data": data_cache}
+        else:
+            # 数据缓存已过期，重置状态
+            return {"status": "none", "data": None}
+    
+    return {"status": current_status, "data": None}
+
+
+def set_analysis_status(date_key: str, status: str, data: Optional[Dict] = None) -> bool:
+    """
+    设置分析状态
+    
+    Args:
+        date_key: 日期键（YYYYMMDD格式）
+        status: 状态（pending|completed）
+        data: 分析报告数据（当状态为completed时必须提供）
+    
+    Returns:
+        是否设置成功
+    """
+    keys = get_cache_keys(date_key)
+    
+    # 设置状态缓存（10分钟）
+    status_data = {
+        "status": status,
+        "started_at": datetime.now().isoformat()
+    }
+    cache.set(keys["status"], status_data, ttl=600)  # 10分钟
+    
+    # 如果状态为completed，保存数据缓存（36小时）
+    if status == "completed" and data:
+        cache.set(keys["data"], data, ttl=129600)  # 36小时
+        return True
+    
+    return True
+
+
+def try_acquire_lock(date_key: str) -> bool:
+    """
+    尝试获取分布式锁（使用Redis SETNX）
+    
+    Args:
+        date_key: 日期键
+    
+    Returns:
+        是否成功获取锁
+    """
+    keys = get_cache_keys(date_key)
+    status_cache = cache.get(keys["status"])
+    
+    # 如果状态缓存不存在，尝试设置为pending
+    if not status_cache:
+        return set_analysis_status(date_key, "pending")
+    
+    # 状态缓存已存在，无法获取锁
+    return False
+
+
 
 
 @router.post("/api/generate-analysis-v4")
@@ -390,11 +505,53 @@ async def generate_analysis_v4(request: AnalysisRequest):
     3. 第二轮：关税各分类分析、原材料成本分析（并行）
     4. 第三轮：执行摘要整合
     5. 拼装最终报告
+    
+    缓存机制：
+    - 状态缓存：10分钟（防止重复请求）
+    - 数据缓存：36小时（提升响应速度）
     """
+    # ========== 缓存检查 ==========
+    date_key = get_today_key()
+    cache_status = check_analysis_status(date_key)
+    
+    print(f"🔍 [缓存检查] 日期: {date_key}, 状态: {cache_status['status']}")
+    
+    # 如果状态为 pending，返回提示
+    if cache_status["status"] == "pending":
+        return {
+            "status": "pending",
+            "message": "分析报告正在生成中，请稍后再试（约需3-5分钟）",
+            "date": date_key,
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    # 如果状态为 completed 且有缓存数据，直接返回
+    if cache_status["status"] == "completed" and cache_status["data"]:
+        print(f"✅ [缓存命中] 直接返回缓存数据")
+        cached_data = cache_status["data"]
+        cached_data["from_cache"] = True
+        cached_data["cache_date"] = date_key
+        return cached_data
+    
+    # ========== 获取分布式锁 ==========
+    if not try_acquire_lock(date_key):
+        # 锁获取失败，说明有其他请求正在处理
+        return {
+            "status": "pending",
+            "message": "分析报告正在生成中，请稍后再试",
+            "date": date_key,
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    print(f"🔒 [已获取锁] 开始生成分析报告")
+    
+    # ========== AI 配置验证 ==========
     ai_config = get_ai_config()
     if request.model:
         ai_config["model"] = request.model.strip()
     if not ai_config["api_key"]:
+        # 释放锁（删除状态缓存）
+        cache.delete(f"analysis-v4-status-{date_key}")
         raise HTTPException(status_code=400, detail="未配置 AI API Key")
     
     print("=" * 60)
@@ -512,7 +669,8 @@ async def generate_analysis_v4(request: AnalysisRequest):
         print("✅ [V4] 分析完成!")
         print("=" * 60)
         
-        return {
+        # ========== 构建返回数据 ==========
+        result_data = {
             "status": "success",
             "content": final_report,
             "model": ai_config["model"],
@@ -529,13 +687,48 @@ async def generate_analysis_v4(request: AnalysisRequest):
                 "second_round": list(second_round.get("tariff_sections", {}).keys()) + ["material_analysis"],
                 "third_round": ["summary"]
             },
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "from_cache": False,
+            "cache_date": date_key
         }
         
+        # ========== 保存到缓存 ==========
+        print(f"💾 [保存缓存] 日期: {date_key}")
+        set_analysis_status(date_key, "completed", result_data)
+        
+        return result_data
+        
     except Exception as e:
+        # ========== 异常处理：清除状态锁 ==========
+        print(f"❌ [异常] 清除状态锁: {date_key}")
+        cache.delete(f"analysis-v4-status-{date_key}")
+        
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"分析失败: {str(e)}")
+
+
+async def generate_analysis_task():
+    """
+    定时任务专用：生成分析报告并缓存
+    
+    与接口版本的区别：
+    - 不需要 Request 参数
+    - 使用默认配置
+    - 专注于缓存生成，不返回具体数据
+    """
+    try:
+        # 构造默认请求
+        request = AnalysisRequest(news=[], model=None)
+        
+        # 调用生成函数
+        result = await generate_analysis_v4(request)
+        
+        print(f"✅ [定时任务] Analysis V4 报告生成成功")
+        return result
+    except Exception as e:
+        print(f"❌ [定时任务] Analysis V4 报告生成失败: {e}")
+        raise
 
 
 @router.get("/api/analysis-v4/status")
@@ -549,7 +742,8 @@ async def get_v4_status():
             "关税分类单独分析（每个分类独立调用）",
             "原材料数据直接嵌入（不走大模型）",
             "原材料成本分析（单独走大模型）",
-            "三轮模块化调用架构"
+            "三轮模块化调用架构",
+            "定时任务自动缓存（每4小时刷新）"
         ],
         "model": ai_config.get("model", "未配置"),
         "api_configured": bool(ai_config.get("api_key"))
