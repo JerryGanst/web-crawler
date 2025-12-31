@@ -1238,7 +1238,7 @@ def get_tariff_news_stats():
         
         stats[cat_name] = {
             "news_count": len(matched_news),
-            "news": matched_news[:10]
+            "news": matched_news[:]
         }
     
     matched_total = sum(s["news_count"] for s in stats.values())
