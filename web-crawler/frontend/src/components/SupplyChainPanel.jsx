@@ -227,6 +227,7 @@ const SupplyChainPanel = () => {
     const [copied, setCopied] = useState(false);
     const [pushing, setPushing] = useState(false);
     const [pushSuccess, setPushSuccess] = useState(false);
+    const [reportPendingInfo, setReportPendingInfo] = useState(null); // 后端正在生成报告时的信息
 
     // 供应链实时新闻
     const [supplyChainNews, setSupplyChainNews] = useState([]);
@@ -448,6 +449,7 @@ const SupplyChainPanel = () => {
     const generateReport = async () => {
         setGeneratingReport(true);
         setReportError('');
+        setReportPendingInfo(null); // 重置 pending 信息
         setShowReport(true);
 
         try {
@@ -477,12 +479,28 @@ const SupplyChainPanel = () => {
             }
 
             const result = await response.json();
+
+            // 处理 pending 状态
+            if (result.status === 'pending') {
+                setReportPendingInfo(result);
+                // 停止 loading，因为我们显示的是 pending 提示
+                setGeneratingReport(false);
+                return;
+            }
+
             setReportContent(result.content || result.report);
         } catch (e) {
             console.error('生成报告失败:', e);
             setReportError(e.message || '生成报告失败，请检查API配置');
         } finally {
-            setGeneratingReport(false);
+            // 注意：如果是 pending 状态，我们已经在上面手动 setGeneratingReport(false) 并 return 了
+            // 其他情况（成功或失败）统一在这里处理
+            if (!reportPendingInfo) {
+                setGeneratingReport(false);
+            } else {
+                // 如果上面逻辑有问题导致 pending 没 return，这里保底
+                setGeneratingReport(false);
+            }
         }
     };
 
@@ -1462,6 +1480,50 @@ const SupplyChainPanel = () => {
                                     <Loader2 size={48} className="animate-spin" style={{ color: '#3b82f6', marginBottom: '20px' }} />
                                     <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>正在生成分析报告...</div>
                                     <div style={{ fontSize: '14px' }}>立讯技术专有新闻分析AI助手正在工作，请稍候...</div>
+                                </div>
+                            ) : reportPendingInfo ? (
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '60px 20px',
+                                    color: '#64748b'
+                                }}>
+                                    <Loader2 size={48} className="animate-spin" style={{ color: '#f59e0b', marginBottom: '20px' }} />
+                                    <div style={{ fontSize: '18px', fontWeight: '600', color: '#d97706', marginBottom: '8px' }}>分析报告后台生成中</div>
+                                    <div style={{
+                                        fontSize: '15px',
+                                        textAlign: 'center',
+                                        padding: '16px 24px',
+                                        background: '#fff7ed',
+                                        borderRadius: '12px',
+                                        border: '1px solid #ffedd5',
+                                        color: '#9a3412',
+                                        maxWidth: '450px',
+                                        lineHeight: '1.6'
+                                    }}>
+                                        {reportPendingInfo.message || '报告正在生成，请耐心等待 3-5 分钟。'}
+                                        <div style={{ fontSize: '12px', color: '#c2410c', marginTop: '8px', opacity: 0.8 }}>
+                                            请求时间: {reportPendingInfo.timestamp ? new Date(reportPendingInfo.timestamp).toLocaleString() : new Date().toLocaleString()}
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={generateReport}
+                                        style={{
+                                            marginTop: '24px',
+                                            padding: '8px 20px',
+                                            background: '#f59e0b',
+                                            color: '#fff',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            cursor: 'pointer',
+                                            fontSize: '14px',
+                                            fontWeight: '600'
+                                        }}
+                                    >
+                                        检查更新
+                                    </button>
                                 </div>
                             ) : reportError ? (
                                 <div style={{

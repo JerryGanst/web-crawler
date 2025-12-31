@@ -38,22 +38,19 @@ async def push_report(request: ReportPushRequest):
     webhook_urls = config.get("notification", {}).get("webhooks", {}).get("wework_url", "")
     
     print(f"📤 推送报告: {request.title[:30]}...")
-    print(f"🔗 Webhook配置: {type(webhook_urls)} = {webhook_urls[:50] if isinstance(webhook_urls, str) else webhook_urls}")
     
     if isinstance(webhook_urls, str):
         webhook_urls = [webhook_urls] if webhook_urls else []
     elif not webhook_urls:
         webhook_urls = []
     
-    # 过滤掉空字符串
     webhook_urls = [url for url in webhook_urls if url and url.strip()]
     
     if not webhook_urls:
         print("❌ 未配置有效的企业微信 Webhook")
-        return {"status": "error", "message": "未配置企业微信 Webhook，请在 config/config.yaml 中配置 notification.webhooks.wework_url"}
+        return {"status": "error", "message": "未配置企业微信 Webhook"}
     
     try:
-        # 生成报告文件
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         report_id = hashlib.md5(f"{request.title}{timestamp}".encode()).hexdigest()[:8]
         filename = f"report_{timestamp}_{report_id}.md"
@@ -76,68 +73,107 @@ async def push_report(request: ReportPushRequest):
         
         print(f"📄 报告已保存: {filepath}")
         
-        # 渲染报告为图片
         image_data = await render_report_to_image(request.title, request.content, timestamp)
         
         if image_data:
-            image_md5 = hashlib.md5(image_data).hexdigest()
-            image_base64 = base64.b64encode(image_data).decode('utf-8')
+            # 检查图片大小 (企业微信限制为 2MB)
+            MAX_IMAGE_SIZE = 2 * 1024 * 1024 # 2MB
+            image_size = len(image_data)
             
-            payload = {
-                "msgtype": "image",
-                "image": {
-                    "base64": image_base64,
-                    "md5": image_md5
+            if image_size <= MAX_IMAGE_SIZE:
+                image_md5 = hashlib.md5(image_data).hexdigest()
+                image_base64 = base64.b64encode(image_data).decode('utf-8')
+                
+                payload = {
+                    "msgtype": "image",
+                    "image": {
+                        "base64": image_base64,
+                        "md5": image_md5
+                    }
                 }
-            }
-            
-            success_count = 0
-            errors = []
-            for webhook_url in webhook_urls:
-                try:
-                    resp = requests.post(webhook_url, json=payload, timeout=60, verify=False)
-                    if resp.status_code == 200 and resp.json().get("errcode") == 0:
-                        success_count += 1
-                        print(f"✅ 图片推送成功")
-                except Exception as e:
-                    errors.append(str(e)[:50])
-            
-            if success_count > 0:
-                return {
-                    "status": "success",
-                    "message": f"报告图片已推送到 {success_count}/{len(webhook_urls)} 个群",
-                    "filename": filename,
-                    "errors": errors if errors else None
-                }
+                
+                success_count = 0
+                errors = []
+                for webhook_url in webhook_urls:
+                    try:
+                        resp = requests.post(webhook_url, json=payload, timeout=60, verify=False)
+                        resp_json = resp.json()
+                        if resp.status_code == 200 and resp_json.get("errcode") == 0:
+                            success_count += 1
+                            print(f"✅ 图片推送成功")
+                        else:
+                            error_msg = resp_json.get("errmsg", "未知错误")
+                            error_code = resp_json.get("errcode", -1)
+                            print(f"❌ 图片推送失败: {error_code} - {error_msg}")
+                            # 如果是文件过大错误，且成功数为0，则标记需要切换至文件发送
+                            if error_code == 40009:
+                                success_count = 0
+                                break
+                            errors.append(f"{error_code}: {error_msg}")
+                    except Exception as e:
+                        print(f"❌ 推送异常: {e}")
+                        errors.append(str(e)[:50])
+                
+                if success_count > 0:
+                    return {
+                        "status": "success",
+                        "message": f"报告图片已推送到 {success_count}/{len(webhook_urls)} 个群",
+                        "filename": filename
+                    }
             else:
-                return {"status": "error", "message": f"推送失败: {'; '.join(errors)}"}
-        else:
-            # 降级为文字
-            summary = request.content[:3500]
-            message = f"""📊 **{request.title}**
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-📅 生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M')}
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-{summary}"""
-            
-            payload = {"msgtype": "markdown", "markdown": {"content": message}}
-            
-            success_count = 0
-            for webhook_url in webhook_urls:
-                try:
-                    resp = requests.post(webhook_url, json=payload, timeout=30, verify=False)
-                    if resp.status_code == 200 and resp.json().get("errcode") == 0:
-                        success_count += 1
-                except:
-                    pass
-            
+                print(f"⚠️ 图片大小 ({image_size/1024:.2f} KB) 超过 2MB 限制，切换为文件推送")
+        
+        # 降级处理：图片过大、渲染失败或图片发送失败 -> 发送 Markdown 文件
+        print(f"💡 正在发送 Markdown 文件报告: {filename}...")
+        
+        success_count = 0
+        for webhook_url in webhook_urls:
+            try:
+                # 1. 提取 Key
+                import re
+                key_match = re.search(r'key=([a-z0-9-]+)', webhook_url)
+                if not key_match:
+                    continue
+                key = key_match.group(1)
+                
+                # 2. 上传素材
+                upload_url = f"https://qyapi.weixin.qq.com/cgi-bin/webhook/upload_media?key={key}&type=file"
+                with open(filepath, 'rb') as f:
+                    files = {'media': (filename, f, 'text/markdown')}
+                    up_resp = requests.post(upload_url, files=files, timeout=30, verify=False)
+                
+                up_data = up_resp.json()
+                if up_data.get("errcode") != 0:
+                    print(f"❌ 文件上传失败: {up_data}")
+                    continue
+                
+                media_id = up_data.get("media_id")
+                
+                # 3. 发送文件消息
+                file_payload = {
+                    "msgtype": "file",
+                    "file": {
+                        "media_id": media_id
+                    }
+                }
+                send_resp = requests.post(webhook_url, json=file_payload, timeout=30, verify=False)
+                if send_resp.status_code == 200 and send_resp.json().get("errcode") == 0:
+                    success_count += 1
+                    print(f"✅ 文件推送成功")
+            except Exception as e:
+                print(f"❌ 文件推送异常: {e}")
+        
+        if success_count > 0:
             return {
-                "status": "partial",
-                "message": f"图片渲染失败，已发送文字摘要到 {success_count} 个群"
+                "status": "success",
+                "message": f"图片超限，已将完整报告文件推送到 {success_count} 个群",
+                "filename": filename
             }
         
+        return {"status": "error", "message": "图片展示失败且文件发送也未成功"}
+        
     except Exception as e:
+        print(f"❌ 推送过程发生异常: {e}")
         return {"status": "error", "message": str(e)}
 
 
@@ -185,19 +221,29 @@ async def render_report_to_image(title: str, content: str, timestamp: str) -> by
 </html>"""
         
         async with async_playwright() as p:
-            browser = await p.chromium.launch()
-            page = await browser.new_page(viewport={'width': 800, 'height': 600})
-            await page.set_content(full_html, wait_until='networkidle')
+            # 启用 headless 模式并优化性能参数
+            browser = await p.chromium.launch(args=["--no-sandbox", "--disable-setuid-sandbox"])
+            page = await browser.new_page(viewport={'width': 800, 'height': 800})
             
+            # 设置 HTML 内容，带超时控制
+            await page.set_content(full_html, wait_until='networkidle', timeout=60000)
+            
+            # 动态计算高度
             height = await page.evaluate('document.body.scrollHeight')
-            # 提高截图最大高度以支持更长的报告（注意：过大高度可能导致浏览器资源占用增加）
+            # 限制截图最大高度，防止图片过长导致无法推送
             max_height = 8000
-            await page.set_viewport_size({'width': 800, 'height': min(height + 50, max_height)})
+            current_height = min(height + 50, max_height)
+            await page.set_viewport_size({'width': 800, 'height': current_height})
             
+            # 维持高质量渲染为 85
             screenshot = await page.screenshot(full_page=True, type='jpeg', quality=85)
             await browser.close()
             
-            print(f"✅ 图片渲染成功: {len(screenshot)} bytes")
+            size_kb = len(screenshot) / 1024
+            print(f"✅ 图片渲染成功: {len(screenshot)} bytes ({size_kb:.2f} KB), 高度: {current_height}px")
+            if len(screenshot) > 2 * 1024 * 1024:
+                print(f"⚠️ 警告: 图片大小 ({size_kb:.2f} KB) 超过企业微信 2MB 限制！")
+            
             return screenshot
     except Exception as e:
         import traceback
