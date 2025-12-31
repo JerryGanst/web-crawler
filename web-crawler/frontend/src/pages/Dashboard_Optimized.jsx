@@ -195,7 +195,7 @@ const COMMODITY_ALIASES = {
     'Lumber': '木材',
     'Milk': '牛奶',
     'Live Cattle': '活牛',
-    'Feeder Cattle': '架子牛',
+    'Feeder Cattle': '育肥牛',
     'Lean Hog': '瘦肉猪',
 };
 
