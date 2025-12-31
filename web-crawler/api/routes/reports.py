@@ -74,12 +74,47 @@ async def push_report(request: ReportPushRequest):
         print(f"📄 报告已保存: {filepath}")
         
         image_data = await render_report_to_image(request.title, request.content, timestamp)
+
+        # 尝试在内存中压缩图片以满足企业微信 2MB 限制
+        def compress_image_bytes(img_bytes: bytes, max_bytes: int) -> bytes:
+            try:
+                import io
+                from PIL import Image
+                buf = io.BytesIO(img_bytes)
+                img = Image.open(buf).convert('RGB')
+
+                # 从较高质量开始，逐步降低
+                quality = 85
+                while quality >= 30:
+                    out = io.BytesIO()
+                    img.save(out, format='JPEG', quality=quality, optimize=True)
+                    data = out.getvalue()
+                    if len(data) <= max_bytes:
+                        return data
+                    quality -= 10
+
+                # 兜底保存为最低质量 JPEG
+                out = io.BytesIO()
+                img.save(out, format='JPEG', quality=30, optimize=True)
+                return out.getvalue()
+            except Exception as e:
+                print(f"⚠️ 图片压缩失败: {e}")
+                return img_bytes
         
         if image_data:
             # 检查图片大小 (企业微信限制为 2MB)
             MAX_IMAGE_SIZE = 2 * 1024 * 1024 # 2MB
             image_size = len(image_data)
-            
+
+            # 若图片超限，先尝试内存压缩再发送
+            if image_size > MAX_IMAGE_SIZE:
+                print(f"⚠️ 初始渲染图片大小 {image_size/1024:.2f} KB 超过 2MB，尝试压缩...")
+                compressed = compress_image_bytes(image_data, MAX_IMAGE_SIZE)
+                if compressed and len(compressed) < image_size:
+                    print(f"ℹ️ 压缩后图片大小 {len(compressed)/1024:.2f} KB")
+                    image_data = compressed
+                    image_size = len(image_data)
+
             if image_size <= MAX_IMAGE_SIZE:
                 image_md5 = hashlib.md5(image_data).hexdigest()
                 image_base64 = base64.b64encode(image_data).decode('utf-8')
