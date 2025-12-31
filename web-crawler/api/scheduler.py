@@ -308,6 +308,25 @@ class BackgroundScheduler:
         except Exception as e:
             print(f"⏰ [定时] {cache_key} 失败: {e}")
     
+    def _generate_analysis_report(self):
+        """生成分析报告（定时任务专用）"""
+        try:
+            import asyncio
+            from api.routes.analysis_v4 import generate_analysis_task
+            
+            print("⏰ [定时] 开始生成 analysis-v4 报告...")
+            
+            # 在新的事件循环中运行异步任务
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                loop.run_until_complete(generate_analysis_task())
+                print("✅ [定时] analysis-v4 报告生成完成")
+            finally:
+                loop.close()
+        except Exception as e:
+            print(f"❌ [定时] analysis-v4 报告生成失败: {e}")
+    
     def warmup_cache(self):
         """预热缓存（启动时调用）"""
         if self._test_env:
@@ -330,6 +349,7 @@ class BackgroundScheduler:
             ("关税新闻", lambda: self._fetch_realtime_news("news:tariff", tariff_keywords, "tariff")),
             ("塑料新闻", lambda: self._fetch_realtime_news("news:plastics", plastics_keywords, "plastics")),
             ("大宗商品新闻", lambda: self._crawl_category("commodity")),
+            ("分析报告V4", self._generate_analysis_report),
         ]
         
         for name, task in warmup_tasks:
@@ -384,6 +404,11 @@ class BackgroundScheduler:
                     "interval": 10 * 60,
                     "last_run": 0,
                     "func": lambda: self._fetch_realtime_news("news:tariff", tariff_keywords, "tariff")
+                },
+                "analysis_v4": {
+                    "interval": 4 * 60 * 60,  # 4小时
+                    "last_run": 0,
+                    "func": self._generate_analysis_report
                 }
             }
             
