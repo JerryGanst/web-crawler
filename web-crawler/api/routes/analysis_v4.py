@@ -514,24 +514,30 @@ async def generate_analysis_v4(request: AnalysisRequest):
     date_key = get_today_key()
     cache_status = check_analysis_status(date_key)
     
-    print(f"🔍 [缓存检查] 日期: {date_key}, 状态: {cache_status['status']}")
+    print(f"🔍 [缓存检查] 日期: {date_key}, 状态: {cache_status['status']}, 强制刷新: {request.force_refresh}")
     
-    # 如果状态为 pending，返回提示
-    if cache_status["status"] == "pending":
-        return {
-            "status": "pending",
-            "message": "分析报告正在生成中，请稍后再试（约需3-5分钟）",
-            "date": date_key,
-            "timestamp": datetime.now().isoformat()
-        }
-    
-    # 如果状态为 completed 且有缓存数据，直接返回
-    if cache_status["status"] == "completed" and cache_status["data"]:
-        print(f"✅ [缓存命中] 直接返回缓存数据")
-        cached_data = cache_status["data"]
-        cached_data["from_cache"] = True
-        cached_data["cache_date"] = date_key
-        return cached_data
+    # 强制刷新：跳过缓存，直接生成新数据
+    if request.force_refresh:
+        print(f"🔄 [强制刷新] 跳过缓存检查，生成最新数据")
+        # 清除旧的状态缓存，避免锁冲突
+        cache.delete(f"analysis-v4-status-{date_key}")
+    else:
+        # 如果状态为 pending，返回提示
+        if cache_status["status"] == "pending":
+            return {
+                "status": "pending",
+                "message": "分析报告正在生成中，请稍后再试（约需3-5分钟）",
+                "date": date_key,
+                "timestamp": datetime.now().isoformat()
+            }
+        
+        # 如果状态为 completed 且有缓存数据，直接返回
+        if cache_status["status"] == "completed" and cache_status["data"]:
+            print(f"✅ [缓存命中] 直接返回缓存数据")
+            cached_data = cache_status["data"]
+            cached_data["from_cache"] = True
+            cached_data["cache_date"] = date_key
+            return cached_data
     
     # ========== 获取分布式锁 ==========
     if not try_acquire_lock(date_key):
@@ -594,14 +600,65 @@ async def generate_analysis_v4(request: AnalysisRequest):
         content_count = len([n for n in tariff_news if n.get('content')])
         print(f"   ✅ 成功获取 {content_count} 条全文")
     
-    # 获取原材料数据
+    # 获取原材料数据（从 MySQL 读取标准化数据）
     commodity_data = []
     try:
         from scrapers.commodity import CommodityScraper
+        from database.manager import db_manager
+        
+        # 1. 爬取最新数据并入库
         scraper = CommodityScraper()
-        # 异步执行同步的商品爬取
-        commodity_data = await run_in_threadpool(scraper.scrape)
-        print(f"   📈 原材料数据: {len(commodity_data)} 条")
+        raw_data = await run_in_threadpool(scraper.scrape)
+        print(f"   📈 原材料爬取: {len(raw_data)} 条")
+        
+        # 2. 写入 MySQL（去重和标准化）
+        try:
+            stats_by_source = {}
+            sources = set(item.get("source", "unknown") for item in raw_data)
+            for src in sources:
+                src_records = [item for item in raw_data if item.get("source", "unknown") == src]
+                if not src_records:
+                    continue
+                db_stats = db_manager.write_commodity(src_records, source=src)
+                if db_stats:
+                    stats_by_source[src] = db_stats
+            if stats_by_source:
+                print(f"   ✅ MySQL 入库: {stats_by_source}")
+        except Exception as e:
+            print(f"   ⚠️ MySQL 入库失败: {e}")
+        
+        # 3. 从 MySQL 读取标准化数据（以 MySQL 为准）
+        try:
+            commodity_data = db_manager.get_commodity_latest()
+            if not commodity_data:
+                print("   ⚠️ MySQL commodity_latest 为空，使用原始数据")
+                commodity_data = raw_data
+            else:
+                print(f"   ✅ 从 MySQL 读取: {len(commodity_data)} 条标准化数据")
+                # 字段映射：MySQL → API 格式
+                for item in commodity_data:
+                    # 1. 合并 unit
+                    price_unit = item.get('price_unit', '')
+                    weight_unit = item.get('weight_unit', '')
+                    if price_unit and weight_unit:
+                        item['unit'] = f"{price_unit}/{weight_unit}"
+                    else:
+                        item['unit'] = price_unit or weight_unit or 'USD'
+                    
+                    # 2. current_price
+                    if 'price' in item and 'current_price' not in item:
+                        item['current_price'] = item['price']
+                    
+                    # 3. url
+                    if 'url' not in item or not item['url']:
+                        item['url'] = item.get('source_url', '')
+                    
+                    # 4. cleanup
+                    for k in ['id', 'price_unit', 'weight_unit', 'version_ts', 'source_url']:
+                        item.pop(k, None)
+        except Exception as e:
+            print(f"   ⚠️ 从 MySQL 读取失败: {e}，使用原始数据")
+            commodity_data = raw_data
     except Exception as e:
         print(f"   ⚠️ 原材料获取失败: {e}")
     
@@ -715,11 +772,12 @@ async def generate_analysis_task():
     与接口版本的区别：
     - 不需要 Request 参数
     - 使用默认配置
+    - 强制刷新缓存（force_refresh=True）
     - 专注于缓存生成，不返回具体数据
     """
     try:
-        # 构造默认请求
-        request = AnalysisRequest(news=[], model=None)
+        # 构造默认请求，force_refresh=True 确保总是生成最新数据
+        request = AnalysisRequest(news=[], model=None, force_refresh=True)
         
         # 调用生成函数
         result = await generate_analysis_v4(request)

@@ -327,6 +327,127 @@ class BackgroundScheduler:
         except Exception as e:
             print(f"❌ [定时] analysis-v4 报告生成失败: {e}")
     
+    def _get_week_key(self) -> str:
+        """获取当前周键（格式：2026W01）"""
+        from datetime import datetime
+        now = datetime.now()
+        year = now.year
+        week = now.isocalendar()[1]
+        return f"{year}W{week:02d}"
+    
+    def _get_push_status(self, week_key: str) -> dict:
+        """
+        获取推送状态
+        
+        Args:
+            week_key: 周键（如：2026W01）
+        
+        Returns:
+            {"status": "success|failed|pending", "retry_count": 0, "last_attempt": "..."}
+        """
+        status_key = f"weekly-push-status-{week_key}"
+        status = cache.get(status_key)
+        
+        if not status:
+            return {"status": "none", "retry_count": 0, "last_attempt": None}
+        
+        return status
+    
+    def _set_push_status(self, week_key: str, status: str, retry_count: int = 0):
+        """
+        设置推送状态
+        
+        Args:
+            week_key: 周键
+            status: 推送状态（success|failed|pending）
+            retry_count: 重试次数
+        """
+        status_key = f"weekly-push-status-{week_key}"
+        status_data = {
+            "status": status,
+            "retry_count": retry_count,
+            "last_attempt": datetime.now().isoformat()
+        }
+        # TTL=7天
+        cache.set(status_key, status_data, ttl=7 * 24 * 3600)
+        print(f"💾 [推送状态] {week_key}: {status} (重试:{retry_count})")
+    
+    def _weekly_push_report(self):
+        """每周一定时推送分析报告到企微"""
+        try:
+            import asyncio
+            from api.routes.analysis_v4 import get_today_key, check_analysis_status, generate_analysis_task
+            from api.routes.reports import push_report_internal
+            
+            week_key = self._get_week_key()
+            push_status = self._get_push_status(week_key)
+            
+            # 检查推送状态
+            if push_status["status"] == "success":
+                print(f"✅ [周推送] {week_key} 已推送成功，跳过")
+                return
+            
+            if push_status["retry_count"] >= 3:
+                print(f"⚠️ [周推送] {week_key} 重试次数已达上限（3次），跳过")
+                return
+            
+            print(f"📤 [周推送] 开始推送 {week_key} 报告（重试: {push_status['retry_count']}/3）")
+            
+            # 1. 获取最新报告
+            date_key = get_today_key()
+            cache_status = check_analysis_status(date_key)
+            
+            content = None
+            if cache_status["status"] == "completed" and cache_status["data"]:
+                content = cache_status["data"].get("content", "")
+                print(f"✅ [周推送] 使用缓存报告（{date_key}）")
+            else:
+                # 缓存失效，实时生成
+                print(f"⏳ [周推送] 缓存失效，正在生成报告...")
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    result = loop.run_until_complete(generate_analysis_task())
+                    content = result.get("content", "") if isinstance(result, dict) else ""
+                    print(f"✅ [周推送] 报告生成完成")
+                finally:
+                    loop.close()
+            
+            # 2. 调用推送函数
+            if not content:
+                print(f"❌ [周推送] 报告内容为空，跳过推送")
+                self._set_push_status(week_key, "failed", push_status["retry_count"] + 1)
+                return
+            
+            print(f"📨 [周推送] 开始推送到企微...")
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result = loop.run_until_complete(push_report_internal(
+                    title="立讯技术产业链分析报告",
+                    content=content
+                ))
+                
+                if result.get("status") in ["success", "partial"]:
+                    print(f"✅ [周推送] 推送成功: {result.get('message')}")
+                    self._set_push_status(week_key, "success", 0)
+                else:
+                    print(f"❌ [周推送] 推送失败: {result.get('message')}")
+                    self._set_push_status(week_key, "failed", push_status["retry_count"] + 1)
+            finally:
+                loop.close()
+                
+        except Exception as e:
+            import traceback
+            print(f"❌ [周推送] 执行失败: {e}")
+            traceback.print_exc()
+            
+            # 更新失败状态
+            week_key = self._get_week_key()
+            push_status = self._get_push_status(week_key)
+            self._set_push_status(week_key, "failed", push_status["retry_count"] + 1)
+
+    
     def warmup_cache(self):
         """预热缓存（启动时调用）"""
         if self._test_env:
@@ -409,14 +530,37 @@ class BackgroundScheduler:
                     "interval": 4 * 60 * 60,  # 4小时
                     "last_run": 0,
                     "func": self._generate_analysis_report
+                },
+                # ========== 周推送任务配置 ==========
+                # 【当前模式：测试模式 - 每10分钟推送一次】
+                # 正式模式请使用下方注释的配置
+                "weekly_report_push": {
+                    "interval": 10 * 60,  # 🔥 测试：10分钟推送一次
+                    "last_run": 0,
+                    "func": self._weekly_push_report
+                    # 🔽 正式配置（启用后删除上面的测试配置）：
+                    # "interval": 30 * 60,          # 30分钟检查一次
+                    # "schedule_check": "weekly",   # 标记为周任务
+                    # "weekday": 0,                 # 周一
+                    # "hour_range": (8, 10)         # 仅在8-10点时段检查
                 }
             }
             
             import time
             while self._running:
                 now = time.time()
+                current_datetime = datetime.now()
                 
                 for name, config in tasks.items():
+                    # 检查是否需要时间判断
+                    if config.get("schedule_check") == "weekly":
+                        # 周任务时间判断
+                        if current_datetime.weekday() != config.get("weekday", 0):
+                            continue
+                        hour_range = config.get("hour_range", (0, 24))
+                        if not (hour_range[0] <= current_datetime.hour < hour_range[1]):
+                            continue
+                    
                     if now - config["last_run"] >= config["interval"]:
                         try:
                             self._executor.submit(config["func"])
