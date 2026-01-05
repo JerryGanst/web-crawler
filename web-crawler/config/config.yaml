@@ -94,6 +94,7 @@ notification:
     dingtalk_url: "" # 钉钉机器人的 webhook URL
     wework_url:  # 企业微信机器人的 webhook URL（支持多个）
       - "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=7203217f-b7b8-49a0-aab2-3ab37f4a2f2e"
+      - "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=7a64075f-2f67-493b-ac0d-8f4549077fc3"
     wework_msg_type: "markdown" # 企业微信消息类型：markdown(群机器人) 或 text(个人微信应用)
     telegram_bot_token: "" # Telegram Bot Token
     telegram_chat_id: "" # Telegram Chat ID
