@@ -1,3 +1,0 @@
-API: https://qt.gtimg.cn/q=usdcny,eurusd,gbpusd
-Response: v_pv_none_match="1";
-

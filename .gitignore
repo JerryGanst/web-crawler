@@ -1,0 +1,6 @@
+# Logs
+*.log
+
+# Generated reports
+/web-crawler/reports/
+/web-crawler/pacong/reports/

@@ -1,3 +1,0 @@
-﻿name,chinese_name,symbol,category,currency,current_price,change_amount,change_percent,open_price,high_price,low_price,previous_close,volume,market_cap,source,timestamp
-bitcoin,bitcoin,,其他,USD,117637.0,,0.0,,,,,,,coingecko_test,2025-07-22T14:46:02.623041
-ethereum,ethereum,,其他,USD,3702.79,,0.0,,,,,,,coingecko_test,2025-07-22T14:46:02.623060
