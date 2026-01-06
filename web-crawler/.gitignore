@@ -9,3 +9,5 @@ venv/
 .venv/
 node_modules/
 *.log
+.coverage
+test_result.txt

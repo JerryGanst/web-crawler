@@ -1,4 +1,0 @@
-Python failed with error level 9009 
-Checking python location: 
-C:\Users\10353965\AppData\Local\Microsoft\WindowsApps\python.exe
-Checking pip location: 
