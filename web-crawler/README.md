@@ -14,7 +14,8 @@ TrendRadar/
 │   ├── unified.py      # 统一数据源入口
 │   ├── finance.py      # 财经新闻
 │   ├── commodity.py    # 大宗商品
-│   └── smm.py          # 上海有色网
+│   ├── smm.py          # 上海有色网
+│   └── rss_scraper.py  # [NEW] RSS 订阅抓取器
 │
 ├── pacong/             # 🌍 高级爬虫系统（浏览器自动化）
 │   ├── browser/        # AppleScript/Selenium/CDP 控制
@@ -31,15 +32,29 @@ TrendRadar/
 │
 ├── database/           # 💾 数据库
 │   ├── mysql/          # MySQL 连接
+│   ├── models.py       # 数据模型 (含 RSSFeed, RSSItem)
 │   └── repositories/   # 数据仓库
+│       ├── news_repo.py
+│       ├── commodity_repo.py
+│       └── rss_repo.py # [NEW] MongoDB RSS 仓库
 │
 ├── config/             # ⚙️ 配置文件
 │   ├── config.yaml     # 主配置
-│   └── scrapers.yaml   # 爬虫配置
+│   ├── scrapers.yaml   # 爬虫配置
+│   └── rss.yaml        # [NEW] RSS 订阅源配置
 │
-├── mcp_server/         # 🤖 MCP 服务（AI 工具）
+├── mcp_server/         # 🤖 MCP 服务（AI 工具，20个）
+│   ├── server.py       # FastMCP 服务器（工具注册）
+│   ├── services/       # 数据服务层
+│   └── tools/          # 工具实现
+│       ├── data_query.py   # 数据查询（含 RSS 查询）
+│       ├── analytics.py    # 分析工具（含 compare_periods）
+│       ├── search_tools.py # 搜索工具（含 search_all）
+│       └── date_tools.py   # [NEW] 日期解析工具
+│
 ├── scripts/            # 📜 脚本工具
 ├── tests/              # 🧪 测试用例
+│   └── test_rss_integration.py  # [NEW] RSS 集成测试
 ├── docs/               # 📚 文档
 │
 └── frontend/           # ⚛️ React 前端 (端口 5173)
@@ -102,6 +117,7 @@ python main.py
 
 - `config/config.yaml` - 主配置（API密钥、推送等）
 - `config/scrapers.yaml` - 爬虫数据源配置
+- `config/rss.yaml` - RSS 订阅源配置 [NEW]
 - `pacong/config/settings.yaml` - 高级爬虫配置
 
 ## 📡 API 端点
@@ -113,7 +129,36 @@ python main.py
 - `POST /api/generate-analysis` - AI 分析报告
 - `GET /api/reader/{news_id}` - 新闻阅读器（用于需登录的外部站点）
 
-## 🆕 最新更新 (2025-12-10)
+## 🆕 最新更新 (2026-01-07)
+
+### RSS 订阅与 MCP 工具扩展
+
+#### 新增 RSS 订阅支持
+- `config/rss.yaml` - RSS 源配置文件
+- `scrapers/rss_scraper.py` - RSS 抓取器
+- `database/repositories/rss_repo.py` - MongoDB RSS 仓库
+- 支持 36氪、虎嗅、少数派等科技媒体 RSS 订阅
+
+#### MCP 工具扩展（13 → 20 个）
+新增 7 个 AI 工具：
+| 工具 | 功能 |
+|------|------|
+| `get_latest_rss` | 获取最新 RSS 文章 |
+| `search_rss` | RSS 关键词搜索 |
+| `get_rss_feeds_status` | RSS 源状态查询 |
+| `resolve_date_range` | 自然语言日期解析 |
+| `compare_periods` | 时期对比分析 |
+| `aggregate_news` | 跨平台新闻聚合去重 |
+| `search_all` | 热搜+RSS 联合搜索 |
+
+#### 架构说明
+- **DB-Direct 模式**：MCP 直连 MongoDB，不经过文件
+- **零侵入**：`pacong/`、原有 `database/` 代码保持不变
+- **双服务运行**：爬虫服务 + MCP AI 服务独立
+
+---
+
+## 📅 历史更新 (2025-12-10)
 
 ### 塑料子分类TAB与区域折线图
 

@@ -2,16 +2,32 @@
 数据访问服务
 
 提供统一的数据查询接口,封装数据访问逻辑。
+优先从数据库读取，回退到文件系统。
 """
 
 import re
+import sys
+import os
 from collections import Counter
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
+# 添加项目路径
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 from .cache_service import get_cache
 from .parser_service import ParserService
 from ..utils.errors import DataNotFoundError
+
+# MongoDB 连接
+try:
+    from pymongo import MongoClient
+    MONGO_CLIENT = MongoClient('mongodb://root:362514@localhost:27017/')
+    MONGO_DB = MONGO_CLIENT['trendradar']
+    HAS_MONGO = True
+except Exception as e:
+    print(f"MongoDB 连接失败: {e}")
+    HAS_MONGO = False
 
 
 class DataService:
@@ -26,6 +42,14 @@ class DataService:
         """
         self.parser = ParserService(project_root)
         self.cache = get_cache()
+        
+        # MongoDB 集合
+        self.news_coll = None
+        if HAS_MONGO:
+            try:
+                self.news_coll = MONGO_DB['news']
+            except Exception as e:
+                print(f"MongoDB 连接失败: {e}")
 
     def get_latest_news(
         self,
@@ -49,49 +73,82 @@ class DataService:
         """
         # 尝试从缓存获取
         cache_key = f"latest_news:{','.join(platforms or [])}:{limit}:{include_url}"
-        cached = self.cache.get(cache_key, ttl=900)  # 15分钟缓存
+        cached = self.cache.get(cache_key, ttl=300)  # 5分钟缓存
         if cached:
             return cached
 
-        # 读取今天的数据
-        all_titles, id_to_name, timestamps = self.parser.read_all_titles_for_date(
-            date=None,
-            platform_ids=platforms
-        )
-
-        # 获取最新的文件时间
-        if timestamps:
-            latest_timestamp = max(timestamps.values())
-            fetch_time = datetime.fromtimestamp(latest_timestamp)
-        else:
-            fetch_time = datetime.now()
-
-        # 转换为新闻列表
         news_list = []
-        for platform_id, titles in all_titles.items():
-            platform_name = id_to_name.get(platform_id, platform_id)
 
-            for title, info in titles.items():
-                # 取第一个排名
-                rank = info["ranks"][0] if info["ranks"] else 0
+        # 优先从 MongoDB 读取
+        if self.news_coll is not None:
+            try:
+                today = datetime.now().strftime("%Y-%m-%d")
+                
+                # 构建查询条件
+                query = {"crawl_date": today}
+                if platforms:
+                    query["platform_id"] = {"$in": platforms}
+                
+                # 查询 MongoDB
+                cursor = self.news_coll.find(query).sort("weight_score", -1).limit(limit)
+                
+                for doc in cursor:
+                    news_item = {
+                        "title": doc.get("title", ""),
+                        "platform": doc.get("platform_id", "unknown"),
+                        "platform_name": doc.get("platform_id", "unknown"),
+                        "rank": doc.get("current_rank", 0) or 0,
+                        "weight": doc.get("weight_score", 0) or 0,
+                        "timestamp": today
+                    }
+                    if include_url:
+                        news_item["url"] = doc.get("url", "")
+                    news_list.append(news_item)
+                
+                if news_list:
+                    self.cache.set(cache_key, news_list)
+                    return news_list
+            except Exception as e:
+                print(f"MongoDB 查询失败: {e}")
 
-                news_item = {
-                    "title": title,
-                    "platform": platform_id,
-                    "platform_name": platform_name,
-                    "rank": rank,
-                    "timestamp": fetch_time.strftime("%Y-%m-%d %H:%M:%S")
-                }
+        # 回退到文件系统
+        try:
+            all_titles, id_to_name, timestamps = self.parser.read_all_titles_for_date(
+                date=None,
+                platform_ids=platforms
+            )
 
-                # 条件性添加 URL 字段
-                if include_url:
-                    news_item["url"] = info.get("url", "")
-                    news_item["mobileUrl"] = info.get("mobileUrl", "")
+            if timestamps:
+                latest_timestamp = max(timestamps.values())
+                fetch_time = datetime.fromtimestamp(latest_timestamp)
+            else:
+                fetch_time = datetime.now()
 
-                news_list.append(news_item)
+            for platform_id, titles in all_titles.items():
+                platform_name = id_to_name.get(platform_id, platform_id)
+
+                for title, info in titles.items():
+                    rank = info["ranks"][0] if info["ranks"] else 0
+
+                    news_item = {
+                        "title": title,
+                        "platform": platform_id,
+                        "platform_name": platform_name,
+                        "rank": rank,
+                        "timestamp": fetch_time.strftime("%Y-%m-%d %H:%M:%S")
+                    }
+
+                    if include_url:
+                        news_item["url"] = info.get("url", "")
+                        news_item["mobileUrl"] = info.get("mobileUrl", "")
+
+                    news_list.append(news_item)
+        except Exception as e:
+            print(f"文件系统读取失败: {e}")
 
         # 按排名排序
-        news_list.sort(key=lambda x: x["rank"])
+        if news_list:
+            news_list.sort(key=lambda x: x.get("rank", 0))
 
         # 限制返回数量
         result = news_list[:limit]

@@ -15,6 +15,7 @@ from .tools.analytics import AnalyticsTools
 from .tools.search_tools import SearchTools
 from .tools.config_mgmt import ConfigManagementTools
 from .tools.system import SystemManagementTools
+from .tools.date_tools import DateTools
 
 
 # 创建 FastMCP 2.0 应用
@@ -32,6 +33,7 @@ def _get_tools(project_root: Optional[str] = None):
         _tools_instances['search'] = SearchTools(project_root)
         _tools_instances['config'] = ConfigManagementTools(project_root)
         _tools_instances['system'] = SystemManagementTools(project_root)
+        _tools_instances['date'] = DateTools()
     return _tools_instances
 
 
@@ -499,6 +501,229 @@ async def search_related_news_history(
     return json.dumps(result, ensure_ascii=False, indent=2)
 
 
+# ==================== RSS 查询工具 ====================
+
+@mcp.tool
+async def get_latest_rss(
+    feed_ids: Optional[List[str]] = None,
+    limit: int = 50,
+    include_summary: bool = True
+) -> str:
+    """
+    获取最新的 RSS 订阅文章
+
+    Args:
+        feed_ids: RSS 源 ID 列表，None 表示所有源
+                  - 可用源ID来自 config/rss.yaml 配置
+        limit: 返回条数限制，默认50
+        include_summary: 是否包含文章摘要，默认True
+
+    Returns:
+        JSON格式的 RSS 文章列表
+    """
+    tools = _get_tools()
+    result = tools['data'].get_latest_rss(
+        feed_ids=feed_ids,
+        limit=limit,
+        include_summary=include_summary
+    )
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool
+async def search_rss(
+    keyword: str,
+    days: int = 7,
+    feed_ids: Optional[List[str]] = None,
+    limit: int = 50
+) -> str:
+    """
+    在 RSS 订阅内容中搜索关键词
+
+    Args:
+        keyword: 搜索关键词
+        days: 搜索最近 N 天，默认7
+        feed_ids: RSS 源 ID 列表
+        limit: 返回条数限制，默认50
+
+    Returns:
+        JSON格式的匹配 RSS 文章列表
+    """
+    tools = _get_tools()
+    result = tools['data'].search_rss(
+        keyword=keyword,
+        days=days,
+        feed_ids=feed_ids,
+        limit=limit
+    )
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool
+async def get_rss_feeds_status() -> str:
+    """
+    获取所有 RSS 订阅源的状态
+
+    返回每个 RSS 源的：
+    - 名称和 URL
+    - 文章数量
+    - 最后抓取时间
+    - 错误状态（如有）
+
+    Returns:
+        JSON格式的 RSS 源状态列表
+    """
+    tools = _get_tools()
+    result = tools['data'].get_rss_feeds_status()
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+# ==================== 日期解析工具 ====================
+
+@mcp.tool
+async def resolve_date_range(expression: str) -> str:
+    """
+    将自然语言日期表达式转换为标准日期范围
+
+    支持的表达式：
+    - 今天、昨天、前天
+    - 本周、上周、这周
+    - 本月、上个月
+    - 最近N天、过去N天、N天前、N天内
+    - 2025年1月、一月份、1月
+    - YYYY-MM-DD 格式
+    - 日期范围：2025-01-01 到 2025-01-07
+
+    Args:
+        expression: 自然语言日期表达式
+
+    Returns:
+        JSON格式的日期范围，包含 start 和 end 字段（YYYY-MM-DD 格式）
+
+    Example:
+        - resolve_date_range("最近7天") → {"start": "2025-01-01", "end": "2025-01-07"}
+        - resolve_date_range("本月") → {"start": "2025-01-01", "end": "2025-01-07"}
+    """
+    tools = _get_tools()
+    result = tools['date'].resolve_date_range(expression)
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+# ==================== 高级分析工具 ====================
+
+@mcp.tool
+async def compare_periods(
+    period1: Dict[str, str],
+    period2: Dict[str, str],
+    dimensions: Optional[List[str]] = None
+) -> str:
+    """
+    对比两个时间段的热点差异
+
+    Args:
+        period1: 第一个时间段，格式: {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"}
+        period2: 第二个时间段，格式: {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"}
+        dimensions: 对比维度列表，可选: ["topic", "platform"]
+
+    Returns:
+        JSON格式的对比分析结果，包含：
+        - 新增话题（period2 有但 period1 没有）
+        - 消失话题（period1 有但 period2 没有）
+        - 热度变化
+
+    Example:
+        compare_periods(
+            period1={"start": "2025-01-01", "end": "2025-01-07"},
+            period2={"start": "2025-01-08", "end": "2025-01-14"}
+        )
+    """
+    tools = _get_tools()
+    result = tools['analytics'].compare_periods(
+        period1=period1,
+        period2=period2,
+        dimensions=dimensions
+    )
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool
+async def aggregate_news(
+    date_range: Optional[Dict[str, str]] = None,
+    platforms: Optional[List[str]] = None,
+    similarity_threshold: float = 0.7,
+    limit: int = 100
+) -> str:
+    """
+    跨平台新闻去重聚合
+
+    将多个平台报道的同一事件合并，识别跨平台热点。
+
+    Args:
+        date_range: 日期范围，格式: {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"}
+        platforms: 平台过滤列表
+        similarity_threshold: 相似度阈值（0-1），默认0.7，越高越严格
+        limit: 返回条数限制，默认100
+
+    Returns:
+        JSON格式的聚合结果，包含：
+        - 聚合后的新闻列表
+        - 每条新闻的来源平台列表
+        - 去重率统计
+
+    Example:
+        aggregate_news(
+            date_range={"start": "2025-01-01", "end": "2025-01-07"},
+            similarity_threshold=0.7
+        )
+    """
+    tools = _get_tools()
+    result = tools['analytics'].aggregate_news(
+        date_range=date_range,
+        platforms=platforms,
+        similarity_threshold=similarity_threshold,
+        limit=limit
+    )
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool
+async def search_all(
+    query: str,
+    include_hotlist: bool = True,
+    include_rss: bool = True,
+    date_range: Optional[Dict[str, str]] = None,
+    limit: int = 50
+) -> str:
+    """
+    同时搜索热搜和 RSS 订阅内容（联合搜索）
+
+    Args:
+        query: 搜索关键词
+        include_hotlist: 是否包含热搜数据，默认True
+        include_rss: 是否包含RSS数据，默认True
+        date_range: 日期范围，格式: {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"}
+        limit: 每种数据源的返回条数限制，默认50
+
+    Returns:
+        JSON格式的合并搜索结果，包含：
+        - hotlist_results: 热搜匹配结果
+        - rss_results: RSS匹配结果
+        - total: 总匹配数
+
+    Example:
+        search_all(query="人工智能", include_hotlist=True, include_rss=True)
+    """
+    tools = _get_tools()
+    result = tools['search'].search_all(
+        query=query,
+        include_hotlist=include_hotlist,
+        include_rss=include_rss,
+        date_range=date_range,
+        limit=limit
+    )
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
 # ==================== 配置与系统管理工具 ====================
 
 @mcp.tool
@@ -615,7 +840,7 @@ def run_server(
         print("  项目目录: 当前目录")
 
     print()
-    print("  已注册的工具:")
+    print("  已注册的工具 (20个):")
     print("    === 基础数据查询（P0核心）===")
     print("    1. get_latest_news        - 获取最新新闻")
     print("    2. get_news_by_date       - 按日期查询新闻（支持自然语言）")
@@ -624,18 +849,29 @@ def run_server(
     print("    === 智能检索工具 ===")
     print("    4. search_news                  - 统一新闻搜索（关键词/模糊/实体）")
     print("    5. search_related_news_history  - 历史相关新闻检索")
+    print("    6. search_all                   - 热搜+RSS联合搜索 [NEW]")
     print()
     print("    === 高级数据分析 ===")
-    print("    6. analyze_topic_trend      - 统一话题趋势分析（热度/生命周期/爆火/预测）")
-    print("    7. analyze_data_insights    - 统一数据洞察分析（平台对比/活跃度/关键词共现）")
-    print("    8. analyze_sentiment        - 情感倾向分析")
-    print("    9. find_similar_news        - 相似新闻查找")
-    print("    10. generate_summary_report - 每日/每周摘要生成")
+    print("    7. analyze_topic_trend      - 统一话题趋势分析（热度/生命周期/爆火/预测）")
+    print("    8. analyze_data_insights    - 统一数据洞察分析（平台对比/活跃度/关键词共现）")
+    print("    9. analyze_sentiment        - 情感倾向分析")
+    print("    10. find_similar_news       - 相似新闻查找")
+    print("    11. generate_summary_report - 每日/每周摘要生成")
+    print("    12. compare_periods         - 时期对比分析 [NEW]")
+    print("    13. aggregate_news          - 跨平台新闻聚合 [NEW]")
+    print()
+    print("    === RSS 订阅工具 (v4.0+) ===")
+    print("    14. get_latest_rss         - 获取最新RSS文章 [NEW]")
+    print("    15. search_rss             - RSS关键词搜索 [NEW]")
+    print("    16. get_rss_feeds_status   - RSS源状态查询 [NEW]")
+    print()
+    print("    === 日期解析工具 ===")
+    print("    17. resolve_date_range     - 自然语言日期解析 [NEW]")
     print()
     print("    === 配置与系统管理 ===")
-    print("    11. get_current_config      - 获取当前系统配置")
-    print("    12. get_system_status       - 获取系统运行状态")
-    print("    13. trigger_crawl           - 手动触发爬取任务")
+    print("    18. get_current_config     - 获取当前系统配置")
+    print("    19. get_system_status      - 获取系统运行状态")
+    print("    20. trigger_crawl          - 手动触发爬取任务")
     print("=" * 60)
     print()
 

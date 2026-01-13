@@ -1994,3 +1994,310 @@ class AnalyticsTools:
                 unique_topics[platform] = list(unique)[:5]  # 最多5个
 
         return unique_topics
+
+    # ==================== 高级分析工具 ====================
+
+    def compare_periods(
+        self,
+        period1: Dict[str, str],
+        period2: Dict[str, str],
+        dimensions: Optional[List[str]] = None
+    ) -> Dict:
+        """
+        对比两个时间段的热点差异
+
+        Args:
+            period1: 第一个时间段，格式: {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"}
+            period2: 第二个时间段，格式: {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"}
+            dimensions: 对比维度列表，可选: ["topic", "platform", "frequency"]
+
+        Returns:
+            对比分析结果
+
+        Example:
+            >>> tools = AnalyticsTools()
+            >>> result = tools.compare_periods(
+            ...     period1={"start": "2025-01-01", "end": "2025-01-07"},
+            ...     period2={"start": "2025-01-08", "end": "2025-01-14"}
+            ... )
+        """
+        try:
+            from ..utils.validators import validate_date_range
+
+            # 验证日期范围
+            period1_tuple = validate_date_range(period1)
+            period2_tuple = validate_date_range(period2)
+
+            if not period1_tuple or not period2_tuple:
+                from ..utils.errors import InvalidParameterError
+                raise InvalidParameterError(
+                    "需要提供两个有效的时间段",
+                    suggestion="格式: {'start': 'YYYY-MM-DD', 'end': 'YYYY-MM-DD'}"
+                )
+
+            start1, end1 = period1_tuple
+            start2, end2 = period2_tuple
+
+            # 默认对比维度
+            if not dimensions:
+                dimensions = ["topic", "platform"]
+
+            # 收集两个时期的数据
+            period1_keywords = Counter()
+            period1_platforms = Counter()
+            period2_keywords = Counter()
+            period2_platforms = Counter()
+
+            # 收集第一个时期
+            current = start1
+            while current <= end1:
+                try:
+                    all_titles, id_to_name, _ = self.data_service.parser.read_all_titles_for_date(current)
+                    for platform_id, titles in all_titles.items():
+                        period1_platforms[id_to_name.get(platform_id, platform_id)] += len(titles)
+                        for title in titles.keys():
+                            keywords = self._extract_keywords(title)
+                            period1_keywords.update(keywords)
+                except DataNotFoundError:
+                    pass
+                current += timedelta(days=1)
+
+            # 收集第二个时期
+            current = start2
+            while current <= end2:
+                try:
+                    all_titles, id_to_name, _ = self.data_service.parser.read_all_titles_for_date(current)
+                    for platform_id, titles in all_titles.items():
+                        period2_platforms[id_to_name.get(platform_id, platform_id)] += len(titles)
+                        for title in titles.keys():
+                            keywords = self._extract_keywords(title)
+                            period2_keywords.update(keywords)
+                except DataNotFoundError:
+                    pass
+                current += timedelta(days=1)
+
+            # 分析差异
+            comparison = {
+                "period1": {
+                    "start": start1.strftime("%Y-%m-%d"),
+                    "end": end1.strftime("%Y-%m-%d")
+                },
+                "period2": {
+                    "start": start2.strftime("%Y-%m-%d"),
+                    "end": end2.strftime("%Y-%m-%d")
+                }
+            }
+
+            if "topic" in dimensions:
+                # 新增话题（period2 有但 period1 没有或很少）
+                new_topics = []
+                for keyword, count2 in period2_keywords.most_common(50):
+                    count1 = period1_keywords.get(keyword, 0)
+                    if count1 == 0 or count2 / max(count1, 1) >= 3:
+                        new_topics.append({
+                            "keyword": keyword,
+                            "period1_count": count1,
+                            "period2_count": count2,
+                            "change": "新增" if count1 == 0 else f"+{int((count2/count1-1)*100)}%"
+                        })
+
+                # 消失话题（period1 有但 period2 没有或很少）
+                fading_topics = []
+                for keyword, count1 in period1_keywords.most_common(50):
+                    count2 = period2_keywords.get(keyword, 0)
+                    if count2 == 0 or count1 / max(count2, 1) >= 3:
+                        fading_topics.append({
+                            "keyword": keyword,
+                            "period1_count": count1,
+                            "period2_count": count2,
+                            "change": "消失" if count2 == 0 else f"-{int((1-count2/count1)*100)}%"
+                        })
+
+                comparison["topic_comparison"] = {
+                    "new_topics": new_topics[:10],
+                    "fading_topics": fading_topics[:10],
+                    "period1_top_keywords": [
+                        {"keyword": k, "count": v}
+                        for k, v in period1_keywords.most_common(10)
+                    ],
+                    "period2_top_keywords": [
+                        {"keyword": k, "count": v}
+                        for k, v in period2_keywords.most_common(10)
+                    ]
+                }
+
+            if "platform" in dimensions:
+                comparison["platform_comparison"] = {
+                    "period1_distribution": dict(period1_platforms),
+                    "period2_distribution": dict(period2_platforms)
+                }
+
+            return {
+                "success": True,
+                "comparison": comparison
+            }
+
+        except MCPError as e:
+            return {
+                "success": False,
+                "error": e.to_dict()
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": str(e)
+                }
+            }
+
+    def aggregate_news(
+        self,
+        date_range: Optional[Dict[str, str]] = None,
+        platforms: Optional[List[str]] = None,
+        similarity_threshold: float = 0.7,
+        limit: int = 100
+    ) -> Dict:
+        """
+        跨平台新闻去重聚合
+
+        将多个平台报道的同一事件合并，返回去重后的新闻列表。
+
+        Args:
+            date_range: 日期范围，格式: {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"}
+            platforms: 平台过滤列表
+            similarity_threshold: 相似度阈值（0-1），默认0.7
+            limit: 返回条数限制，默认100
+
+        Returns:
+            聚合后的新闻列表
+
+        Example:
+            >>> tools = AnalyticsTools()
+            >>> result = tools.aggregate_news(
+            ...     date_range={"start": "2025-01-01", "end": "2025-01-07"},
+            ...     similarity_threshold=0.7
+            ... )
+        """
+        try:
+            from ..utils.validators import validate_date_range, validate_platforms
+
+            date_range_tuple = validate_date_range(date_range)
+            platforms = validate_platforms(platforms)
+
+            # 确定日期范围
+            if date_range_tuple:
+                start_date, end_date = date_range_tuple
+            else:
+                start_date = end_date = datetime.now()
+
+            # 收集所有新闻
+            all_news = []
+            current = start_date
+
+            while current <= end_date:
+                try:
+                    all_titles, id_to_name, _ = self.data_service.parser.read_all_titles_for_date(
+                        date=current,
+                        platform_ids=platforms
+                    )
+
+                    for platform_id, titles in all_titles.items():
+                        platform_name = id_to_name.get(platform_id, platform_id)
+                        for title, info in titles.items():
+                            all_news.append({
+                                "title": title,
+                                "platform": platform_name,
+                                "platform_id": platform_id,
+                                "date": current.strftime("%Y-%m-%d"),
+                                "ranks": info.get("ranks", []),
+                                "url": info.get("url", "")
+                            })
+                except DataNotFoundError:
+                    pass
+                current += timedelta(days=1)
+
+            if not all_news:
+                return {
+                    "success": True,
+                    "aggregated_news": [],
+                    "total": 0,
+                    "message": "指定时间范围内没有新闻数据"
+                }
+
+            # 聚合相似新闻
+            aggregated = []
+            used_indices = set()
+
+            for i, news in enumerate(all_news):
+                if i in used_indices:
+                    continue
+
+                # 创建聚合组
+                group = {
+                    "title": news["title"],
+                    "sources": [{
+                        "platform": news["platform"],
+                        "date": news["date"],
+                        "url": news["url"]
+                    }],
+                    "platform_count": 1,
+                    "first_seen": news["date"]
+                }
+                used_indices.add(i)
+
+                # 查找相似新闻
+                for j, other_news in enumerate(all_news):
+                    if j in used_indices:
+                        continue
+
+                    similarity = self._calculate_similarity(news["title"], other_news["title"])
+                    if similarity >= similarity_threshold:
+                        group["sources"].append({
+                            "platform": other_news["platform"],
+                            "date": other_news["date"],
+                            "url": other_news["url"]
+                        })
+                        group["platform_count"] += 1
+                        used_indices.add(j)
+
+                aggregated.append(group)
+
+            # 按平台覆盖数排序
+            aggregated.sort(key=lambda x: x["platform_count"], reverse=True)
+
+            # 限制返回数量
+            result_news = aggregated[:limit]
+
+            # 统计
+            multi_platform_count = sum(1 for n in aggregated if n["platform_count"] > 1)
+
+            return {
+                "success": True,
+                "aggregated_news": result_news,
+                "total": len(result_news),
+                "statistics": {
+                    "original_count": len(all_news),
+                    "after_aggregation": len(aggregated),
+                    "multi_platform_news": multi_platform_count,
+                    "dedup_rate": round((1 - len(aggregated) / len(all_news)) * 100, 2) if all_news else 0
+                },
+                "date_range": {
+                    "start": start_date.strftime("%Y-%m-%d"),
+                    "end": end_date.strftime("%Y-%m-%d")
+                }
+            }
+
+        except MCPError as e:
+            return {
+                "success": False,
+                "error": e.to_dict()
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": str(e)
+                }
+            }

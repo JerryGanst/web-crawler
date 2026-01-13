@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
+import ChatBall from './components/ChatBall';
 
 // 路由级代码分割：按需加载页面组件
 // 首屏只加载 Sidebar，页面组件延迟加载
@@ -62,6 +63,9 @@ function App() {
           } />
         </Routes>
       </Suspense>
+
+      {/* 数据洞察悬浮球 - 全局显示 */}
+      <ChatBall />
     </Router>
   );
 }

@@ -282,3 +282,204 @@ class DataQueryTools:
                 }
             }
 
+    # ==================== RSS 查询工具 ====================
+
+    def get_latest_rss(
+        self,
+        feed_ids: Optional[List[str]] = None,
+        limit: int = 50,
+        include_summary: bool = True
+    ) -> Dict:
+        """
+        获取最新的 RSS 订阅文章
+
+        Args:
+            feed_ids: RSS 源 ID 列表，None 表示所有源
+            limit: 返回条数限制，默认50
+            include_summary: 是否包含文章摘要，默认True
+
+        Returns:
+            RSS 文章列表字典
+
+        Example:
+            >>> tools = DataQueryTools()
+            >>> result = tools.get_latest_rss(limit=20)
+            >>> print(result['total'])
+        """
+        try:
+            # 尝试获取 RSS 仓库
+            rss_repo = self._get_rss_repository()
+            if rss_repo is None:
+                return {
+                    "success": False,
+                    "error": {
+                        "code": "RSS_NOT_CONFIGURED",
+                        "message": "RSS 功能未配置或 MongoDB 未连接"
+                    }
+                }
+
+            limit = validate_limit(limit, default=50)
+
+            # 获取数据
+            rss_items = rss_repo.get_latest_rss(
+                feed_ids=feed_ids,
+                limit=limit,
+                include_summary=include_summary
+            )
+
+            return {
+                "success": True,
+                "rss_items": [item.to_dict() for item in rss_items],
+                "total": len(rss_items),
+                "feed_ids": feed_ids or "all"
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": str(e)
+                }
+            }
+
+    def search_rss(
+        self,
+        keyword: str,
+        days: int = 7,
+        feed_ids: Optional[List[str]] = None,
+        limit: int = 50
+    ) -> Dict:
+        """
+        在 RSS 订阅内容中搜索关键词
+
+        Args:
+            keyword: 搜索关键词
+            days: 搜索最近 N 天，默认7
+            feed_ids: RSS 源 ID 列表
+            limit: 返回条数限制，默认50
+
+        Returns:
+            匹配的 RSS 文章列表
+
+        Example:
+            >>> tools = DataQueryTools()
+            >>> result = tools.search_rss(keyword="人工智能", days=7)
+            >>> print(result['total'])
+        """
+        try:
+            # 尝试获取 RSS 仓库
+            rss_repo = self._get_rss_repository()
+            if rss_repo is None:
+                return {
+                    "success": False,
+                    "error": {
+                        "code": "RSS_NOT_CONFIGURED",
+                        "message": "RSS 功能未配置或 MongoDB 未连接"
+                    }
+                }
+
+            keyword = validate_keyword(keyword)
+            limit = validate_limit(limit, default=50)
+
+            # 搜索数据
+            rss_items = rss_repo.search_rss(
+                keyword=keyword,
+                days=days,
+                feed_ids=feed_ids,
+                limit=limit
+            )
+
+            return {
+                "success": True,
+                "rss_items": [item.to_dict() for item in rss_items],
+                "total": len(rss_items),
+                "keyword": keyword,
+                "days": days,
+                "feed_ids": feed_ids or "all"
+            }
+
+        except MCPError as e:
+            return {
+                "success": False,
+                "error": e.to_dict()
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": str(e)
+                }
+            }
+
+    def get_rss_feeds_status(self) -> Dict:
+        """
+        获取所有 RSS 订阅源的状态
+
+        Returns:
+            RSS 源状态列表
+
+        Example:
+            >>> tools = DataQueryTools()
+            >>> result = tools.get_rss_feeds_status()
+            >>> for feed in result['feeds']:
+            ...     print(f"{feed['name']}: {feed['article_count']} 篇文章")
+        """
+        try:
+            # 尝试获取 RSS 仓库
+            rss_repo = self._get_rss_repository()
+            if rss_repo is None:
+                return {
+                    "success": False,
+                    "error": {
+                        "code": "RSS_NOT_CONFIGURED",
+                        "message": "RSS 功能未配置或 MongoDB 未连接"
+                    }
+                }
+
+            feeds_status = rss_repo.get_feeds_status()
+
+            # 统计信息
+            total_articles = sum(f.get('article_count', 0) for f in feeds_status)
+            enabled_count = sum(1 for f in feeds_status if f.get('enabled', False))
+
+            return {
+                "success": True,
+                "feeds": feeds_status,
+                "summary": {
+                    "total_feeds": len(feeds_status),
+                    "enabled_feeds": enabled_count,
+                    "total_articles": total_articles
+                }
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": str(e)
+                }
+            }
+
+    def _get_rss_repository(self):
+        """
+        获取 RSS 仓库实例
+
+        Returns:
+            MongoRSSRepository 或 None
+        """
+        try:
+            # 尝试从数据库管理器获取
+            from database.manager import DatabaseManager
+            db_manager = DatabaseManager()
+
+            if db_manager.mongo is None:
+                return None
+
+            from database.repositories.rss_repo import MongoRSSRepository
+            return MongoRSSRepository(db_manager.mongo)
+        except Exception:
+            return None
+

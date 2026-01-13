@@ -284,7 +284,7 @@ class CrawlLog:
 @dataclass
 class PushRecord:
     """推送记录模型"""
-    
+
     channel: str  # feishu/dingtalk/wework/telegram/email/ntfy/bark
     status: str  # pending/success/failed/partial
     report_type: str = ""
@@ -296,17 +296,17 @@ class PushRecord:
     pushed_at: Optional[datetime] = None
     push_date: str = ""
     id: Optional[int] = None
-    
+
     def __post_init__(self):
         if self.pushed_at is None:
             self.pushed_at = datetime.now()
         if not self.push_date and self.pushed_at:
             self.push_date = self.pushed_at.strftime("%Y-%m-%d")
-    
+
     @property
     def keyword_groups_json(self) -> str:
         return json.dumps(self.keyword_groups, ensure_ascii=False)
-    
+
     def to_db_tuple(self) -> tuple:
         return (
             self.channel,
@@ -320,7 +320,7 @@ class PushRecord:
             self.pushed_at.isoformat() if self.pushed_at else None,
             self.push_date,
         )
-    
+
     @classmethod
     def from_db_row(cls, row) -> 'PushRecord':
         return cls(
@@ -335,4 +335,120 @@ class PushRecord:
             message_hash=row['message_hash'] or "",
             pushed_at=datetime.fromisoformat(row['pushed_at']) if row['pushed_at'] else None,
             push_date=row['push_date'] or "",
+        )
+
+
+# ==================== RSS 数据模型 (TrendRadar v4.0+ 融合) ====================
+
+@dataclass
+class RSSFeed:
+    """RSS 订阅源配置模型"""
+
+    id: str
+    name: str
+    url: str
+    category: str = ""
+    enabled: bool = True
+    max_items: int = 20
+    last_fetch_at: Optional[datetime] = None
+    error_count: int = 0
+    last_error: str = ""
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    def __post_init__(self):
+        if self.created_at is None:
+            self.created_at = datetime.now()
+        if self.updated_at is None:
+            self.updated_at = datetime.now()
+
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为字典"""
+        return asdict(self)
+
+    @classmethod
+    def from_config(cls, config: Dict[str, Any]) -> 'RSSFeed':
+        """从配置字典创建实例"""
+        return cls(
+            id=config.get('id', ''),
+            name=config.get('name', ''),
+            url=config.get('url', ''),
+            category=config.get('category', ''),
+            enabled=config.get('enabled', True),
+            max_items=config.get('max_items', 20),
+        )
+
+
+@dataclass
+class RSSItem:
+    """RSS 文章数据模型"""
+
+    feed_id: str
+    title: str
+    url: str = ""
+    summary: str = ""
+    author: str = ""
+    published_at: Optional[datetime] = None
+    crawled_at: Optional[datetime] = None
+    crawl_date: str = ""
+    feed_name: str = ""
+    category: str = ""
+    tags: List[str] = field(default_factory=list)
+    extra_data: Dict[str, Any] = field(default_factory=dict)
+    id: Optional[str] = None
+
+    def __post_init__(self):
+        if self.crawled_at is None:
+            self.crawled_at = datetime.now()
+        if not self.crawl_date and self.crawled_at:
+            self.crawl_date = self.crawled_at.strftime("%Y-%m-%d")
+
+    @property
+    def title_hash(self) -> str:
+        """生成标题哈希，用于去重"""
+        return hashlib.md5(self.title.encode('utf-8')).hexdigest()
+
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为字典"""
+        data = asdict(self)
+        # 处理 datetime 字段
+        if self.published_at:
+            data['published_at'] = self.published_at.isoformat()
+        if self.crawled_at:
+            data['crawled_at'] = self.crawled_at.isoformat()
+        return data
+
+    @classmethod
+    def from_mongo_doc(cls, doc: Dict[str, Any]) -> 'RSSItem':
+        """从 MongoDB 文档创建实例"""
+        published_at = doc.get('published_at')
+        crawled_at = doc.get('crawled_at')
+
+        # 处理 datetime 字段
+        if isinstance(published_at, str):
+            try:
+                published_at = datetime.fromisoformat(published_at)
+            except:
+                published_at = None
+
+        if isinstance(crawled_at, str):
+            try:
+                crawled_at = datetime.fromisoformat(crawled_at)
+            except:
+                crawled_at = None
+
+        return cls(
+            id=str(doc.get('_id', '')),
+            feed_id=doc.get('feed_id', ''),
+            title=doc.get('title', ''),
+            url=doc.get('url', ''),
+            summary=doc.get('summary', ''),
+            author=doc.get('author', ''),
+            published_at=published_at,
+            crawled_at=crawled_at,
+            crawl_date=doc.get('crawl_date', ''),
+            feed_name=doc.get('feed_name', ''),
+            category=doc.get('category', ''),
+            tags=doc.get('tags', []),
+            extra_data=doc.get('extra_data', {}),
         )

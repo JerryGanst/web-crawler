@@ -177,19 +177,74 @@ def _background_fetch_commodity_data(cache_key: str):
 
 
 @router.get("/api/data")
-async def get_data(refresh: bool = False):
+async def get_data(refresh: bool = False, sync: bool = False):
     """
     获取大宗商品市场数据
-    
+
     优化策略：
     - refresh=false: 直接返回缓存（<50ms）
     - refresh=true: 立即返回缓存 + 后台异步刷新
+    - refresh=true&sync=true: 同步刷新，等待新数据返回
     """
     cache_key = "data:commodity"
     cached = cache.get(cache_key)
-    
+
     if refresh:
-        # 触发后台刷新
+        if sync:
+            # 同步刷新：直接爬取新数据并返回
+            print(f"🔄 商品数据同步刷新开始...")
+            try:
+                from scrapers.commodity import CommodityScraper
+                scraper = CommodityScraper()
+                raw_data = scraper.scrape()
+                print(f"✅ 同步爬取完成: {len(raw_data)} 条原始数据")
+
+                # 写入 MySQL
+                try:
+                    stats_by_source = {}
+                    sources = set(item.get("source", "unknown") for item in raw_data)
+                    for src in sources:
+                        src_records = [item for item in raw_data if item.get("source", "unknown") == src]
+                        if src_records:
+                            db_stats = db_manager.write_commodity(src_records, source=src)
+                            if db_stats:
+                                stats_by_source[src] = db_stats
+                    print(f"✅ MySQL 入库完成: {stats_by_source}")
+                except Exception as e:
+                    print(f"⚠️ MySQL 入库失败: {e}")
+
+                # 从 MySQL 读取去重后的数据
+                latest_data = db_manager.get_commodity_latest() or raw_data
+                latest_data = _transform_mysql_to_api_format(latest_data)
+
+                # 排序
+                category_order = {'贵金属': 0, '能源': 1, '工业金属': 2, '农产品': 3, '其他': 4}
+                latest_data.sort(key=lambda x: category_order.get(x.get('category', '其他'), 4))
+
+                result = {
+                    "data": latest_data,
+                    "source": "TrendRadar Commodity (Sync Refresh)",
+                    "timestamp": datetime.now().isoformat(),
+                    "cached": False,
+                    "refreshing": False,
+                    "sync_refresh": True,
+                    "from_mysql": True,
+                    "categories": list(set(item.get('category', '其他') for item in latest_data)),
+                    "total": len(latest_data)
+                }
+
+                cache.set(cache_key, result, ttl=CACHE_TTL)
+                return result
+
+            except Exception as e:
+                print(f"❌ 同步刷新失败: {e}")
+                # 失败时返回缓存数据
+                if cached:
+                    cached["error"] = str(e)
+                    return cached
+                return {"data": [], "error": str(e), "timestamp": None}
+
+        # 异步刷新：触发后台刷新
         triggered = False
         with _refresh_lock:
             if cache_key not in _pending_refreshes:
@@ -197,14 +252,14 @@ async def get_data(refresh: bool = False):
                 _executor.submit(_background_fetch_commodity_data, cache_key)
                 triggered = True
                 print(f"🔄 商品数据后台刷新已触发")
-        
+
         # 立即返回现有缓存
         if cached:
             cached["cached"] = True
             cached["refreshing"] = triggered
             cached["message"] = "数据正在后台刷新" if triggered else "刷新任务已在进行中"
             return cached
-        
+
         return {
             "data": [],
             "source": "TrendRadar Commodity",

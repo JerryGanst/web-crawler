@@ -14,6 +14,8 @@ const safeGetHostname = (url) => {
 
 // Conversion constants
 const GRAMS_PER_OUNCE = 31.1034768;
+const POUNDS_PER_TON = 2204.62;  // 1 吨 = 2204.62 磅
+const CENTS_TO_DOLLARS = 100;   // 100 美分 = 1 美元
 
 // Extract pure weight unit from unit string
 const extractWeightUnit = (unitStr) => {
@@ -36,6 +38,29 @@ const isOunceBasedUnit = (unitStr) => {
     return lower.includes('oz') || unitStr.includes('盎司') || lower.includes('ounce');
 };
 
+// Check if unit contains pound (磅)
+const isPoundBasedUnit = (unitStr) => {
+    if (!unitStr) return false;
+    const lower = unitStr.toLowerCase();
+    return lower.includes('pound') || lower.includes('lb') || unitStr.includes('磅');
+};
+
+// Check if unit is in cents (美分/USc)
+const isCentsUnit = (unitStr) => {
+    if (!unitStr) return false;
+    const lower = unitStr.toLowerCase();
+    return lower.includes('usc') || unitStr.includes('美分') || lower.includes('cent');
+};
+
+// Check if unit contains ton (吨)
+const isTonBasedUnit = (unitStr) => {
+    if (!unitStr) return false;
+    return unitStr.includes('吨') || unitStr.toLowerCase().includes('ton');
+};
+
+// 工业金属列表（需要磅→吨转换）
+const INDUSTRIAL_METALS = ['copper', 'aluminium', 'aluminum', 'zinc', 'nickel', 'lead', 'tin', '铜', '铝', '锌', '镍', '铅', '锡'];
+
 // 默认汇率常量（会被props覆盖）
 const DEFAULT_EXCHANGE_RATE = 7.2;
 
@@ -55,14 +80,38 @@ const CommodityCard = ({
 }) => {
     const pureUnit = extractWeightUnit(unit);
     const isOunceUnit = isOunceBasedUnit(unit);
+    const isPoundUnit = isPoundBasedUnit(unit);
+    const isTonUnit = isTonBasedUnit(unit);
+
+    // 判断是否为工业金属（需要统一显示为吨）
+    const isIndustrialMetal = INDUSTRIAL_METALS.some(m =>
+        comm.name?.toLowerCase().includes(m) || comm.id?.toLowerCase().includes(m)
+    );
+
     const [showInGrams, setShowInGrams] = useState(false);
-    const displayUnit = isOunceUnit ? (showInGrams ? 'g' : 'oz') : pureUnit;
+    // 工业金属默认显示吨，磅单位的数据需要转换
+    const [showInTons, setShowInTons] = useState(isIndustrialMetal);
+
+    // 计算显示单位
+    const getDisplayUnit = () => {
+        if (isOunceUnit) {
+            return showInGrams ? 'g' : 'oz';
+        }
+        if (isPoundUnit && showInTons) {
+            return '吨';
+        }
+        if (isTonUnit) {
+            return '吨';
+        }
+        return pureUnit;
+    };
+    const displayUnit = getDisplayUnit();
 
     // 判断原始价格是否为人民币（根据单位判断）
     const isOriginalCNY = unit && (unit.includes('元') || unit.includes('CNY') || unit.includes('RMB'));
 
     // 货币转换函数
-    const convertPrice = (val) => {
+    const convertPrice = (val, itemUnit = unit) => {
         if (!val) return 0;
         let numVal = parseFloat(val);
 
@@ -81,82 +130,204 @@ const CommodityCard = ({
         if (isOunceUnit && showInGrams) {
             numVal = numVal / GRAMS_PER_OUNCE;
         }
+
+        // 单位转换（磅转吨）- 价格 × 2204.62
+        // 例如: $6/磅 × 2204.62 = $13,227.72/吨
+        const isItemPound = isPoundBasedUnit(itemUnit);
+        if (isItemPound && showInTons) {
+            numVal = numVal * POUNDS_PER_TON;
+        }
+
         return numVal;
     };
 
-    // 转换历史数据价格（同时进行货币转换和单位转换）
+    // 判断数据源是否为人民币来源
+    // 优化：优先使用数据的 unit/price_unit 字段，其次才是来源名称
+    const isCNYSource = (source, itemUnit = null) => {
+        // 优先检查单位字段
+        if (itemUnit) {
+            if (itemUnit.includes('元') || itemUnit.includes('CNY') || itemUnit.includes('RMB') || itemUnit.includes('￥')) {
+                return true;
+            }
+            if (itemUnit.includes('USD') || itemUnit.includes('$') || itemUnit.includes('美元')) {
+                return false;
+            }
+        }
+
+        // 回退到来源名称判断（保留兼容性）
+        if (!source) return false;
+        const cnySources = ['上海有色网', 'SMM', '中塑在线', '21cp'];
+        return cnySources.some(s => source.toLowerCase().includes(s.toLowerCase()) || s.includes(source));
+    };
+
+    // 转换历史数据价格（根据来源判断是否需要货币转换）
     const convertedHistoryData = useMemo(() => {
         if (!historyData) return historyData;
         return historyData.map(item => {
             let price = parseFloat(item.price) || 0;
 
-            // 货币转换
+            // 根据历史数据的来源和单位判断原始货币
+            const itemUnit = item.unit || item.price_unit || '';
+
+            // 1. 美分→美元转换
+            if (isCentsUnit(itemUnit)) {
+                price = price / CENTS_TO_DOLLARS;
+            }
+
+            // 2. 货币转换（根据数据来源而非商品单位）
+            const isItemCNY = isCNYSource(item.source, itemUnit);
+            if (currency === 'CNY' && !isItemCNY) {
+                price = price * exchangeRate;
+            } else if (currency === 'USD' && isItemCNY) {
+                price = price / exchangeRate;
+            }
+
+            // 3. 单位转换（盎司转克）
+            if (isOunceUnit && showInGrams) {
+                price = price / GRAMS_PER_OUNCE;
+            }
+
+            // 4. 单位转换（磅转吨）
+            // 重要：只有当数据项自身有明确的磅单位时才转换，不要回退到组件默认unit
+            const weightUnit = item.unit || item.weight_unit || '';
+            if (weightUnit && isPoundBasedUnit(weightUnit) && showInTons) {
+                price = price * POUNDS_PER_TON;
+            }
+
+            return { ...item, price };
+        });
+    }, [historyData, showInGrams, isOunceUnit, showInTons, currency, exchangeRate, unit]);
+
+    // 转换多来源历史数据（根据来源判断是否需要货币转换）
+    const convertedMultiSourceHistory = useMemo(() => {
+        if (!multiSourceHistory) return multiSourceHistory;
+        return multiSourceHistory.map(sourceObj => {
+            // 获取来源的单位 - 只使用数据源自身的单位，不回退到组件默认unit
+            const sourceUnit = sourceObj.unit || sourceObj.price_unit || '';
+            // 根据来源名称和单位判断货币类型
+            const isSourceCNY = isCNYSource(sourceObj.source, sourceUnit);
+            const isSourcePound = isPoundBasedUnit(sourceUnit);
+            const isSourceCents = isCentsUnit(sourceUnit);
+
+            return {
+                ...sourceObj,
+                data: sourceObj.data.map(item => {
+                    let price = parseFloat(item.price) || 0;
+
+                    // 1. 美分→美元转换
+                    if (isSourceCents) {
+                        price = price / CENTS_TO_DOLLARS;
+                    }
+
+                    // 2. 货币转换（根据来源和单位）
+                    if (currency === 'CNY' && !isSourceCNY) {
+                        price = price * exchangeRate;
+                    } else if (currency === 'USD' && isSourceCNY) {
+                        price = price / exchangeRate;
+                    }
+
+                    // 3. 单位转换（盎司转克）
+                    if (isOunceUnit && showInGrams) {
+                        price = price / GRAMS_PER_OUNCE;
+                    }
+
+                    // 4. 单位转换（磅转吨）
+                    // 使用外层 sourceUnit（来源的单位），因为历史数据点通常没有 unit 字段
+                    if (sourceUnit && isSourcePound && showInTons) {
+                        price = price * POUNDS_PER_TON;
+                    }
+
+                    return { ...item, price };
+                })
+            };
+        });
+    }, [multiSourceHistory, showInGrams, isOunceUnit, showInTons, currency, exchangeRate]);
+
+    // 计算多来源商品的平均价格（根据来源判断货币转换）
+    const calculateAveragePrice = () => {
+        const sources = multiSourceItems || [];
+        if (sources.length === 0) {
+            // 无来源数据，使用传入的默认值，但需要做货币转换
+            let price = parseFloat(currentPrice) || 0;
+
+            // 1. 美分→美元转换
+            if (unit && isCentsUnit(unit)) {
+                price = price / CENTS_TO_DOLLARS;
+            }
+
+            // 2. 货币转换
             if (currency === 'CNY' && !isOriginalCNY) {
                 price = price * exchangeRate;
             } else if (currency === 'USD' && isOriginalCNY) {
                 price = price / exchangeRate;
             }
 
-            // 单位转换（盎司转克）
-            if (isOunceUnit && showInGrams) {
-                price = price / GRAMS_PER_OUNCE;
+            // 3. 磅转吨 - 只有明确知道是磅单位时才转换
+            if (unit && isPoundBasedUnit(unit) && showInTons) {
+                price = price * POUNDS_PER_TON;
             }
-            return { ...item, price };
-        });
-    }, [historyData, showInGrams, isOunceUnit, currency, exchangeRate, isOriginalCNY]);
-
-    const convertedMultiSourceHistory = useMemo(() => {
-        if (!multiSourceHistory) return multiSourceHistory;
-        return multiSourceHistory.map(source => ({
-            ...source,
-            data: source.data.map(item => {
-                let price = parseFloat(item.price) || 0;
-
-                // 货币转换
-                if (currency === 'CNY' && !isOriginalCNY) {
-                    price = price * exchangeRate;
-                } else if (currency === 'USD' && isOriginalCNY) {
-                    price = price / exchangeRate;
-                }
-
-                // 单位转换
-                if (isOunceUnit && showInGrams) {
-                    price = price / GRAMS_PER_OUNCE;
-                }
-                return { ...item, price };
-            })
-        }));
-    }, [multiSourceHistory, showInGrams, isOunceUnit, currency, exchangeRate, isOriginalCNY]);
-
-    // 计算多来源商品的平均价格（在货币转换之前）
-    const calculateAveragePrice = () => {
-        const sources = multiSourceItems || [];
-        if (sources.length === 0) {
-            return currentPrice; // 无来源数据，使用传入的默认值
+            return price;
         }
 
         if (sources.length === 1) {
-            return sources[0].price || sources[0].current_price || currentPrice;
+            let price = parseFloat(sources[0].price || sources[0].current_price || currentPrice);
+            // 重要：只使用数据项自身的单位，不要回退到组件默认unit
+            const sourceUnit = sources[0].unit || sources[0].price_unit || '';
+
+            // 1. 美分→美元转换
+            if (isCentsUnit(sourceUnit)) {
+                price = price / CENTS_TO_DOLLARS;
+            }
+
+            // 2. 使用改进的 isCNYSource 函数，优先检查单位字段
+            const isSourceCNY = isCNYSource(sources[0].source, sourceUnit);
+
+            if (currency === 'CNY' && !isSourceCNY) {
+                price = price * exchangeRate;
+            } else if (currency === 'USD' && isSourceCNY) {
+                price = price / exchangeRate;
+            }
+
+            // 3. 磅转吨 - 只有当数据项自身有明确的磅单位时才转换
+            if (sourceUnit && isPoundBasedUnit(sourceUnit) && showInTons) {
+                price = price * POUNDS_PER_TON;
+            }
+
+            return price;
         }
 
-        // 多来源：计算平均值
+        // 多来源：计算平均值（根据每个来源的货币类型进行转换）
+        // 注意：不同来源可能使用不同单位（磅 vs 吨，美分 vs 美元），需要统一后再求平均
         let total = 0;
         let count = 0;
 
         sources.forEach(item => {
-            const price = parseFloat(item.price || item.current_price);
+            let price = parseFloat(item.price || item.current_price);
             if (!isNaN(price) && price > 0) {
-                // 判断该来源的原始货币
-                const itemUnit = item.unit || '';
-                const isItemCNY = itemUnit.includes('元') || itemUnit.includes('CNY') || itemUnit.includes('RMB');
+                const itemUnit = item.unit || item.price_unit || '';
 
-                // 根据目标货币进行转换后累加
+                // 1. 首先处理美分→美元转换（COMEX铜等以美分报价的商品）
+                if (isCentsUnit(itemUnit)) {
+                    price = price / CENTS_TO_DOLLARS;
+                }
+
+                // 2. 使用改进的 isCNYSource 函数，优先检查单位字段
+                const isItemCNY = isCNYSource(item.source, itemUnit);
+
                 let convertedPrice = price;
                 if (currency === 'CNY' && !isItemCNY) {
                     convertedPrice = price * exchangeRate;
                 } else if (currency === 'USD' && isItemCNY) {
                     convertedPrice = price / exchangeRate;
                 }
+
+                // 3. 磅转吨（统一单位后再求平均）
+                // 重要：只有当数据项自身有明确的磅单位时才转换
+                if (itemUnit && isPoundBasedUnit(itemUnit) && showInTons) {
+                    // 磅→吨: 价格 × 2204.62
+                    convertedPrice = convertedPrice * POUNDS_PER_TON;
+                }
+                // 吨单位的数据无需转换
 
                 total += convertedPrice;
                 count++;
@@ -168,6 +339,7 @@ const CommodityCard = ({
 
     const avgPrice = calculateAveragePrice();
     // 单位转换（盎司→克）在求平均值之后完成
+    // 注意：磅→吨转换已在 calculateAveragePrice 中完成
     const displayedPrice = isOunceUnit && showInGrams
         ? avgPrice / GRAMS_PER_OUNCE
         : avgPrice;
@@ -408,6 +580,53 @@ const CommodityCard = ({
                                 }}
                             >
                                 g
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Unit Switch - for pound/ton units (industrial metals) */}
+                    {isPoundUnit && isIndustrialMetal && (
+                        <div className="unit-toggle" style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            marginTop: '8px',
+                            padding: '3px',
+                            background: '#dbeafe',
+                            borderRadius: '6px',
+                            border: '1px solid #93c5fd'
+                        }}>
+                            <button
+                                onClick={() => setShowInTons(false)}
+                                style={{
+                                    padding: '3px 10px',
+                                    borderRadius: '4px',
+                                    border: 'none',
+                                    background: !showInTons ? '#1e40af' : 'transparent',
+                                    color: !showInTons ? '#fff' : '#1e40af',
+                                    fontSize: '11px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease'
+                                }}
+                            >
+                                磅
+                            </button>
+                            <button
+                                onClick={() => setShowInTons(true)}
+                                style={{
+                                    padding: '3px 10px',
+                                    borderRadius: '4px',
+                                    border: 'none',
+                                    background: showInTons ? '#1e40af' : 'transparent',
+                                    color: showInTons ? '#fff' : '#1e40af',
+                                    fontSize: '11px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease'
+                                }}
+                            >
+                                吨
                             </button>
                         </div>
                     )}

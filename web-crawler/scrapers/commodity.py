@@ -42,7 +42,8 @@ COMMODITY_UNITS = {
     'RBOB Gasoline': 'USD/加仑', 'RBOB汽油': 'USD/加仑',
     
     # 工业金属
-    '铜': 'USD/磅', 'Copper': 'USD/磅',
+    # 注意：COMEX铜以美分/磅报价，新浪返回的原始数据是美分单位
+    '铜': 'USc/磅', 'Copper': 'USc/磅', 'COMEX铜': 'USc/磅',
     '铝': 'USD/吨', 'Aluminium': 'USD/吨',
     '锌': 'USD/吨', 'Zinc': 'USD/吨',
     '镍': 'USD/吨', 'Nickel': 'USD/吨',

@@ -699,3 +699,112 @@ class SearchTools:
                     "message": str(e)
                 }
             }
+
+    # ==================== 联合搜索 ====================
+
+    def search_all(
+        self,
+        query: str,
+        include_hotlist: bool = True,
+        include_rss: bool = True,
+        date_range: Optional[Dict[str, str]] = None,
+        limit: int = 50
+    ) -> Dict:
+        """
+        同时搜索热搜和 RSS 订阅内容
+
+        Args:
+            query: 查询关键词
+            include_hotlist: 是否包含热搜数据，默认True
+            include_rss: 是否包含RSS数据，默认True
+            date_range: 日期范围，格式: {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"}
+            limit: 每种数据源的返回条数限制，默认50
+
+        Returns:
+            合并的搜索结果
+
+        Example:
+            >>> tools = SearchTools()
+            >>> result = tools.search_all(
+            ...     query="人工智能",
+            ...     include_hotlist=True,
+            ...     include_rss=True,
+            ...     limit=30
+            ... )
+        """
+        try:
+            query = validate_keyword(query)
+            limit = validate_limit(limit, default=50)
+
+            results = {
+                "success": True,
+                "query": query,
+                "hotlist_results": [],
+                "rss_results": [],
+                "total_hotlist": 0,
+                "total_rss": 0
+            }
+
+            # 搜索热搜
+            if include_hotlist:
+                hotlist_result = self.search_news_unified(
+                    query=query,
+                    search_mode="keyword",
+                    date_range=date_range,
+                    limit=limit
+                )
+
+                if hotlist_result.get("success"):
+                    results["hotlist_results"] = hotlist_result.get("results", [])
+                    results["total_hotlist"] = hotlist_result.get("summary", {}).get("total_found", 0)
+
+            # 搜索 RSS
+            if include_rss:
+                try:
+                    from database.manager import DatabaseManager
+                    from database.repositories.rss_repo import MongoRSSRepository
+
+                    db_manager = DatabaseManager()
+                    if db_manager.mongo:
+                        rss_repo = MongoRSSRepository(db_manager.mongo)
+
+                        # 确定搜索天数
+                        days = 7
+                        if date_range:
+                            from ..utils.validators import validate_date_range
+                            date_tuple = validate_date_range(date_range)
+                            if date_tuple:
+                                start, end = date_tuple
+                                days = (end - start).days + 1
+
+                        rss_items = rss_repo.search_rss(
+                            keyword=query,
+                            days=days,
+                            limit=limit
+                        )
+
+                        results["rss_results"] = [item.to_dict() for item in rss_items]
+                        results["total_rss"] = len(rss_items)
+
+                except Exception as e:
+                    # RSS 搜索失败不影响整体结果
+                    results["rss_error"] = str(e)
+
+            # 合并统计
+            results["total"] = results["total_hotlist"] + results["total_rss"]
+
+            return results
+
+        except MCPError as e:
+            return {
+                "success": False,
+                "error": e.to_dict()
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": str(e)
+                }
+            }

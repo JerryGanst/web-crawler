@@ -15,6 +15,7 @@ from api.cache import cache, CACHE_TTL, REDIS_HOST, REDIS_PORT
 from api.routes import data, news, reports, analysis
 from api.routes import analysis_v4  # V4 模块化分析
 from api.routes import cache as cache_routes
+from api.routes import chat  # 数据洞察聊天
 from api.scheduler import scheduler
 
 # ==================== 应用配置 ====================
@@ -206,6 +207,9 @@ app.include_router(analysis_v4.router, tags=["分析V4"])
 
 # 注册缓存管理路由
 app.include_router(cache_routes.router, tags=["缓存"])
+
+# 注册聊天路由
+app.include_router(chat.router, tags=["聊天"])
 
 
 # ==================== 静态文件服务 ====================

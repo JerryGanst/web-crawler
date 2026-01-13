@@ -537,6 +537,7 @@ const Dashboard = () => {
                         fullName: normalizedName,
                         price: safeNumber(item.price || item.current_price, 0),
                         change: safeNumber(item.change || item.change_percent, 0),
+                        unit: item.unit,  // 添加单位用于正确的货币/重量转换
                         color: regionalColors[0]
                     }] : [],
                     isRegional: isRegional,
@@ -569,6 +570,7 @@ const Dashboard = () => {
                             fullName: normalizedName,
                             price: safeNumber(item.price || item.current_price, 0),
                             change: safeNumber(item.change || item.change_percent, 0),
+                            unit: item.unit,  // 添加单位用于正确的货币/重量转换
                             color: regionalColors[colorIdx]
                         });
                         existing.isRegional = true;
@@ -793,6 +795,7 @@ const Dashboard = () => {
                             source: region.name,
                             color: region.color,
                             url: commodity.url,
+                            unit: region.unit || commodity.unit || '',  // 添加单位字段用于正确的磅/吨转换
                             data: regionHistory || []
                         };
                     }).filter(s => s.data && s.data.length > 0);
@@ -1373,15 +1376,15 @@ const Dashboard = () => {
                         </button>
                     </div>
 
-                    {/* 刷新按钮 */}
+                    {/* 刷新按钮 - 使用同步刷新获取最新数据 */}
                     <button
                         onClick={async () => {
                             setRefreshing(true);
                             try {
-                                // 同时刷新商品数据和历史数据
+                                // 使用同步刷新(sync=true)确保获取最新数据
                                 const [dataResponse, historyResponse] = await Promise.all([
-                                    api.getData(true),
-                                    api.getPriceHistory(null, { day: 1, week: 7, month: 30 }[timeRange] || 7)
+                                    api.getData(true, true),  // sync=true 同步刷新
+                                    api.getPriceHistory(null, { day: 1, week: 7, month: 30 }[timeRange] || 7, true)  // bypassCache
                                 ]);
                                 const responseData = dataResponse.data || dataResponse;
                                 setData(responseData.data || []);
@@ -1390,6 +1393,11 @@ const Dashboard = () => {
                                 const historyData = historyResponse.data?.data || historyResponse.data?.commodities || {};
                                 setPriceHistory(historyData);
                                 priceHistoryLoadingRef.current = null; // 重置缓存标记
+                                console.log("✅ 数据刷新完成:", {
+                                    commodities: responseData.data?.length,
+                                    timestamp: responseData.timestamp,
+                                    source: responseData.source
+                                });
                             } catch (err) {
                                 console.error("Refresh failed:", err);
                             } finally {
@@ -1413,7 +1421,7 @@ const Dashboard = () => {
                         }}
                     >
                         <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
-                        {refreshing ? '刷新中' : '刷新'}
+                        {refreshing ? '刷新中...' : '刷新'}
                     </button>
 
                     {/* 设置按钮 */}
@@ -1978,6 +1986,7 @@ const Dashboard = () => {
                                         key={comm.id || index}
                                         comm={comm}
                                         realItem={comm.dataItem}
+                                        multiSourceItems={comm.sources}
                                         currentPrice={comm.currentPrice}
                                         unit={comm.unit}
                                         historyData={comm.historyData}

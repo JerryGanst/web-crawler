@@ -64,6 +64,54 @@ class BusinessInsiderScraper(BaseScraper, WebScrapingMixin):
             'Wheat': '小麦',
             'Sugar': '糖',
         }
+
+        # 商品单位映射表（Business Insider 数据的实际单位）
+        self.commodity_units = {
+            # 贵金属 - USD/盎司
+            'Gold': 'USD/盎司',
+            'Silver': 'USD/盎司',
+            'Platinum': 'USD/盎司',
+            'Palladium': 'USD/盎司',
+
+            # 能源
+            'Natural Gas': 'USD/MMBtu',
+            'Natural Gas (Henry Hub)': 'USD/MMBtu',
+            'Heating Oil': 'USD/100升',
+            'Coal': 'USD/吨',
+            'RBOB Gasoline': 'USD/加仑',
+            'Oil (Brent)': 'USD/桶',
+            'Oil (WTI)': 'USD/桶',
+            'Crude Oil': 'USD/桶',
+
+            # 工业金属 - Business Insider 使用 USD/吨（LME价格）
+            'Aluminium': 'USD/吨',
+            'Lead': 'USD/吨',
+            'Copper': 'USD/吨',
+            'Nickel': 'USD/吨',
+            'Zinc': 'USD/吨',
+            'Tin': 'USD/吨',
+
+            # 农产品
+            'Cotton': 'USc/磅',
+            'Oats': 'USc/蒲式耳',
+            'Lumber': 'USD/千板尺',
+            'Coffee': 'USc/磅',
+            'Cocoa': 'USD/吨',
+            'Live Cattle': 'USD/磅',
+            'Lean Hog': 'USc/磅',
+            'Corn': 'USc/蒲式耳',
+            'Feeder Cattle': 'USc/磅',
+            'Milk': 'USD/英担',
+            'Orange Juice': 'USc/磅',
+            'Palm Oil': 'USD/吨',
+            'Rapeseed': 'USD/吨',
+            'Rice': 'USD/英担',
+            'Soybean Meal': 'USD/吨',
+            'Soybeans': 'USc/蒲式耳',
+            'Soybean Oil': 'USD/磅',
+            'Wheat': 'USc/吨',
+            'Sugar': 'USc/磅',
+        }
     
     def get_data_sources(self) -> List[Dict[str, str]]:
         """获取数据源列表"""
@@ -141,7 +189,7 @@ class BusinessInsiderScraper(BaseScraper, WebScrapingMixin):
             
             if not name or price is None:
                 return None
-            
+
             return {
                 'name': name,
                 'chinese_name': self.commodity_translations.get(name, name),
@@ -149,7 +197,8 @@ class BusinessInsiderScraper(BaseScraper, WebScrapingMixin):
                 'current_price': price,
                 'change': change,
                 'source': self.name,
-                'category': self._categorize_commodity(name)
+                'category': self._categorize_commodity(name),
+                'unit': self.commodity_units.get(name, 'USD')  # 添加单位字段
             }
             
         except Exception as e:

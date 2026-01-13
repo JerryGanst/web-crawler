@@ -160,10 +160,15 @@ const preloadCache = async (keys) => {
 
 const api = {
     // 获取大宗商品数据
-    getData: (refresh = false) => {
+    // refresh=true: 异步后台刷新（立即返回旧数据）
+    // refresh=true, sync=true: 同步刷新（等待新数据返回）
+    getData: (refresh = false, sync = false) => {
         if (refresh) {
             clearCache('api:data');
-            return axios.get(`${API_BASE}/api/data?refresh=true`);
+            const url = sync
+                ? `${API_BASE}/api/data?refresh=true&sync=true`
+                : `${API_BASE}/api/data?refresh=true`;
+            return axios.get(url, { timeout: sync ? 60000 : 30000 }); // 同步刷新超时60秒
         }
         return cachedRequest(
             'api:data',

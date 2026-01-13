@@ -15,7 +15,7 @@ class PriceHistoryManager:
     def __init__(self):
         # Redis 配置
         self.redis_host = os.environ.get("REDIS_HOST", "localhost")
-        self.redis_port = int(os.environ.get("REDIS_PORT", "49907"))
+        self.redis_port = int(os.environ.get("REDIS_PORT", "6379"))
         self.redis_db = int(os.environ.get("REDIS_DB", "0"))
         self.redis_password = os.environ.get("REDIS_PASSWORD", None)
         

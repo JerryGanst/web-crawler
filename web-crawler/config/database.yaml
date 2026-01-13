@@ -1,7 +1,7 @@
 # =============================================================
-# TrendRadar 多数据库架构配置
+# 多数据库架构配置
 # =============================================================
-# 
+#
 # 设计原则:
 #   - SQLite: 非结构化数据 (新闻、爬取日志、推送记录)
 #   - MySQL:  结构化数据 (大宗商品行情、变更日志)
@@ -10,10 +10,16 @@
 #
 # =============================================================
 
+# Google AI 配置 (Gemini)
+google_ai:
+  api_key: "AIzaSyAVzUw8kfA8d7RPF5enQuoeVNTVDNmWnNM"
+  default_model: "gemini-2.0-flash"
+  chat_model: "gemini-3-pro-preview"
+
 # Redis 配置 (缓存与快照)
 redis:
   enabled: true
-  host: "10.180.248.145"
+  host: "localhost"
   port: 6379
   db: 0
   password: ""  # 如有密码请填写
@@ -21,11 +27,11 @@ redis:
 # MongoDB 配置 (历史归档)
 mongodb:
   enabled: true
-  host: "10.180.116.172"
-  port: 27070
+  host: "localhost"
+  port: 27017
   username: "root"
   password: "362514"
-  database: "admin"
+  database: "trendradar"
   authentication_source: "admin"
 
 # SQLite 配置 (非结构化数据)
@@ -47,11 +53,11 @@ mysql:
   enabled: true
   
   # 连接配置
-  host: "10.180.114.226"
+  host: "localhost"
   port: 3306
   database: "trendradar"
   user: "root"
-  password: "BCSscZMTHQ8Rx!Gu"  # 生产环境请使用环境变量
+  password: "trendradar123"  # 生产环境请使用环境变量
   charset: "utf8mb4"
   
   # 连接池配置
