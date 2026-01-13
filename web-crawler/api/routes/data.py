@@ -29,25 +29,36 @@ _refresh_lock = Lock()
 def _transform_mysql_to_api_format(data: List[Dict]) -> List[Dict]:
     """
     将 MySQL commodity_latest 数据转换为 API 格式
-    
+
     转换内容：
     1. 合并 price_unit 和 weight_unit 为 unit
     2. 添加 current_price 字段
     3. 确保 url 字段存在
     4. 删除 MySQL 专用字段
+
+    注意：对于美分单位(USc)的商品（如COMEX铜），必须保留完整的单位信息，
+    前端需要识别美分单位并进行正确的转换（÷100）。
     """
     for item in data:
         # 1. 合并 price_unit 和 weight_unit 为 unit
-        price_unit = item.get('price_unit', '')
-        weight_unit = item.get('weight_unit', '')
+        price_unit = item.get('price_unit', '') or ''
+        weight_unit = item.get('weight_unit', '') or ''
+
+        # 确保美分单位(USc)被正确保留
+        # 这对于 COMEX 铜等以美分报价的商品至关重要
         if price_unit and weight_unit:
             item['unit'] = f"{price_unit}/{weight_unit}"
         elif price_unit:
+            # 如果只有货币单位，仍需保留（如 USc）
             item['unit'] = price_unit
         elif weight_unit:
             item['unit'] = weight_unit
         else:
             item['unit'] = 'USD'
+
+        # 同时保留原始的 price_unit 供前端参考
+        # 这样前端可以更准确地判断是否需要美分转换
+        item['price_unit'] = price_unit if price_unit else 'USD'
         
         # 2. current_price = price (前端兼容)
         if 'price' in item and 'current_price' not in item:
@@ -58,8 +69,9 @@ def _transform_mysql_to_api_format(data: List[Dict]) -> List[Dict]:
             item['url'] = item.get('source_url', '')
         
         # 4. 删除前端不需要的字段
+        # 注意：保留 price_unit 供前端判断是否需要美分转换
         item.pop('id', None)
-        item.pop('price_unit', None)
+        # item.pop('price_unit', None)  # 保留此字段！前端需要用于美分判断
         item.pop('weight_unit', None)
         item.pop('version_ts', None)
         item.pop('source_url', None)

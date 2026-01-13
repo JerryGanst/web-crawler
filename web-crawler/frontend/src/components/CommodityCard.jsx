@@ -46,10 +46,15 @@ const isPoundBasedUnit = (unitStr) => {
 };
 
 // Check if unit is in cents (美分/USc)
+// 重要：COMEX铜以美分/磅报价，必须正确识别并转换（÷100）
 const isCentsUnit = (unitStr) => {
     if (!unitStr) return false;
     const lower = unitStr.toLowerCase();
-    return lower.includes('usc') || unitStr.includes('美分') || lower.includes('cent');
+    // 检测多种美分表示方式
+    return lower.includes('usc') ||
+           unitStr.includes('美分') ||
+           lower.includes('cent') ||
+           lower.includes('¢');
 };
 
 // Check if unit contains ton (吨)
@@ -304,10 +309,25 @@ const CommodityCard = ({
         sources.forEach(item => {
             let price = parseFloat(item.price || item.current_price);
             if (!isNaN(price) && price > 0) {
+                // 优先使用 price_unit（后端新增字段），其次 unit
                 const itemUnit = item.unit || item.price_unit || '';
+                const priceUnit = item.price_unit || '';
+
+                // 铜价调试日志
+                const isCopper = comm.name?.toLowerCase().includes('copper') ||
+                                 comm.name?.includes('铜') ||
+                                 comm.id?.toLowerCase().includes('copper');
+                if (isCopper) {
+                    console.log(`[铜价调试] 商品: ${item.name || comm.name}, 原始价格: ${price}, 单位: ${itemUnit}, price_unit: ${priceUnit}, 来源: ${item.source}`);
+                }
 
                 // 1. 首先处理美分→美元转换（COMEX铜等以美分报价的商品）
-                if (isCentsUnit(itemUnit)) {
+                // 检查 itemUnit 或 priceUnit 是否包含美分标识
+                const needCentsConversion = isCentsUnit(itemUnit) || isCentsUnit(priceUnit);
+                if (needCentsConversion) {
+                    if (isCopper) {
+                        console.log(`[铜价调试] 执行美分→美元转换: ${price} ÷ 100 = ${price / CENTS_TO_DOLLARS}`);
+                    }
                     price = price / CENTS_TO_DOLLARS;
                 }
 
@@ -317,17 +337,30 @@ const CommodityCard = ({
                 let convertedPrice = price;
                 if (currency === 'CNY' && !isItemCNY) {
                     convertedPrice = price * exchangeRate;
+                    if (isCopper) {
+                        console.log(`[铜价调试] USD→CNY转换: ${price} × ${exchangeRate} = ${convertedPrice}`);
+                    }
                 } else if (currency === 'USD' && isItemCNY) {
                     convertedPrice = price / exchangeRate;
+                    if (isCopper) {
+                        console.log(`[铜价调试] CNY→USD转换: ${price} ÷ ${exchangeRate} = ${convertedPrice}`);
+                    }
                 }
 
                 // 3. 磅转吨（统一单位后再求平均）
                 // 重要：只有当数据项自身有明确的磅单位时才转换
                 if (itemUnit && isPoundBasedUnit(itemUnit) && showInTons) {
                     // 磅→吨: 价格 × 2204.62
+                    if (isCopper) {
+                        console.log(`[铜价调试] 磅→吨转换: ${convertedPrice} × ${POUNDS_PER_TON} = ${convertedPrice * POUNDS_PER_TON}`);
+                    }
                     convertedPrice = convertedPrice * POUNDS_PER_TON;
                 }
                 // 吨单位的数据无需转换
+
+                if (isCopper) {
+                    console.log(`[铜价调试] 最终转换价格: ${convertedPrice}`);
+                }
 
                 total += convertedPrice;
                 count++;

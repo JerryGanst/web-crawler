@@ -142,11 +142,15 @@ const COMMODITY_ALIASES = {
     'Brent Crude': '布伦特原油',
     'Brent原油': '布伦特原油',
     '布伦特原油': '布伦特原油',
-    // 铜
-    'Copper': '铜',
-    'COMEX铜': '铜',
-    'COMEX Copper': '铜',
-    '沪铜': '铜',
+    // 铜 - 注意：不同市场的铜价使用不同单位，不应该合并
+    // COMEX铜: 美分/磅 (USc/lb)，需要 ÷100 转换为美元，×2204.62 转换为吨
+    // SMM铜/沪铜: 元/吨 (CNY/ton)，直接使用
+    // 保持分开以确保价格计算正确
+    'Copper': 'COMEX铜',           // Business Insider 的 Copper 通常是 COMEX
+    'COMEX铜': 'COMEX铜',
+    'COMEX Copper': 'COMEX铜',
+    'SMM铜': 'SMM铜',              // 上海有色网的铜价，元/吨
+    '沪铜': '沪铜',                 // 上海期货交易所，元/吨
     // 铝
     'Aluminium': '铝',
     '沪铝': '铝',
