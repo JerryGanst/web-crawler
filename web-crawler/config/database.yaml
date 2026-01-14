@@ -11,8 +11,10 @@
 # =============================================================
 
 # Google AI 配置 (Gemini)
+# 重要: 请替换为新的 API Key (当前 Key 已被标记为泄露)
+# 获取方式: https://aistudio.google.com/apikey
 google_ai:
-  api_key: "AIzaSyAVzUw8kfA8d7RPF5enQuoeVNTVDNmWnNM"
+  api_key: "${GOOGLE_API_KEY}"  # 优先使用环境变量，或在此替换
   default_model: "gemini-2.0-flash"
   chat_model: "gemini-3-pro-preview"
 

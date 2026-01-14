@@ -353,12 +353,57 @@ class IntentClassifier:
 # ============================================================
 
 class TextToSQLEngine:
-    """Text-to-SQL 引擎"""
-    
+    """Text-to-SQL 引擎 - 支持 LLM 生成 SQL 和规则降级"""
+
+    # 商品关键词到 SQL 条件的映射
+    COMMODITY_PATTERNS = {
+        # 贵金属
+        '黄金': "chinese_name LIKE '%黄金%' OR name LIKE '%gold%'",
+        '金': "chinese_name LIKE '%黄金%' OR name LIKE '%gold%'",
+        '金价': "chinese_name LIKE '%黄金%' OR name LIKE '%gold%'",
+        '白银': "chinese_name LIKE '%白银%' OR name LIKE '%silver%'",
+        '银': "chinese_name LIKE '%白银%' OR name LIKE '%silver%'",
+        '铂金': "chinese_name LIKE '%铂金%' OR name LIKE '%platinum%'",
+        # 能源
+        '原油': "chinese_name LIKE '%原油%' OR name LIKE '%oil%'",
+        '油价': "chinese_name LIKE '%原油%' OR name LIKE '%oil%'",
+        '天然气': "chinese_name LIKE '%天然气%' OR name LIKE '%gas%'",
+        # 工业金属
+        '铜': "chinese_name LIKE '%铜%' OR name LIKE '%copper%'",
+        '铜价': "chinese_name LIKE '%铜%' OR name LIKE '%copper%'",
+        '铝': "chinese_name LIKE '%铝%' OR name LIKE '%aluminum%'",
+        '锌': "chinese_name LIKE '%锌%' OR name LIKE '%zinc%'",
+        '镍': "chinese_name LIKE '%镍%' OR name LIKE '%nickel%'",
+        # 塑料
+        'ABS': "chinese_name LIKE '%ABS%'",
+        'abs': "chinese_name LIKE '%ABS%'",
+        'PE': "chinese_name LIKE '%PE%'",
+        'PP': "chinese_name LIKE '%PP%'",
+        'PS': "chinese_name LIKE '%PS%'",
+        # 区域
+        '华东': "chinese_name LIKE '%华东%'",
+        '华南': "chinese_name LIKE '%华南%'",
+        '华北': "chinese_name LIKE '%华北%'",
+    }
+
     def __init__(self):
-        self.model = genai.GenerativeModel('gemini-2.0-flash')
+        self.model = None
+        self.llm_available = False
+        self._init_llm()
         self._init_mysql()
-    
+
+    def _init_llm(self):
+        """初始化 LLM（允许失败）"""
+        try:
+            self.model = genai.GenerativeModel('gemini-2.0-flash')
+            # 测试 LLM 是否可用
+            self.model.generate_content("test", generation_config={"max_output_tokens": 5})
+            self.llm_available = True
+            logger.info("[TextToSQLEngine] LLM 初始化成功")
+        except Exception as e:
+            logger.warning(f"[TextToSQLEngine] LLM 不可用，将使用规则降级: {e}")
+            self.llm_available = False
+
     def _init_mysql(self):
         """初始化 MySQL 连接"""
         try:
@@ -378,40 +423,61 @@ class TextToSQLEngine:
             logger.error(f"[TextToSQLEngine] MySQL 初始化失败: {e}")
             self.available = False
             self.last_error = str(e)
-    
-    def generate_sql(self, question: str) -> str:
-        """生成 SQL 查询"""
-        prompt = TEXT_TO_SQL_PROMPT.format(
-            schema=MYSQL_SCHEMA,
-            question=question
-        )
 
-        response = self.model.generate_content(prompt)
-        sql = response.text.strip()
+    def _generate_sql_by_rules(self, question: str) -> str:
+        """基于规则生成 SQL（LLM 降级方案）"""
+        conditions = []
+        for keyword, condition in self.COMMODITY_PATTERNS.items():
+            if keyword in question:
+                conditions.append(condition)
 
-        # 清理 SQL (移除 markdown 代码块)
-        sql = re.sub(r'^```sql\s*', '', sql)
-        sql = re.sub(r'^```\s*', '', sql)
-        sql = re.sub(r'\s*```$', '', sql)
-        sql = sql.strip()
+        # 检测是否需要历史数据
+        needs_history = any(w in question for w in ['同比', '环比', '走势', '趋势', '历史', '增长', '变化'])
 
-        # 验证是否为有效 SQL（而非解释性文本）
-        sql_upper = sql.upper()
-        if not (sql_upper.startswith('SELECT') or sql_upper.startswith('WITH')):
-            # LLM 返回了解释性文本而非 SQL，尝试生成一个通用查询
-            logger.warning(f"[TextToSQLEngine] LLM 未返回有效 SQL，尝试生成通用查询")
-            # 从问题中提取可能的商品关键词
-            keywords = []
-            for kw in ['ABS', 'PE', 'PP', 'PS', '华东', '华南', '华北', '黄金', '白银', '原油', '铜']:
-                if kw.lower() in question.lower():
-                    keywords.append(kw)
-            if keywords:
-                conditions = " OR ".join([f"chinese_name LIKE '%{kw}%'" for kw in keywords])
-                sql = f"SELECT * FROM commodity_latest WHERE {conditions}"
+        if conditions:
+            where_clause = " OR ".join(set(conditions))
+            if needs_history:
+                return f"SELECT * FROM commodity_history WHERE ({where_clause}) ORDER BY record_date DESC LIMIT 100"
             else:
-                sql = "SELECT * FROM commodity_latest LIMIT 10"
-        
-        return sql
+                return f"SELECT * FROM commodity_latest WHERE ({where_clause})"
+        else:
+            # 默认返回所有最新数据
+            return "SELECT * FROM commodity_latest ORDER BY category, chinese_name LIMIT 50"
+
+    def generate_sql(self, question: str) -> str:
+        """生成 SQL 查询（优先 LLM，失败则降级到规则）"""
+        # 如果 LLM 不可用，直接使用规则
+        if not self.llm_available:
+            logger.info("[TextToSQLEngine] 使用规则生成 SQL")
+            return self._generate_sql_by_rules(question)
+
+        try:
+            prompt = TEXT_TO_SQL_PROMPT.format(
+                schema=MYSQL_SCHEMA,
+                question=question
+            )
+
+            response = self.model.generate_content(prompt)
+            sql = response.text.strip()
+
+            # 清理 SQL (移除 markdown 代码块)
+            sql = re.sub(r'^```sql\s*', '', sql)
+            sql = re.sub(r'^```\s*', '', sql)
+            sql = re.sub(r'\s*```$', '', sql)
+            sql = sql.strip()
+
+            # 验证是否为有效 SQL
+            sql_upper = sql.upper()
+            if not (sql_upper.startswith('SELECT') or sql_upper.startswith('WITH')):
+                logger.warning("[TextToSQLEngine] LLM 未返回有效 SQL，降级到规则")
+                return self._generate_sql_by_rules(question)
+
+            return sql
+
+        except Exception as e:
+            logger.warning(f"[TextToSQLEngine] LLM 生成 SQL 失败: {e}，降级到规则")
+            self.llm_available = False  # 标记 LLM 不可用
+            return self._generate_sql_by_rules(question)
     
     def execute_sql(self, sql: str) -> List[Dict]:
         """执行 SQL 查询"""
@@ -841,49 +907,84 @@ class HybridQueryRouter:
             }
     
     def _format_commodity_answer(self, data: List[Dict], question: str) -> str:
-        """格式化商品查询结果"""
+        """格式化商品查询结果（LLM 优先，规则降级）"""
         if not data:
             return "暂无商品数据"
 
-        # 使用 LLM 格式化
-        data_text = json.dumps(data[:10], ensure_ascii=False, indent=2, default=str)
+        # 先尝试使用规则格式化（更快更可靠）
+        def format_by_rules(data_list: List[Dict], q: str) -> str:
+            """基于规则的格式化"""
+            # 按类别分组
+            by_category = {}
+            for item in data_list[:20]:
+                cat = item.get('category', '其他')
+                if cat not in by_category:
+                    by_category[cat] = []
+                by_category[cat].append(item)
 
-        prompt = f"""根据以下商品数据回答用户问题。
+            lines = [f"📊 **查询结果** (共 {len(data_list)} 条)\n"]
+
+            for cat, items in by_category.items():
+                lines.append(f"\n**{cat}**:")
+                for item in items[:5]:
+                    name = item.get('chinese_name') or item.get('name', 'Unknown')
+                    price = item.get('price', 0)
+                    unit = item.get('price_unit') or item.get('unit', 'USD')
+                    change = item.get('change_percent', 0) or 0
+
+                    # 格式化价格
+                    try:
+                        price_fmt = f"{float(price):,.2f}"
+                    except:
+                        price_fmt = str(price)
+
+                    # 涨跌 emoji
+                    try:
+                        change_val = float(change)
+                        emoji = "📈" if change_val > 0 else "📉" if change_val < 0 else "➡️"
+                        change_str = f"({change_val:+.2f}%)"
+                    except:
+                        emoji = "➡️"
+                        change_str = ""
+
+                    lines.append(f"  {emoji} {name}: {price_fmt} {unit} {change_str}")
+
+            # 检测是否是历史/同比查询
+            if any(w in q for w in ['同比', '环比', '走势', '趋势']):
+                # 尝试计算同比/环比
+                if len(data_list) >= 2:
+                    latest = data_list[0].get('price', 0)
+                    previous = data_list[-1].get('price', 0)
+                    try:
+                        if previous > 0:
+                            change_pct = (float(latest) - float(previous)) / float(previous) * 100
+                            lines.append(f"\n📉 **变化**: {change_pct:+.2f}%")
+                    except:
+                        pass
+
+            return "\n".join(lines)
+
+        # 尝试 LLM 格式化
+        if self.model:
+            try:
+                data_text = json.dumps(data[:10], ensure_ascii=False, indent=2, default=str)
+                prompt = f"""根据以下商品数据简洁回答用户问题。
 
 数据:
 {data_text}
 
-用户问题: {question}
+问题: {question}
 
-要求:
-1. 简洁明了，突出价格和涨跌幅
-2. 价格注明单位
-3. 涨跌用颜色 emoji: 📈 上涨 📉 下跌 ➡️ 持平
-4. 按类别分组展示 (如果多个商品)
-5. 如果是同环比数据:
-   - 环比和同比必须用百分比格式显示 (如 +5.2%, -3.1%)
-   - 如果数据中有 mom_pct (月环比) 或 yoy_pct (同比) 字段，直接使用
-   - 如果没有百分比字段但有差值，请用公式计算: (本期-上期)/上期*100
-   - 明确标注"环比"和"同比"
+要求: 简洁明了，突出价格和涨跌幅，使用 emoji 标记涨跌。
 
 回答:"""
-        
-        try:
-            response = self.model.generate_content(prompt)
-            return response.text
-        except Exception as e:
-            # 降级为简单格式化
-            lines = []
-            for item in data[:10]:
-                name = item.get('chinese_name') or item.get('name', 'Unknown')
-                price = item.get('price', 0)
-                unit = item.get('price_unit', 'USD')
-                change = item.get('change_percent', 0) or 0
-                
-                emoji = "📈" if change > 0 else "📉" if change < 0 else "➡️"
-                lines.append(f"{emoji} **{name}**: {price} {unit} ({change:+.2f}%)")
-            
-            return "\n".join(lines)
+                response = self.model.generate_content(prompt)
+                return response.text
+            except Exception as e:
+                logger.warning(f"[HybridRouter] LLM 格式化失败: {e}，使用规则格式化")
+
+        # LLM 不可用，使用规则格式化
+        return format_by_rules(data, question)
 
 
 # ============================================================
