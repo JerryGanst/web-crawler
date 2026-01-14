@@ -592,13 +592,13 @@ class NewsRAGEngine:
         """生成新闻摘要"""
         if not news_list:
             return "暂无相关新闻数据。"
-        
+
         # 构建上下文
         news_text = "\n".join([
             f"- [{n['platform']}] {n['title']}"
             for n in news_list[:15]
         ])
-        
+
         prompt = f"""根据以下新闻列表回答用户问题。
 
 新闻列表:
@@ -613,13 +613,20 @@ class NewsRAGEngine:
 4. 如果新闻与问题不相关，如实说明
 
 回答:"""
-        
+
+        # 尝试调用 LLM 生成摘要，失败则直接返回新闻列表
         try:
             response = self.model.generate_content(prompt)
             return response.text
         except Exception as e:
             logger.error(f"新闻摘要生成失败: {e}")
-            return f"找到 {len(news_list)} 条相关新闻，但摘要生成失败。"
+            # 降级方案：直接返回新闻列表
+            fallback_lines = [f"📰 找到 {len(news_list)} 条相关新闻：\n"]
+            for i, n in enumerate(news_list[:10], 1):
+                fallback_lines.append(f"{i}. [{n['platform']}] {n['title']}")
+            if len(news_list) > 10:
+                fallback_lines.append(f"\n... 还有 {len(news_list) - 10} 条")
+            return "\n".join(fallback_lines)
     
     def query(self, question: str) -> QueryResult:
         """执行新闻 RAG 查询"""
