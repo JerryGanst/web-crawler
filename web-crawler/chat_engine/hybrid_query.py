@@ -246,7 +246,9 @@ class IntentClassifier:
         '发生', '事件', '舆情', '舆论', '关注', '动态', '变化', '热度',
         # 科技/AI 话题
         'AI', '人工智能', 'ChatGPT', '大模型', 'GPT', 'OpenAI', 'Claude',
-        '科技', '互联网', '数码', '手机', '苹果', '华为', '小米'
+        '科技', '互联网', '数码', '手机', '苹果', '华为', '小米',
+        # 政策/商业信息
+        '招标', '中标', '采购', '政策', '信息', '公告'
     }
 
     # 纯新闻类关键词 - 只有这些词时才归为 NEWS
@@ -817,14 +819,17 @@ class HybridQueryRouter:
                 "success": True,
                 "answer": response.text,
                 "data": None,
+                "error": None,
                 "execution_time_ms": 0
             }
         except Exception as e:
+            logger.error(f"[HybridRouter] 通用对话生成失败: {e}")
             return {
                 "query_type": "general",
                 "success": False,
-                "answer": f"对话生成失败: {e}",
+                "answer": f"抱歉，无法处理您的请求。请尝试询问商品价格或新闻相关问题。",
                 "data": None,
+                "error": str(e),
                 "execution_time_ms": 0
             }
     

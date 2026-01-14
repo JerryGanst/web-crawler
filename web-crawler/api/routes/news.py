@@ -391,7 +391,9 @@ def _background_fetch_realtime(cache_key: str, keywords: list, category: str = N
         # 1. 写入 MongoDB
         try:
             from database.manager import db_manager
-            if db_manager.mongodb_enabled and category:
+            # 确保 category 有默认值（从 cache_key 推断）
+            effective_category = category or cache_key.replace("news:", "") or "unknown"
+            if db_manager.mongodb_enabled:
                 from database.models import News
                 news_objects = []
                 for item in news:
@@ -414,15 +416,15 @@ def _background_fetch_realtime(cache_key: str, keywords: list, category: str = N
                         title=item.get("title", ""),
                         url=item.get("url", ""),
                         published_at=published_at,
-                        category=category,
+                        category=effective_category,
                         extra_data=item,
                         source=item.get("source", ""),
                         platform_name=item.get("platform_name", ""),
                         summary=item.get("summary", "") or item.get("content", "")[:200]
                     ))
-                
+
                 inserted, updated = db_manager.news_repo.insert_batch(news_objects)
-                print(f"✅ [后台] {category} (实时) 归档到 MongoDB: 新增 {inserted}, 更新 {updated}")
+                print(f"✅ [后台] {effective_category} (实时) 归档到 MongoDB: 新增 {inserted}, 更新 {updated}")
         except Exception as e:
             print(f"⚠️ [后台] MongoDB 归档失败: {e}")
 
@@ -966,7 +968,7 @@ def trigger_crawl(request: CrawlRequest, background_tasks: BackgroundTasks):
     """
     if request.category in ["supply-chain", "supply_chain"]:
         cache_key = "news:supply-chain"
-        triggered = _trigger_background_refresh(cache_key, _background_fetch_realtime, SUPPLY_CHAIN_KEYWORDS, None)
+        triggered = _trigger_background_refresh(cache_key, _background_fetch_realtime, SUPPLY_CHAIN_KEYWORDS, "supply-chain")
     elif request.category == "tariff":
         cache_key = "news:tariff"
         triggered = _trigger_background_refresh(cache_key, _background_fetch_realtime, TARIFF_KEYWORDS, "tariff")

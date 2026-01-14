@@ -58,8 +58,24 @@ class News:
     
     @property
     def title_hash(self) -> str:
-        """生成标题哈希"""
-        return hashlib.md5(self.title.encode('utf-8')).hexdigest()
+        """
+        生成规范化的标题哈希
+
+        规范化步骤：
+        1. 去除首尾空格
+        2. 合并连续空白字符为单个空格
+        3. 移除常见干扰符号（引号、括号等）
+
+        这样可以避免因空格/标点差异导致的重复存储
+        """
+        import re
+        # 1. 去除首尾空格
+        normalized = self.title.strip()
+        # 2. 合并连续空白字符
+        normalized = re.sub(r'\s+', ' ', normalized)
+        # 3. 移除干扰符号（保守处理，只移除常见的）
+        normalized = re.sub(r'[【】\[\]「」『』""''《》<>]', '', normalized)
+        return hashlib.md5(normalized.encode('utf-8')).hexdigest()
     
     @property
     def ranks_json(self) -> str:

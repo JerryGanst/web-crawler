@@ -164,7 +164,7 @@ const NewsFeed = () => {
                                         {item.title}
                                     </div>
                                     <div style={{ fontSize: '11px', color: '#9ca3af' }}>
-                                        {item.platform_name || item.platform}
+                                        {item.platform_name || item.source || item.platform || '未知来源'}
                                     </div>
                                 </div>
                             </a>

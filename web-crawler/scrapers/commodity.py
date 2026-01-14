@@ -51,9 +51,10 @@ COMMODITY_UNITS = {
     '锡': 'USD/吨', 'Tin': 'USD/吨',
     
     # 农产品
-    '玉米': 'USD/蒲式耳', 'Corn': 'USD/蒲式耳',
-    '小麦': 'USc/吨', 'Wheat': 'USc/吨',
-    '大豆': 'USD/蒲式耳', 'Soybeans': 'USD/蒲式耳',
+    # 注意：CBOT 农产品通常以美分/蒲式耳报价
+    '玉米': 'USc/蒲式耳', 'Corn': 'USc/蒲式耳',        # CBOT玉米: 美分/蒲式耳
+    '小麦': 'USc/蒲式耳', 'Wheat': 'USc/蒲式耳',      # CBOT小麦: 美分/蒲式耳 (修复: 原错误为USc/吨)
+    '大豆': 'USc/蒲式耳', 'Soybeans': 'USc/蒲式耳',   # CBOT大豆: 美分/蒲式耳
     '大米': 'USD/英担', 'Rice': 'USD/英担',
     '棉花': 'USD/磅', 'Cotton': 'USD/磅',
     '糖': 'USD/磅', 'Sugar': 'USD/磅',

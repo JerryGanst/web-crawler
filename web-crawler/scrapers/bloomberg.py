@@ -63,15 +63,70 @@ COMMODITY_UNITS = {
     'Crude Oil': 'USD/桶',
     'Natural Gas': 'USD/MMBtu',
 
-    # 农产品
+    # 农产品 - CBOT以美分/蒲式耳报价
     'Corn': 'USc/蒲式耳',
-    'Wheat': 'USc/吨',
+    'Wheat': 'USc/蒲式耳',    # 修复: 原错误为USc/吨
     'Soybeans': 'USc/蒲式耳',
     'Cotton': 'USc/磅',
     'Sugar': 'USc/磅',
     'Coffee': 'USc/磅',
     'Cocoa': 'USD/吨',
 }
+
+
+def normalize_commodity_name(raw_name: str) -> str:
+    """
+    规范化商品名称
+    处理 Bloomberg 页面中的各种名称格式，如:
+    - "FollowCL1:COMWTI Crude Oil (Nymex)" -> "WTI Crude Oil"
+    - "FollowGC1:COMGold (Comex)" -> "Gold"
+    - "FollowHG1:COMCopper (Comex)" -> "Copper"
+    """
+    # 移除 "Follow" 前缀和代码部分
+    # 格式通常是: "Follow{CODE}:{EXCHANGE}{Name}"
+    if raw_name.startswith('Follow'):
+        # 找到第一个大写字母开头的实际名称
+        import re
+        # 匹配 "Follow...:" 后面跟着交易所代码(COM/CUR/IND等)后的名称
+        match = re.search(r'Follow[^:]+:(COM|CUR|IND|COT)?(.*)', raw_name)
+        if match:
+            raw_name = match.group(2).strip()
+
+    # 移除交易所标识，如 "(Nymex)", "(Comex)", "(CBOT)", "(ICE)"
+    raw_name = re.sub(r'\s*\([^)]*\)\s*$', '', raw_name)
+
+    # 标准化特定名称映射
+    name_mapping = {
+        'WTI Crude Oil': 'Oil (WTI)',
+        'Brent Crude': 'Oil (Brent)',
+        'Natural Gas': 'Natural Gas',
+        'Gold': 'Gold',
+        'Gold Spot': 'Gold',
+        'Silver': 'Silver',
+        'Copper': 'Copper',
+        'Platinum Spot': 'Platinum',
+        'Palladium Spot': 'Palladium',
+        'Corn': 'Corn',
+        'Wheat': 'Wheat',
+        'Soybeans': 'Soybeans',
+        'Coffee': 'Coffee',
+        'Sugar': 'Sugar',
+        'Cotton': 'Cotton',
+        'Cocoa': 'Cocoa',
+        'RBOB Gasoline': 'Gasoline',
+        'Heating Oil': 'Heating Oil',
+    }
+
+    # 尝试精确匹配
+    if raw_name in name_mapping:
+        return name_mapping[raw_name]
+
+    # 尝试部分匹配
+    for key, value in name_mapping.items():
+        if key.lower() in raw_name.lower() or raw_name.lower() in key.lower():
+            return value
+
+    return raw_name
 
 
 def categorize_commodity(name: str) -> str:
@@ -138,15 +193,17 @@ def extract_from_table(soup: BeautifulSoup) -> List[Dict[str, Any]]:
                     change = text
 
             if first_cell and price is not None:
+                # 规范化商品名称
+                normalized_name = normalize_commodity_name(first_cell)
                 commodities.append({
-                    'name': first_cell,
-                    'chinese_name': COMMODITY_TRANSLATIONS.get(first_cell, first_cell),
+                    'name': normalized_name,
+                    'chinese_name': COMMODITY_TRANSLATIONS.get(normalized_name, normalized_name),
                     'price': price,
                     'current_price': price,
                     'change': change,
                     'source': 'Bloomberg',
-                    'category': categorize_commodity(first_cell),
-                    'unit': COMMODITY_UNITS.get(first_cell, 'USD'),
+                    'category': categorize_commodity(normalized_name),
+                    'unit': COMMODITY_UNITS.get(normalized_name, 'USD'),
                     'method': 'table_extraction',
                     'timestamp': datetime.now().isoformat()
                 })
@@ -181,7 +238,7 @@ def extract_from_bloomberg_structure(soup: BeautifulSoup) -> List[Dict[str, Any]
                 change_cell = row.find(['td', 'div'], class_=lambda x: x and 'change' in str(x))
 
             if name_cell and price_cell:
-                name = name_cell.get_text(strip=True)
+                raw_name = name_cell.get_text(strip=True)
                 price_text = price_cell.get_text(strip=True)
                 change_text = change_cell.get_text(strip=True) if change_cell else None
 
@@ -189,6 +246,8 @@ def extract_from_bloomberg_structure(soup: BeautifulSoup) -> List[Dict[str, Any]
                 price_match = re.search(r'(\d+,?\d*\.?\d*)', price_text.replace(',', ''))
                 if price_match:
                     price = float(price_match.group(1))
+                    # 规范化商品名称
+                    name = normalize_commodity_name(raw_name)
 
                     commodities.append({
                         'name': name,
@@ -235,8 +294,10 @@ def extract_from_json_scripts(soup: BeautifulSoup) -> List[Dict[str, Any]]:
                     price_match = re.search(r'"price"\s*:\s*(\d+\.?\d*)', match)
 
                     if name_match and price_match:
-                        name = name_match.group(1)
+                        raw_name = name_match.group(1)
                         price = float(price_match.group(1))
+                        # 规范化商品名称
+                        name = normalize_commodity_name(raw_name)
 
                         commodities.append({
                             'name': name,

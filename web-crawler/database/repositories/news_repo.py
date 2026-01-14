@@ -32,22 +32,38 @@ class NewsRepository:
             cursor = conn.execute(sql, news.to_db_tuple())
             return cursor.lastrowid
     
-    def insert_or_update(self, news: News) -> Tuple[int, bool]:
+    def insert_or_update(self, news: News, use_cross_date_dedup: bool = True) -> Tuple[int, bool]:
         """
         插入或更新新闻
-        
+
+        Args:
+            news: 新闻对象
+            use_cross_date_dedup: 是否使用跨日期去重（默认 True）
+                - True: 检查最近 7 天内是否有相同标题（推荐）
+                - False: 只检查当天是否有相同标题（旧逻辑）
+
         Returns:
             (news_id, is_new): 新闻ID和是否为新增
         """
-        # 检查是否已存在
-        existing = self.find_by_title_hash(
-            news.platform_id, 
-            news.title_hash, 
-            news.crawl_date
-        )
-        
+        existing = None
+
+        if use_cross_date_dedup:
+            # 跨日期去重：检查最近 7 天内是否存在相同标题
+            existing = self.find_by_title_hash_recent(
+                news.platform_id,
+                news.title_hash,
+                days=7
+            )
+        else:
+            # 旧逻辑：只检查当天
+            existing = self.find_by_title_hash(
+                news.platform_id,
+                news.title_hash,
+                news.crawl_date
+            )
+
         if existing:
-            # 更新现有记录
+            # 更新现有记录的出现次数和时间
             self.update_appearance(
                 existing.id,
                 news.current_rank,
@@ -118,17 +134,46 @@ class NewsRepository:
         return News.from_db_row(row) if row else None
     
     def find_by_title_hash(
-        self, 
-        platform_id: str, 
+        self,
+        platform_id: str,
         title_hash: str,
         crawl_date: str
     ) -> Optional[News]:
-        """根据平台、标题哈希和日期查找新闻"""
+        """根据平台、标题哈希和日期查找新闻（保留兼容性）"""
         sql = """
-            SELECT * FROM news 
+            SELECT * FROM news
             WHERE platform_id = ? AND title_hash = ? AND crawl_date = ?
         """
         row = self.db.fetch_one(sql, (platform_id, title_hash, crawl_date))
+        return News.from_db_row(row) if row else None
+
+    def find_by_title_hash_recent(
+        self,
+        platform_id: str,
+        title_hash: str,
+        days: int = 7
+    ) -> Optional[News]:
+        """
+        跨日期去重：查找最近 N 天内是否存在相同标题哈希的新闻
+
+        Args:
+            platform_id: 平台ID
+            title_hash: 标题哈希
+            days: 查找范围（天数），默认 7 天
+
+        Returns:
+            如果存在则返回最近的一条，否则返回 None
+        """
+        from datetime import datetime, timedelta
+        cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+
+        sql = """
+            SELECT * FROM news
+            WHERE platform_id = ? AND title_hash = ? AND crawl_date >= ?
+            ORDER BY crawl_date DESC
+            LIMIT 1
+        """
+        row = self.db.fetch_one(sql, (platform_id, title_hash, cutoff_date))
         return News.from_db_row(row) if row else None
     
     def find_by_date(
@@ -428,15 +473,66 @@ class MongoNewsRepository:
         result = self._col.insert_one(doc)
         return str(result.inserted_id)
 
-    def insert_or_update(self, news: News) -> Tuple[str, bool]:
-        existing = self._col.find_one(
+    def find_by_title_hash_recent(
+        self,
+        platform_id: str,
+        title_hash: str,
+        days: int = 7
+    ) -> Optional[Dict]:
+        """
+        跨日期去重：查找最近 N 天内是否存在相同标题哈希的新闻
+
+        Args:
+            platform_id: 平台ID
+            title_hash: 标题哈希
+            days: 查找范围（天数），默认 7 天
+
+        Returns:
+            如果存在则返回最近的一条文档，否则返回 None
+        """
+        cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+
+        return self._col.find_one(
             {
-                "platform_id": news.platform_id,
-                "title_hash": news.title_hash,
-                "crawl_date": news.crawl_date,
+                "platform_id": platform_id,
+                "title_hash": title_hash,
+                "crawl_date": {"$gte": cutoff_date},
             },
             {"_id": 1},
+            sort=[("crawl_date", -1)]
         )
+
+    def insert_or_update(self, news: News, use_cross_date_dedup: bool = True) -> Tuple[str, bool]:
+        """
+        插入或更新新闻
+
+        Args:
+            news: 新闻对象
+            use_cross_date_dedup: 是否使用跨日期去重（默认 True）
+
+        Returns:
+            (news_id, is_new): 新闻ID和是否为新增
+        """
+        existing = None
+
+        if use_cross_date_dedup:
+            # 跨日期去重：检查最近 7 天内是否存在相同标题
+            existing = self.find_by_title_hash_recent(
+                news.platform_id,
+                news.title_hash,
+                days=7
+            )
+        else:
+            # 旧逻辑：只检查当天
+            existing = self._col.find_one(
+                {
+                    "platform_id": news.platform_id,
+                    "title_hash": news.title_hash,
+                    "crawl_date": news.crawl_date,
+                },
+                {"_id": 1},
+            )
+
         if existing:
             self.update_appearance(
                 str(existing.get("_id")),

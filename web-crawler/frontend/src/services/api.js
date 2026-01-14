@@ -37,8 +37,12 @@ const cachedRequest = async (key, fetcher, options = {}) => {
     // 1. 检查缓存是否有效（非强制刷新时）
     if (!forceRefresh) {
         const cached = cache.get(key);
-        if (cached && Date.now() - cached.timestamp < ttl) {
-            console.log(`[Cache HIT] ${key} (age: ${Math.round((Date.now() - cached.timestamp) / 1000)}s)`);
+        // 使用缓存项自身的 TTL（如有），否则使用请求指定的 TTL
+        const effectiveTtl = cached?.ttl || ttl;
+        if (cached && Date.now() - cached.timestamp < effectiveTtl) {
+            const age = Math.round((Date.now() - cached.timestamp) / 1000);
+            const remaining = Math.round((effectiveTtl - (Date.now() - cached.timestamp)) / 1000);
+            console.log(`[Cache HIT] ${key} (age: ${age}s, expires in: ${remaining}s)`);
             return cached.data;
         }
     }
@@ -90,10 +94,11 @@ const executeRequest = async (key, fetcher, ttl) => {
 
     const promise = fetcher(controller.signal)
         .then(response => {
-            // 存入缓存
+            // 存入缓存（同时保存 TTL 以便正确计算过期时间）
             cache.set(key, {
                 data: response,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                ttl: ttl
             });
             // 清除状态
             pendingRequests.delete(key);
@@ -359,10 +364,13 @@ const api = {
         const status = {};
         for (const [key, value] of cache.entries()) {
             const age = Math.round((Date.now() - value.timestamp) / 1000);
+            // 使用缓存项自身的 TTL，如果没有则使用默认值
+            const itemTtl = value.ttl || CACHE_TTL;
             status[key] = {
                 age: age + 's',
-                valid: Date.now() - value.timestamp < CACHE_TTL,
-                expires_in: Math.max(0, Math.round((CACHE_TTL - (Date.now() - value.timestamp)) / 1000)) + 's'
+                valid: Date.now() - value.timestamp < itemTtl,
+                expires_in: Math.max(0, Math.round((itemTtl - (Date.now() - value.timestamp)) / 1000)) + 's',
+                ttl: Math.round(itemTtl / 1000) + 's'
             };
         }
         return status;

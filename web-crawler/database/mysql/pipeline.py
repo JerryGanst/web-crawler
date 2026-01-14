@@ -122,6 +122,73 @@ COMMODITY_ID_MAP = {
     'Coal': 'coal', '煤炭': 'coal',
 }
 
+# 价格合理范围定义（用于异常值检测）
+# 格式: commodity_id: (min_price, max_price, unit_note)
+PRICE_RANGES = {
+    # 贵金属 (USD/盎司)
+    'gold': (500, 3500, 'USD/oz'),
+    'comex_gold': (500, 3500, 'USD/oz'),
+    'silver': (10, 60, 'USD/oz'),
+    'comex_silver': (10, 60, 'USD/oz'),
+    'platinum': (500, 2000, 'USD/oz'),
+    'palladium': (500, 3500, 'USD/oz'),
+
+    # 能源 (USD/桶 或 USD/MMBtu)
+    'oil_brent': (20, 200, 'USD/桶'),
+    'oil_wti': (20, 200, 'USD/桶'),
+    'natural_gas': (1, 20, 'USD/MMBtu'),
+
+    # 工业金属 - 注意不同单位
+    # COMEX铜: 100-800 美分/磅 (约 2200-17600 USD/吨)
+    # Business Insider Copper: LME报价，使用 USD/吨
+    'copper': (5000, 20000, 'USD/吨'),     # Business Insider (LME报价)
+    'comex_copper': (100, 800, 'USc/磅'),  # 新浪期货 (COMEX报价)
+    'aluminum': (1500, 4000, 'USD/吨'),
+    'zinc': (1500, 5000, 'USD/吨'),
+    'nickel': (8000, 30000, 'USD/吨'),
+    'lead': (1000, 3500, 'USD/吨'),
+    'tin': (15000, 50000, 'USD/吨'),
+
+    # 农产品 - 美分/蒲式耳
+    'corn': (200, 1000, 'USc/蒲式耳'),
+    'wheat': (300, 1500, 'USc/蒲式耳'),
+    'soybeans': (800, 2000, 'USc/蒲式耳'),
+    'oats': (200, 800, 'USc/蒲式耳'),
+
+    # 其他农产品
+    'cotton': (50, 200, 'USc/磅'),
+    'sugar': (5, 40, 'USc/磅'),
+    'coffee': (100, 400, 'USc/磅'),
+    'cocoa': (1500, 5000, 'USD/吨'),
+}
+
+
+def validate_price_range(commodity_id: str, price: float, unit: str = '') -> Optional[str]:
+    """
+    验证价格是否在合理范围内
+
+    Args:
+        commodity_id: 商品ID
+        price: 价格值
+        unit: 单位
+
+    Returns:
+        如果价格异常，返回警告信息；正常返回 None
+    """
+    if commodity_id not in PRICE_RANGES:
+        return None
+
+    min_price, max_price, expected_unit = PRICE_RANGES[commodity_id]
+
+    # 检查是否在范围内
+    if price < min_price:
+        return f"价格 {price} 低于最小值 {min_price} ({expected_unit})"
+    if price > max_price:
+        return f"价格 {price} 高于最大值 {max_price} ({expected_unit})"
+
+    return None
+
+
 # 分类映射
 CATEGORY_MAP = {
     'gold': '贵金属', 'comex_gold': '贵金属', 'silver': '贵金属', 'comex_silver': '贵金属',
@@ -144,11 +211,11 @@ CATEGORY_MAP = {
 def standardize_record(raw: Dict[str, Any], source: str) -> Optional[CommodityRecord]:
     """
     标准化原始记录
-    
+
     Args:
         raw: 爬虫输出的原始数据
         source: 数据来源标识
-    
+
     Returns:
         标准化的 CommodityRecord，无效数据返回 None
     """
@@ -156,18 +223,24 @@ def standardize_record(raw: Dict[str, Any], source: str) -> Optional[CommodityRe
     name = raw.get('name') or raw.get('chinese_name') or ''
     if not name:
         return None
-    
+
     # 标准化 ID
     commodity_id = COMMODITY_ID_MAP.get(name, name.lower().replace(' ', '_'))
-    
+
     price = raw.get('price') or raw.get('current_price') or 0
     try:
         price = Decimal(str(price))
     except:
         return None  # 价格无效，丢弃
-    
+
     if price <= 0:
         return None
+
+    # 价格异常值检测
+    unit = raw.get('unit', '')
+    warning = validate_price_range(commodity_id, float(price), unit)
+    if warning:
+        print(f"⚠️ 价格异常警告 [{commodity_id}]: {warning}")
     
     # 获取版本时间
     version_ts = raw.get('version_ts') or raw.get('timestamp') or datetime.now()

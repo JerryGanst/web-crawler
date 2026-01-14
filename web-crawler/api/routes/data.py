@@ -743,20 +743,64 @@ def get_exchange_rate(refresh: bool = False):
         except Exception:
             continue
     
-    # 默认备用汇率
+    # 尝试从数据库获取最近的汇率（比硬编码值更可靠）
+    db_rate = _get_latest_exchange_rate_from_mysql()
+    if db_rate and db_rate > 0:
+        db_result = {
+            "status": "database_fallback",
+            "base": "USD",
+            "target": "CNY",
+            "rate": round(float(db_rate), 4),
+            "timestamp": datetime.now().isoformat(),
+            "source": "mysql_history",
+            "cached": False,
+            "warning": "API不可用，使用数据库历史汇率"
+        }
+        # 数据库备用数据缓存10分钟
+        cache.set(cache_key, db_result, ttl=600)
+        print(f"⚠️ 汇率API不可用，使用数据库历史汇率: {db_rate}")
+        return db_result
+
+    # 最后的硬编码备用汇率（仅当数据库也没有数据时）
     fallback_result = {
-        "status": "fallback",
+        "status": "hardcoded_fallback",
         "base": "USD",
         "target": "CNY",
         "rate": 7.2,
         "timestamp": datetime.now().isoformat(),
         "source": "default",
-        "cached": False
+        "cached": False,
+        "warning": "所有汇率源不可用，使用硬编码默认值7.2"
     }
-    
+
     # 写入 MySQL (缓存前)
     _save_exchange_rate_to_mysql(fallback_result)
+    print(f"⚠️ 所有汇率源不可用，使用硬编码默认值: 7.2")
 
     # 备用数据也缓存较短时间 (5分钟)
     cache.set(cache_key, fallback_result, ttl=300)
     return fallback_result
+
+
+def _get_latest_exchange_rate_from_mysql() -> Optional[float]:
+    """从数据库获取最近的汇率记录"""
+    conn = None
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT rate FROM exchange_rates
+            WHERE base_currency = 'USD' AND target_currency = 'CNY'
+            ORDER BY created_at DESC
+            LIMIT 1
+        """)
+        row = cursor.fetchone()
+        if row:
+            return float(row['rate']) if isinstance(row, dict) else float(row[0])
+        return None
+    except Exception as e:
+        print(f"获取历史汇率失败: {e}")
+        return None
+    finally:
+        if conn:
+            conn.close()

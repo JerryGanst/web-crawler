@@ -24,6 +24,104 @@ const safeGetHostname = (url) => {
     }
 };
 
+// ==================== 价格单位转换函数 ====================
+// 常量
+const POUNDS_PER_TON = 2204.62;  // 1吨 = 2204.62磅
+const CENTS_TO_DOLLARS = 100;    // 100美分 = 1美元
+
+// 检测是否为美分单位
+const isCentsUnit = (unitStr) => {
+    if (!unitStr) return false;
+    const lower = unitStr.toLowerCase();
+    return lower.includes('usc') || unitStr.includes('美分') || lower.includes('cent') || lower.includes('¢');
+};
+
+// 检测是否为磅单位
+const isPoundBasedUnit = (unitStr) => {
+    if (!unitStr) return false;
+    const lower = unitStr.toLowerCase();
+    return lower.includes('pound') || lower.includes('lb') || unitStr.includes('磅');
+};
+
+// 检测是否为吨单位
+const isTonBasedUnit = (unitStr) => {
+    if (!unitStr) return false;
+    return unitStr.includes('吨') || unitStr.toLowerCase().includes('ton');
+};
+
+// 检测是否为人民币单位
+const isCNYUnit = (unitStr) => {
+    if (!unitStr) return false;
+    return unitStr.includes('CNY') || unitStr.includes('RMB') || unitStr.includes('元') || unitStr.includes('人民币');
+};
+
+/**
+ * 将价格从原始单位转换为统一单位（目标单位/吨）
+ *
+ * 转换顺序：
+ * 1. 美分 → 美元 (÷100)
+ * 2. 磅 → 吨 (×2204.62)
+ * 3. 外币 → 目标货币 (×汇率)
+ *
+ * @param {number} price - 原始价格
+ * @param {string} sourceUnit - 原始单位 (e.g., "USc/磅", "USD/吨")
+ * @param {string} targetCurrency - 目标货币 ('CNY' 或 'USD')
+ * @param {number} exchangeRate - 汇率 (USD to CNY)
+ * @returns {number} 转换后的价格（目标货币/吨）
+ */
+const convertPriceToUnifiedUnit = (price, sourceUnit, targetCurrency = 'CNY', exchangeRate = 7.2) => {
+    if (!price || isNaN(price)) return 0;
+
+    let convertedPrice = parseFloat(price);
+    const isSourceCents = isCentsUnit(sourceUnit);
+    const isSourcePound = isPoundBasedUnit(sourceUnit);
+    const isSourceTon = isTonBasedUnit(sourceUnit);
+    const isSourceCNY = isCNYUnit(sourceUnit);
+
+    // 步骤1: 美分 → 美元 (÷100)
+    if (isSourceCents) {
+        convertedPrice = convertedPrice / CENTS_TO_DOLLARS;
+    }
+
+    // 步骤2: 磅 → 吨 (×2204.62)
+    // 只有当源单位是磅（不是吨）时才转换
+    if (isSourcePound && !isSourceTon) {
+        convertedPrice = convertedPrice * POUNDS_PER_TON;
+    }
+
+    // 步骤3: 货币转换
+    if (targetCurrency === 'CNY' && !isSourceCNY) {
+        // USD → CNY
+        convertedPrice = convertedPrice * exchangeRate;
+    } else if (targetCurrency === 'USD' && isSourceCNY) {
+        // CNY → USD
+        convertedPrice = convertedPrice / exchangeRate;
+    }
+
+    return convertedPrice;
+};
+
+/**
+ * 转换历史数据数组中的所有价格到统一单位
+ * @param {Array} historyData - 历史数据数组
+ * @param {string} sourceUnit - 来源单位
+ * @param {string} targetCurrency - 目标货币
+ * @param {number} exchangeRate - 汇率
+ * @returns {Array} 转换后的历史数据
+ */
+const convertHistoryDataPrices = (historyData, sourceUnit, targetCurrency, exchangeRate) => {
+    if (!historyData || !Array.isArray(historyData)) return historyData;
+
+    return historyData.map(record => ({
+        ...record,
+        price: convertPriceToUnifiedUnit(record.price, sourceUnit, targetCurrency, exchangeRate),
+        // 标记为已转换，单位现在是 目标货币/吨
+        convertedUnit: `${targetCurrency}/吨`,
+        originalPrice: record.price,
+        originalUnit: sourceUnit
+    }));
+};
+
 
 // ==================== 商品分类 TAB 配置 ====================
 // 基于后端返回的 category 字段进行分类（贵金属/工业金属/能源/农产品/其他）
@@ -410,6 +508,11 @@ const Dashboard = () => {
                         source: safeGetHostname(item.url)
                     });
 
+                    // 多来源时清除顶层url/source，让组件使用sources数组
+                    // 这样避免只显示第一个来源的链接
+                    existing.url = null;
+                    existing.source = null;
+
                     // 如果是区域商品，添加到区域列表
                     if (isRegional && regionName) {
                         const colorIdx = existing.regions.length % regionalColors.length;
@@ -578,6 +681,55 @@ const Dashboard = () => {
     const displayCommodities = useMemo(() => {
         const colors = ['#f59e0b', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#6366f1', '#14b8a6', '#a855f7'];
 
+        // 辅助函数：从原始 API 数据中查找某个来源的单位
+        // 解决历史数据没有 unit 字段的问题
+        const findUnitBySource = (sourceName, commodityName) => {
+            if (!data || !Array.isArray(data)) return '';
+
+            // 商品关键词匹配表（用于跨语言匹配）
+            const commodityKeywords = {
+                '铜': ['铜', 'copper', 'cu'],
+                'copper': ['铜', 'copper', 'cu'],
+                '黄金': ['黄金', 'gold', 'au'],
+                'gold': ['黄金', 'gold', 'au'],
+                '白银': ['白银', 'silver', 'ag'],
+                'silver': ['白银', 'silver', 'ag'],
+                '原油': ['原油', 'oil', 'crude', 'wti', 'brent'],
+                'oil': ['原油', 'oil', 'crude', 'wti', 'brent'],
+            };
+
+            // 获取商品的关键词列表
+            const getKeywords = (name) => {
+                const lower = name.toLowerCase();
+                for (const [key, keywords] of Object.entries(commodityKeywords)) {
+                    if (lower.includes(key.toLowerCase())) {
+                        return keywords;
+                    }
+                }
+                return [name.toLowerCase()];
+            };
+
+            const targetKeywords = getKeywords(commodityName);
+
+            // 在 API 数据中查找匹配的来源和商品
+            const match = data.find(item => {
+                const itemSource = item.source || '';
+                const itemName = ((item.name || '') + ' ' + (item.chinese_name || '')).toLowerCase();
+
+                // 来源匹配
+                const sourceMatch = itemSource === sourceName ||
+                    itemSource.includes(sourceName) ||
+                    sourceName.includes(itemSource);
+
+                // 商品匹配：任一关键词在 itemName 中出现
+                const commodityMatch = targetKeywords.some(kw => itemName.includes(kw));
+
+                return sourceMatch && commodityMatch;
+            });
+
+            return match?.unit || match?.price_unit || '';
+        };
+
         // 1. 基础筛选
         let filtered = allCommodities.filter(commodity => {
             // 先检查TAB分类过滤
@@ -661,13 +813,21 @@ const Dashboard = () => {
 
             // 情况1: 区域聚合商品 (e.g. 塑料PP)
             if (commodity.isRegional && commodity.regions && commodity.regions.length > 0) {
+                const effectiveRate = exchangeRate || 7.2;
                 multiSourceHistory = commodity.regions.map(region => {
                     const regionHistory = getHistoryData(region.fullName, region.price, timeRange === 'day' ? 24 : (timeRange === 'week' ? 7 : 30));
+                    const sourceUnit = commodity.unit || '';
+                    // 先转换价格到统一单位，再合并
+                    const convertedHistory = convertHistoryDataPrices(regionHistory, sourceUnit, currency, effectiveRate);
                     return {
                         source: region.name,
                         color: region.color,
                         url: commodity.url,
-                        data: regionHistory || []
+                        data: convertedHistory || [],
+                        // 标记已转换，单位现在是 currency/吨
+                        unit: `${currency}/吨`,
+                        price_unit: `${currency}/吨`,
+                        isConverted: true
                     };
                 }).filter(s => s.data && s.data.length > 0);
             }
@@ -684,30 +844,56 @@ const Dashboard = () => {
                 });
 
                 if (Object.keys(historyBySource).length > 1) {
+                    const effectiveRate = exchangeRate || 7.2;
                     multiSourceHistory = Object.entries(historyBySource).map(([src, data], idx) => {
-                        // 尝试从 commodity.sources 查找 URL
-                        let sourceUrl = commodity.sources?.find(s => s.source === src)?.url;
+                        // 尝试从 commodity.sources 查找 URL 和 unit
+                        const sourceInfo = commodity.sources?.find(s => s.source === src || s.name?.includes(src));
+                        let sourceUrl = sourceInfo?.url;
+                        // 关键修复：从原始 API 数据中查找该来源的正确单位
+                        // 优先级：1.历史数据 2.API数据(按来源查找) 3.commodity.sources 4.commodity.unit
+                        // 注意：data 是当前来源的历史记录数组
+                        const apiUnit = findUnitBySource(src, commodity.name);
+                        const sourceUnit = data[0]?.unit || data[0]?.price_unit ||
+                            apiUnit ||
+                            sourceInfo?.unit || commodity.unit || '';
+
+                        // 调试日志：铜相关商品
+                        if (commodity.name.includes('铜') || commodity.name.toLowerCase().includes('copper')) {
+                            console.log(`🔧 [${commodity.name}] source=${src}, apiUnit=${apiUnit}, sourceUnit=${sourceUnit}, data[0].price=${data[0]?.price}`);
+                        }
 
                         // 如果未找到且是新浪期货，使用固定 URL (针对 WTI 原油等情况)
                         if (!sourceUrl && src === '新浪期货') {
                             if (commodity.name.includes('WTI') || commodity.name.includes('原油')) {
-                                // 用户提供的固定URL (注意: hf_SI 通常是白银, hf_CL 是原油, 这里按用户要求或修正为 CL)
-                                // 修正: WTI原油对应 hf_CL
                                 sourceUrl = 'https://finance.sina.com.cn/futures/quotes/hf_CL.shtml';
                             } else {
                                 sourceUrl = 'https://finance.sina.com.cn/futures/quotes/hf_SI.shtml';
                             }
                         }
 
+                        // 关键：先转换价格到统一单位，再合并
+                        const sortedData = data.sort((a, b) => new Date(a.date) - new Date(b.date));
+                        const convertedData = convertHistoryDataPrices(sortedData, sourceUnit, currency, effectiveRate);
+
                         return {
                             source: src,
                             color: ['#f59e0b', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#06b6d4'][idx % 6],
-                            data: data.sort((a, b) => new Date(a.date) - new Date(b.date)),
-                            url: sourceUrl
+                            data: convertedData,
+                            url: sourceUrl,
+                            // 标记已转换，单位现在是 currency/吨
+                            unit: `${currency}/吨`,
+                            price_unit: `${currency}/吨`,
+                            originalUnit: sourceUnit,
+                            isConverted: true
                         };
                     });
                 }
             }
+
+            // 确定显示单位：如果 multiSourceHistory 已转换，使用转换后的单位
+            const displayUnit = (multiSourceHistory && multiSourceHistory.length > 0 && multiSourceHistory[0].isConverted)
+                ? `${currency}/吨`
+                : commodity.unit || '';
 
             return {
                 id: commodity.name,
@@ -716,7 +902,7 @@ const Dashboard = () => {
                 currentPrice: price,
                 price: price,
                 color: colors[idx % colors.length],
-                unit: commodity.unit || '',
+                unit: displayUnit,
                 change: commodity.change,
                 url: commodity.url,
                 source: commodity.source,
@@ -728,7 +914,7 @@ const Dashboard = () => {
                 dataItem: commodity
             };
         });
-    }, [allCommodities, activeCommodityTab, activePlasticSubTab, selectedCommodities, timeRange, priceHistory, getSourceFilteredCommodities]);
+    }, [allCommodities, activeCommodityTab, activePlasticSubTab, selectedCommodities, timeRange, priceHistory, getSourceFilteredCommodities, currency, exchangeRate, data]);
     const hasFetchedData = useRef(false);
     const intervalRef = useRef(null);
 
@@ -769,15 +955,23 @@ const Dashboard = () => {
     }, []);
 
     useEffect(() => {
-        // Fetch Exchange Rate
+        // Fetch Exchange Rate (备用路径，主要逻辑在上方的 exchangeRateLoadedRef)
         const fetchExchangeRate = async () => {
             try {
                 const response = await api.getExchangeRate();
-                if (response && response.rate) {
-                    setExchangeRate(response.rate);
+                // 兼容两种响应格式：response.data?.rate 或 response?.rate
+                const rate = response?.data?.rate || response?.rate;
+                if (rate && typeof rate === 'number') {
+                    setExchangeRate(rate);
+                } else if (!exchangeRate) {
+                    // 只有当当前汇率为空时才设置默认值
+                    setExchangeRate(7.2);
                 }
             } catch (err) {
                 console.error("Error fetching exchange rate:", err);
+                if (!exchangeRate) {
+                    setExchangeRate(7.2); // 错误时使用默认汇率
+                }
             }
         };
         fetchExchangeRate();
@@ -869,6 +1063,10 @@ const Dashboard = () => {
     const formatPrice = (price, unit) => {
         if (!price) return '0.00';
         let val = parseFloat(price);
+        if (!isFinite(val)) return '0.00';
+
+        // 使用有效汇率（防止 null/undefined 导致 NaN）
+        const effectiveRate = exchangeRate || 7.2;
 
         // 判断源货币是否为人民币
         const isSourceCNY = unit && (unit.includes('元') || unit.includes('CNY') || unit.includes('RMB'));
@@ -877,17 +1075,26 @@ const Dashboard = () => {
             // 目标是CNY，源是CNY -> 不变
             // 目标是CNY，源是USD -> 乘汇率
             if (!isSourceCNY) {
-                val = val * exchangeRate;
+                val = val * effectiveRate;
             }
         } else {
             // 目标是USD
             // 目标是USD，源是CNY -> 除汇率
             // 目标是USD，源是USD -> 不变
             if (isSourceCNY) {
-                val = val / exchangeRate;
+                val = val / effectiveRate;
             }
         }
 
+        // 检查转换后的值是否有效
+        if (!isFinite(val)) return '0.00';
+
+        // 智能格式化：根据价格大小选择精度
+        const absVal = Math.abs(val);
+        if (absVal >= 10000) return val.toFixed(0);
+        if (absVal >= 100) return val.toFixed(0);
+        if (absVal >= 1) return val.toFixed(2);
+        if (absVal >= 0.01) return val.toFixed(4);
         return val.toFixed(2);
     };
 
@@ -1255,6 +1462,7 @@ const Dashboard = () => {
                 };
             }
 
+            const effectiveRate = exchangeRate || 7.2;
             const multiSourceHistory = matchingItems.map((item, idx) => {
                 const price = item.price || item.current_price || comm.basePrice;
                 // 优先使用chinese_name，否则将英文name转换为中文
@@ -1279,11 +1487,44 @@ const Dashboard = () => {
                     parseFloat(price || 0),
                     timeRange === 'day' ? 24 : (timeRange === 'week' ? 7 : 30)
                 );
+
+                // 获取该来源的单位
+                const sourceUnit = item.unit || item.price_unit || '';
+                // 获取该来源的标识
+                const sourceName = item.source || safeGetHostname(item.url) || '';
+
+                // 关键修复：只使用该来源的历史数据，避免混合不同单位的数据
+                // 先按来源过滤历史数据
+                let sourceHistData = histData;
+                if (histData && Array.isArray(histData)) {
+                    const filteredBySource = histData.filter(record => {
+                        const recordSource = record.source || '';
+                        // 匹配来源：精确匹配或包含关系
+                        return recordSource === sourceName ||
+                               recordSource.includes(sourceName) ||
+                               sourceName.includes(recordSource) ||
+                               (sourceName === '新浪期货' && recordSource.includes('新浪')) ||
+                               (sourceName.includes('businessinsider') && recordSource.includes('Business'));
+                    });
+                    // 如果过滤后有数据，使用过滤后的；否则保留原数据
+                    if (filteredBySource.length > 0) {
+                        sourceHistData = filteredBySource;
+                    }
+                }
+
+                // 转换价格到统一单位
+                const convertedHistData = convertHistoryDataPrices(sourceHistData, sourceUnit, currency, effectiveRate);
+
                 return {
                     source: safeGetHostname(item.url) || `来源${idx + 1}`,
                     color: sourceColors[idx % sourceColors.length],
-                    data: histData,
-                    url: item.url
+                    data: convertedHistData,
+                    url: item.url,
+                    // 标记已转换，单位现在是 currency/吨
+                    unit: `${currency}/吨`,
+                    price_unit: `${currency}/吨`,
+                    originalUnit: sourceUnit,
+                    isConverted: true
                 };
             });
 
@@ -1306,7 +1547,7 @@ const Dashboard = () => {
                 multiSourceHistory
             };
         });
-    }, [data, timeRange, priceHistory]);
+    }, [data, timeRange, priceHistory, currency, exchangeRate]);
 
 
 

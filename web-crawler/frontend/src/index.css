@@ -62,3 +62,9 @@ input {
   width: 100%;
   box-sizing: border-box;
 }
+
+/* 全局 spin 动画 - 用于加载指示器 */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

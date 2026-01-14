@@ -482,6 +482,8 @@ const Dashboard = () => {
     const formatPrice = (price, unit = '') => {
         if (!price) return '0.00';
         let val = parseFloat(price);
+        if (!isFinite(val)) return '0.00';
+
         // 判断原始价格是否为人民币（根据单位判断）
         const isOriginalCNY = unit && (unit.includes('元') || unit.includes('CNY') || unit.includes('RMB'));
 
@@ -496,6 +498,12 @@ const Dashboard = () => {
             val = val / EXCHANGE_RATE;
         }
 
+        // 智能格式化：根据价格大小选择精度
+        const absVal = Math.abs(val);
+        if (absVal >= 10000) return val.toFixed(0);
+        if (absVal >= 100) return val.toFixed(0);
+        if (absVal >= 1) return val.toFixed(2);
+        if (absVal >= 0.01) return val.toFixed(4);
         return val.toFixed(2);
     };
 
@@ -565,6 +573,11 @@ const Dashboard = () => {
                         url: item.url,
                         source: safeGetHostname(item.url)
                     });
+
+                    // 多来源时清除顶层url/source，让组件使用sources数组
+                    // 这样避免只显示第一个来源的链接
+                    existing.url = null;
+                    existing.source = null;
 
                     // 如果是区域商品，添加到区域列表
                     if (isRegional && regionName) {

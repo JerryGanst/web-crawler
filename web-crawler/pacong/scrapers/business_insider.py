@@ -109,7 +109,7 @@ class BusinessInsiderScraper(BaseScraper, WebScrapingMixin):
             'Soybean Meal': 'USD/吨',
             'Soybeans': 'USc/蒲式耳',
             'Soybean Oil': 'USD/磅',
-            'Wheat': 'USc/吨',
+            'Wheat': 'USc/蒲式耳',  # CBOT小麦: 美分/蒲式耳 (修复: 原错误为USc/吨)
             'Sugar': 'USc/磅',
         }
     
